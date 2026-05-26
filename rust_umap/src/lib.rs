@@ -1925,9 +1925,10 @@ fn approximate_nearest_neighbors_euclidean<M: RowMatrix + ?Sized>(
 
     let max_candidates = candidate_pool.max(n_neighbors) * 4 + 1;
 
+    let mut buf_neighbors = neighbors.clone();
+
     for _ in 0..n_iters {
         let mut changed = false;
-        let mut next_neighbors = neighbors.clone();
 
         for i in 0..n_samples {
             let mut candidate_set = HashSet::with_capacity(max_candidates);
@@ -1963,11 +1964,13 @@ fn approximate_nearest_neighbors_euclidean<M: RowMatrix + ?Sized>(
 
             if updated != neighbors[i] {
                 changed = true;
-                next_neighbors[i] = updated;
+                buf_neighbors[i] = updated;
+            } else {
+                buf_neighbors[i].clone_from(&neighbors[i]);
             }
         }
 
-        neighbors = next_neighbors;
+        std::mem::swap(&mut neighbors, &mut buf_neighbors);
         if !changed {
             break;
         }
@@ -2025,9 +2028,10 @@ where
 
     let max_candidates = candidate_pool.max(n_neighbors) * 4 + 1;
 
+    let mut buf_neighbors = neighbors.clone();
+
     for _ in 0..n_iters {
         let mut changed = false;
-        let mut next_neighbors = neighbors.clone();
 
         for i in 0..n_samples {
             let mut candidate_set = HashSet::with_capacity(max_candidates);
@@ -2068,11 +2072,13 @@ where
 
             if updated != neighbors[i] {
                 changed = true;
-                next_neighbors[i] = updated;
+                buf_neighbors[i] = updated;
+            } else {
+                buf_neighbors[i].clone_from(&neighbors[i]);
             }
         }
 
-        neighbors = next_neighbors;
+        std::mem::swap(&mut neighbors, &mut buf_neighbors);
         if !changed {
             break;
         }
@@ -2131,9 +2137,10 @@ fn approximate_nearest_neighbors_cosine<M: RowMatrix + ?Sized>(
 
     let max_candidates = candidate_pool.max(n_neighbors) * 4 + 1;
 
+    let mut buf_neighbors = neighbors.clone();
+
     for _ in 0..n_iters {
         let mut changed = false;
-        let mut next_neighbors = neighbors.clone();
 
         for i in 0..n_samples {
             let mut candidate_set = HashSet::with_capacity(max_candidates);
@@ -2174,11 +2181,13 @@ fn approximate_nearest_neighbors_cosine<M: RowMatrix + ?Sized>(
 
             if updated != neighbors[i] {
                 changed = true;
-                next_neighbors[i] = updated;
+                buf_neighbors[i] = updated;
+            } else {
+                buf_neighbors[i].clone_from(&neighbors[i]);
             }
         }
 
-        neighbors = next_neighbors;
+        std::mem::swap(&mut neighbors, &mut buf_neighbors);
         if !changed {
             break;
         }
