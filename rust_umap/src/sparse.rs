@@ -1,4 +1,5 @@
 use crate::{Metric, UmapError};
+use rayon::prelude::*;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 
@@ -303,31 +304,21 @@ pub(crate) fn exact_nearest_neighbors(
     metric: Metric,
 ) -> (Vec<Vec<usize>>, Vec<Vec<f32>>) {
     let n_samples = data.n_rows();
-    let mut heaps =
-        vec![BinaryHeap::<NeighborCandidate>::with_capacity(n_neighbors + 1); n_samples];
-
-    for (i, heap) in heaps.iter_mut().enumerate() {
-        heap.push(NeighborCandidate { idx: i, dist: 0.0 });
-    }
-
-    for i in 0..n_samples {
-        for j in (i + 1)..n_samples {
-            let dist = sparse_row_distance(data, i, j, metric);
-            let cand_ij = NeighborCandidate { idx: j, dist };
-            let cand_ji = NeighborCandidate { idx: i, dist };
-            push_top_k(&mut heaps[i], cand_ij, n_neighbors);
-            push_top_k(&mut heaps[j], cand_ji, n_neighbors);
-        }
-    }
-
-    let mut indices = Vec::with_capacity(n_samples);
-    let mut dists = Vec::with_capacity(n_samples);
-    for heap in heaps {
-        let (idx_row, dist_row) = heap_into_sorted_rows(heap);
-        indices.push(idx_row);
-        dists.push(dist_row);
-    }
-    (indices, dists)
+    (0..n_samples)
+        .into_par_iter()
+        .map(|i| {
+            let mut heap = BinaryHeap::<NeighborCandidate>::with_capacity(n_neighbors + 1);
+            for j in 0..n_samples {
+                let dist = if i == j {
+                    0.0
+                } else {
+                    sparse_row_distance(data, i, j, metric)
+                };
+                push_top_k(&mut heap, NeighborCandidate { idx: j, dist }, n_neighbors);
+            }
+            heap_into_sorted_rows(heap)
+        })
+        .unzip()
 }
 
 fn dense_query_to_sparse_manhattan_distance(
