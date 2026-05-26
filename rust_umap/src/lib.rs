@@ -2469,11 +2469,11 @@ fn compute_membership_strengths(
     knn_dists: &[Vec<f32>],
     sigmas: &[f32],
     rhos: &[f32],
-) -> HashMap<(usize, usize), f32> {
+) -> Vec<Edge> {
     let n_samples = knn_indices.len();
     let n_neighbors = knn_indices[0].len();
 
-    let mut directed = HashMap::with_capacity(n_samples * n_neighbors);
+    let mut directed = Vec::with_capacity(n_samples * n_neighbors);
 
     for i in 0..n_samples {
         for j in 0..n_neighbors {
@@ -2489,7 +2489,11 @@ fn compute_membership_strengths(
             };
 
             if val > 0.0 {
-                directed.insert((i, neighbor), val);
+                directed.push(Edge {
+                    head: i,
+                    tail: neighbor,
+                    weight: val,
+                });
             }
         }
     }
@@ -2532,26 +2536,39 @@ fn compute_membership_strengths_bipartite(
     edges
 }
 
-fn symmetrize_fuzzy_graph(
-    directed: &HashMap<(usize, usize), f32>,
-    set_op_mix_ratio: f32,
-) -> Vec<Edge> {
-    let mut all_pairs: HashSet<(usize, usize)> = HashSet::with_capacity(directed.len() * 2);
+fn symmetrize_fuzzy_graph(directed: &[Edge], set_op_mix_ratio: f32) -> Vec<Edge> {
+    let mut by_pair = Vec::with_capacity(directed.len());
 
-    for &(i, j) in directed.keys() {
-        all_pairs.insert((i, j));
-        all_pairs.insert((j, i));
-    }
-
-    let mut edges = Vec::with_capacity(all_pairs.len());
-
-    for (i, j) in all_pairs {
-        if i == j {
+    for edge in directed {
+        if edge.head == edge.tail {
             continue;
         }
+        if edge.head < edge.tail {
+            by_pair.push((edge.head, edge.tail, edge.weight, 0.0_f32));
+        } else {
+            by_pair.push((edge.tail, edge.head, 0.0_f32, edge.weight));
+        }
+    }
 
-        let w_ij = *directed.get(&(i, j)).unwrap_or(&0.0);
-        let w_ji = *directed.get(&(j, i)).unwrap_or(&0.0);
+    by_pair.sort_by_key(|&(i, j, _, _)| (i, j));
+
+    let mut edges = Vec::with_capacity(by_pair.len().saturating_mul(2));
+    let mut idx = 0;
+    while idx < by_pair.len() {
+        let (i, j, _, _) = by_pair[idx];
+        let mut w_ij = 0.0_f32;
+        let mut w_ji = 0.0_f32;
+
+        while idx < by_pair.len() && by_pair[idx].0 == i && by_pair[idx].1 == j {
+            if by_pair[idx].2 > 0.0 {
+                w_ij = by_pair[idx].2;
+            }
+            if by_pair[idx].3 > 0.0 {
+                w_ji = by_pair[idx].3;
+            }
+            idx += 1;
+        }
+
         let prod = w_ij * w_ji;
         let sym = set_op_mix_ratio * (w_ij + w_ji - prod) + (1.0 - set_op_mix_ratio) * prod;
 
@@ -2559,6 +2576,11 @@ fn symmetrize_fuzzy_graph(
             edges.push(Edge {
                 head: i,
                 tail: j,
+                weight: sym,
+            });
+            edges.push(Edge {
+                head: j,
+                tail: i,
                 weight: sym,
             });
         }
