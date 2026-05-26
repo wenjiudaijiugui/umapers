@@ -1296,6 +1296,7 @@ where
 
     let mut idx_trimmed = Vec::with_capacity(n_samples);
     let mut dist_trimmed = Vec::with_capacity(n_samples);
+    let mut seen = HashSet::with_capacity(n_neighbors * 2);
 
     for row_idx in 0..n_samples {
         let idx_row = knn_indices.row(row_idx);
@@ -1314,7 +1315,7 @@ where
 
         let idx_row = &idx_row[..n_neighbors];
         let dist_row = &dist_row[..n_neighbors];
-        let mut seen = HashSet::with_capacity(n_neighbors * 2);
+        seen.clear();
         let mut prev = f32::NEG_INFINITY;
 
         for col_idx in 0..n_neighbors {
