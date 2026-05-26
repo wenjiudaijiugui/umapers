@@ -1,4 +1,4 @@
-# umap-rs
+# umapers
 
 [中文版本](README_CN.md)
 

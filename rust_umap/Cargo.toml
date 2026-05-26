@@ -5,9 +5,9 @@ edition = "2024"
 description = "Rust-first UMAP crate for reproducible benchmarking and thin binding backends"
 license = "BSD-3-Clause"
 readme = "README.md"
-repository = "https://github.com/wenjiudaijiugui/umap-rs"
-homepage = "https://github.com/wenjiudaijiugui/umap-rs"
-documentation = "https://github.com/wenjiudaijiugui/umap-rs/tree/main/rust_umap"
+repository = "https://github.com/wenjiudaijiugui/umapers"
+homepage = "https://github.com/wenjiudaijiugui/umapers"
+documentation = "https://github.com/wenjiudaijiugui/umapers/tree/main/rust_umap"
 keywords = ["umap", "dimensionality-reduction", "manifold-learning", "rust"]
 categories = ["algorithms", "science"]
 

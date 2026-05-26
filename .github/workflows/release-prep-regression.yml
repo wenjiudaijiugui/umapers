@@ -60,7 +60,7 @@ jobs:
           else
             git fetch origin main --depth=2
           fi
-          git worktree add "$RUNNER_TEMP/umap-rs-baseline" "$BASE_REF"
+          git worktree add "$RUNNER_TEMP/umapers-baseline" "$BASE_REF"
       - name: Run release-prep unit tests
         run: |
           python -m pytest -q benchmarks/tests/test_release_prep_regression.py
@@ -68,7 +68,7 @@ jobs:
         run: |
           python benchmarks/release_prep_regression.py \
             --candidate-root "$GITHUB_WORKSPACE" \
-            --baseline-root "$RUNNER_TEMP/umap-rs-baseline" \
+            --baseline-root "$RUNNER_TEMP/umapers-baseline" \
             --python-bin python \
             --gate-config benchmarks/gate_thresholds.json \
             --metrics euclidean,manhattan,cosine \

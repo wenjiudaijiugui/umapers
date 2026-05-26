@@ -183,12 +183,12 @@ jobs:
           else
             git fetch origin main --depth=2
           fi
-          git worktree add "$RUNNER_TEMP/umap-rs-baseline" "$BASE_REF"
+          git worktree add "$RUNNER_TEMP/umapers-baseline" "$BASE_REF"
       - name: Metric no-regression smoke gate
         run: |
           python benchmarks/ci_no_regression.py \
             --candidate-root "$GITHUB_WORKSPACE" \
-            --baseline-root "$RUNNER_TEMP/umap-rs-baseline" \
+            --baseline-root "$RUNNER_TEMP/umapers-baseline" \
             --metric "${{ matrix.metric }}" \
             --gate-config benchmarks/gate_thresholds.json \
             --output-json "no-regression-smoke-${{ matrix.metric }}.json"

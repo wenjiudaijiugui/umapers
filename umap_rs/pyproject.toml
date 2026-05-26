@@ -28,11 +28,11 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/wenjiudaijiugui/umap-rs"
-Repository = "https://github.com/wenjiudaijiugui/umap-rs"
-Issues = "https://github.com/wenjiudaijiugui/umap-rs/issues"
-Changelog = "https://github.com/wenjiudaijiugui/umap-rs/blob/main/CHANGELOG.md"
-Documentation = "https://github.com/wenjiudaijiugui/umap-rs/tree/main/umap_rs"
+Homepage = "https://github.com/wenjiudaijiugui/umapers"
+Repository = "https://github.com/wenjiudaijiugui/umapers"
+Issues = "https://github.com/wenjiudaijiugui/umapers/issues"
+Changelog = "https://github.com/wenjiudaijiugui/umapers/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/wenjiudaijiugui/umapers/tree/main/umap_rs"
 
 [tool.maturin]
 manifest-path = "Cargo.toml"

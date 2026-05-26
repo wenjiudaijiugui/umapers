@@ -5,9 +5,9 @@ edition = "2021"
 description = "PyO3-based Python bindings for rust_umap with typed public stubs"
 license = "BSD-3-Clause"
 readme = "README.md"
-repository = "https://github.com/wenjiudaijiugui/umap-rs"
-homepage = "https://github.com/wenjiudaijiugui/umap-rs"
-documentation = "https://github.com/wenjiudaijiugui/umap-rs/tree/main/umap_rs"
+repository = "https://github.com/wenjiudaijiugui/umapers"
+homepage = "https://github.com/wenjiudaijiugui/umapers"
+documentation = "https://github.com/wenjiudaijiugui/umapers/tree/main/umap_rs"
 keywords = ["umap", "python", "pyo3", "dimensionality-reduction"]
 categories = ["api-bindings", "science"]
 
