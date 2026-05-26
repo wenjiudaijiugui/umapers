@@ -2386,18 +2386,21 @@ fn smooth_knn_dist(
 
     let mut sigmas = vec![0.0_f32; n_samples];
     let mut rhos = vec![0.0_f32; n_samples];
+    let mut non_zero_dists = Vec::new();
 
     for i in 0..n_samples {
         let ith_distances = &distances[i];
         let neighbor_start = usize::from(distances_include_self && !ith_distances.is_empty());
         let active_distances = &ith_distances[neighbor_start..];
 
-        let non_zero_dists: Vec<f32> = active_distances
-            .iter()
-            .copied()
-            .filter(|d| *d > 0.0)
-            .collect();
+        non_zero_dists.clear();
+        non_zero_dists.extend(active_distances.iter().copied().filter(|d| *d > 0.0));
 
+        let mean_ith = if active_distances.is_empty() {
+            0.0
+        } else {
+            active_distances.iter().sum::<f32>() / active_distances.len() as f32
+        };
         if non_zero_dists.len() as f32 >= local_connectivity {
             let index = local_connectivity.floor() as usize;
             let interpolation = local_connectivity - index as f32;
@@ -2447,11 +2450,6 @@ fn smooth_knn_dist(
             }
         }
 
-        let mean_ith = if active_distances.is_empty() {
-            0.0
-        } else {
-            active_distances.iter().sum::<f32>() / active_distances.len() as f32
-        };
         let min_scale = if rhos[i] > 0.0 {
             MIN_K_DIST_SCALE * mean_ith
         } else {
