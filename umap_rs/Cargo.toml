@@ -1,6 +1,6 @@
 [package]
-name = "umap_rs"
-version = "0.3.0"
+name = "umapers"
+version = "1.0.0"
 edition = "2021"
 description = "PyO3-based Python bindings for rust_umap with typed public stubs"
 license = "BSD-3-Clause"
@@ -12,7 +12,7 @@ keywords = ["umap", "python", "pyo3", "dimensionality-reduction"]
 categories = ["api-bindings", "science"]
 
 [lib]
-name = "umap_rs"
+name = "umapers"
 crate-type = ["cdylib"]
 
 [dependencies]

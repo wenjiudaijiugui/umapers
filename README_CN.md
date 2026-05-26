@@ -9,12 +9,12 @@
 
 - `rust_umap/` 下的 Rust 库与 CLI
 - `benchmarks/` 下的可复现 benchmark 框架
-- `umap_rs/` 下的轻量 Python 绑定
+- `umap_rs/` 下的 `umapers` Python 包
 
 ## 仓库结构
 
 - `rust_umap/`: Rust UMAP crate 与 CLI 二进制
-- `umap_rs/`: 基于 PyO3 + maturin 的 Python 绑定
+- `umap_rs/`: 基于 PyO3 + maturin 的 Python 绑定，发布/导入名为 `umapers`
 - `benchmarks/`: 面向公平比较的 benchmark 脚本与报告
 - `reports/`: 生成的 benchmark 与回归产物
 - `UMAP_MATHEMATICAL_DOCUMENTATION*.md`: 数学说明文档
@@ -55,7 +55,7 @@ uv run --python .venv/bin/python maturin develop --manifest-path umap_rs/Cargo.t
 
 这是稳定的公开 API，也是大多数用户应该优先学习的接口层。
 
-- `from umap_rs import Umap, fit_transform`
+- `from umapers import Umap, fit_transform`
 - `Umap.fit(data)`
 - `Umap.fit_transform(data, out=None)`
 - `Umap.transform(query, out=None)`
@@ -66,7 +66,7 @@ uv run --python .venv/bin/python maturin develop --manifest-path umap_rs/Cargo.t
 
 ```python
 import numpy as np
-from umap_rs import Umap
+from umapers import Umap
 
 rng = np.random.default_rng(42)
 x = rng.normal(size=(400, 16)).astype(np.float32)
@@ -112,7 +112,7 @@ Main API 还支持：
 ```python
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
-from umap_rs import Umap
+from umapers import Umap
 
 x = np.random.default_rng(42).normal(size=(300, 16)).astype(np.float32)
 k = 15
@@ -156,8 +156,8 @@ emb = model.fit_transform_with_knn(
 
 下面这些属于内部实现细节，不承诺公开兼容性：
 
-- `umap_rs._umap_rs.UmapCore`
-- `umap_rs._api`
+- `umapers._umapers.UmapCore`
+- `umapers._api`
 - 绑定包内部的 helper 和所有 `_` 前缀符号
 
 ## 当前范围边界

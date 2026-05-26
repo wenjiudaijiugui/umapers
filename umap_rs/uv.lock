@@ -210,8 +210,8 @@ wheels = [
 ]
 
 [[package]]
-name = "umap-rs"
-version = "0.3.0"
+name = "umapers"
+version = "1.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "numpy", version = "2.0.2", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }, marker = "python_full_version < '3.10'" },

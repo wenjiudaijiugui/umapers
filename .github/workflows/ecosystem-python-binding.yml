@@ -38,10 +38,10 @@ jobs:
           . .venv/bin/activate
           python -m pip install --upgrade pip
           python -m pip install maturin pytest -r benchmarks/requirements-bench.txt
-      - name: Build and install umap_rs
+      - name: Build and install umapers
         run: |
           maturin develop --manifest-path umap_rs/Cargo.toml
-      - name: Run umap_rs tests
+      - name: Run umapers tests
         run: |
           python -I -m pytest -q umap_rs/tests/test_binding.py
       - name: Run ecosystem benchmark smoke

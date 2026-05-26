@@ -4,7 +4,7 @@ from typing import Any, TypedDict
 
 import numpy as np
 
-from ._umap_rs import UmapCore
+from ._umapers import UmapCore
 
 
 class UmapKwargs(TypedDict, total=False):
@@ -107,7 +107,7 @@ class Umap:
     Example
     -------
     >>> import numpy as np
-    >>> from umap_rs import Umap
+    >>> from umapers import Umap
     >>> x = np.random.default_rng(42).normal(size=(100, 8)).astype(np.float32)
     >>> emb = Umap(n_neighbors=15, n_components=2).fit_transform(x)
     """
@@ -162,7 +162,7 @@ class Umap:
         Examples
         --------
         >>> import numpy as np
-        >>> from umap_rs import Umap
+        >>> from umapers import Umap
         >>> x = np.random.default_rng(42).normal(size=(200, 16)).astype(np.float32)
         >>> model = Umap(n_neighbors=15, n_components=2, init="random")
         >>> emb = model.fit_transform(x)
@@ -307,7 +307,7 @@ class Umap:
         -------
         >>> import numpy as np
         >>> from sklearn.neighbors import NearestNeighbors
-        >>> from umap_rs import Umap
+        >>> from umapers import Umap
         >>> x = np.random.default_rng(42).normal(size=(64, 8)).astype(np.float32)
         >>> nbrs = NearestNeighbors(n_neighbors=16, algorithm="brute", metric="euclidean")
         >>> nbrs.fit(x)
@@ -362,7 +362,7 @@ class Umap:
         Example
         -------
         >>> import numpy as np
-        >>> from umap_rs import Umap
+        >>> from umapers import Umap
         >>> x = np.random.default_rng(42).normal(size=(100, 8)).astype(np.float32)
         >>> model = Umap(n_neighbors=15, n_components=2).fit(x)
         >>> query_emb = model.transform(x[:10])
@@ -396,7 +396,7 @@ class Umap:
         Example
         -------
         >>> import numpy as np
-        >>> from umap_rs import Umap
+        >>> from umapers import Umap
         >>> x = np.random.default_rng(42).normal(size=(100, 8)).astype(np.float32)
         >>> model = Umap(n_neighbors=15, n_components=2).fit(x)
         >>> emb = model.transform(x[:10])
@@ -434,7 +434,7 @@ def fit_transform(data: Any, **kwargs: Any) -> np.ndarray:
     Examples
     --------
     >>> import numpy as np
-    >>> from umap_rs import fit_transform
+    >>> from umapers import fit_transform
     >>> x = np.random.default_rng(42).normal(size=(200, 16)).astype(np.float32)
     >>> emb = fit_transform(x, n_neighbors=15, n_components=2, init="random")
     >>> emb.shape

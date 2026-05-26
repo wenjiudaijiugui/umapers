@@ -4,7 +4,7 @@ from importlib import resources
 import numpy as np
 
 # Ensure we import the installed package, not the repo's top-level
-# `umap_rs/` crate directory as a namespace package.
+# repo crate directory as a namespace package.
 import sys
 from pathlib import Path
 
@@ -13,11 +13,11 @@ import pytest
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path = [p for p in sys.path if Path(p or ".").resolve() != _REPO_ROOT]
 
-from umap_rs import Umap
-from umap_rs import __version__
-from umap_rs import fit_transform
-import umap_rs._api as api
-from umap_rs._umap_rs import UmapCore
+from umapers import Umap
+from umapers import __version__
+from umapers import fit_transform
+import umapers._api as api
+from umapers._umapers import UmapCore
 
 
 def make_dataset(n_samples: int = 180, n_features: int = 12, seed: int = 42) -> np.ndarray:
@@ -37,13 +37,14 @@ def make_dataset(n_samples: int = 180, n_features: int = 12, seed: int = 42) -> 
     return x.astype(np.float32)
 
 
-def _skip_until_python_package_03() -> None:
-    if not __version__.startswith("0.3."):
-        pytest.skip("0.3.0 docstring/type assets are not shipped yet")
+def _skip_until_python_package_1() -> None:
+    major = int(__version__.split(".", 1)[0])
+    if major < 1:
+        pytest.skip("1.0.0 docstring/type assets are not shipped yet")
 
 
 def test_public_api_has_helpful_docstrings() -> None:
-    _skip_until_python_package_03()
+    _skip_until_python_package_1()
 
     docs = {
         "Umap": inspect.getdoc(Umap) or "",
@@ -78,9 +79,9 @@ def test_top_level_fit_transform_signature_is_inspectable() -> None:
 
 
 def test_package_ships_typing_markers_and_stubs() -> None:
-    _skip_until_python_package_03()
+    _skip_until_python_package_1()
 
-    package_root = resources.files("umap_rs")
+    package_root = resources.files("umapers")
     expected_files = ("py.typed", "__init__.pyi", "_api.pyi")
 
     for filename in expected_files:

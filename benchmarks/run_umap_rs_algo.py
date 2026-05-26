@@ -6,10 +6,10 @@ import time
 import numpy as np
 
 try:
-    from umap_rs import Umap
+    from umapers import Umap
 except Exception as exc:  # pragma: no cover - environment wiring
     raise SystemExit(
-        "failed to import umap_rs; run `maturin develop --manifest-path umap_rs/Cargo.toml` first"
+        "failed to import umapers; run `maturin develop --manifest-path umap_rs/Cargo.toml` first"
     ) from exc
 
 
@@ -23,7 +23,7 @@ def parse_bool(value: str) -> bool:
 
 
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="Run umap_rs in algorithm-only timing mode")
+    p = argparse.ArgumentParser(description="Run umapers in algorithm-only timing mode")
     p.add_argument("--input", required=True, help="input CSV path")
     p.add_argument("--output", required=True, help="output embedding CSV path")
     p.add_argument("--n-neighbors", type=int, default=15)

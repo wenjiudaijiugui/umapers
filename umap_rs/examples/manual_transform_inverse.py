@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from umap_rs import Umap
+from umapers import Umap
 
 
 def make_dataset(n_samples: int = 160, n_features: int = 10, seed: int = 123) -> np.ndarray:

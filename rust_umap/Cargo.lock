@@ -270,7 +270,7 @@ dependencies = [
 
 [[package]]
 name = "rust_umap"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
  "nalgebra",
  "rand",

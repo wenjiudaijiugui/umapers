@@ -3,8 +3,8 @@ requires = ["maturin>=1.6,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "umap-rs"
-version = "0.3.0"
+name = "umapers"
+version = "1.0.0"
 description = "Python bindings for rust_umap"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -36,13 +36,13 @@ Documentation = "https://github.com/wenjiudaijiugui/umap-rs/tree/main/umap_rs"
 
 [tool.maturin]
 manifest-path = "Cargo.toml"
-module-name = "umap_rs._umap_rs"
+module-name = "umapers._umapers"
 python-source = "python"
 exclude = [
-  "python/umap_rs/__pycache__/*",
+  "python/umapers/__pycache__/*",
 ]
 include = [
-  "python/umap_rs/__init__.pyi",
-  "python/umap_rs/_api.pyi",
-  "python/umap_rs/py.typed",
+  "python/umapers/__init__.pyi",
+  "python/umapers/_api.pyi",
+  "python/umapers/py.typed",
 ]

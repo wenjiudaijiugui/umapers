@@ -5,6 +5,14 @@ All notable changes to this repository are documented in this file.
 The format follows Keep a Changelog and uses semantic-versioned release headings
 for user-facing milestones.
 
+## [1.0.0] - 2026-05-26
+
+### Highlights
+
+- Renamed the Python distribution and import package to `umapers`.
+- Bumped the Rust core crate and Python binding to version `1.0.0`.
+- Includes the recent dense-distance, ANN, sparse kNN, transform, and memory optimizations that show significant speed and memory advantages over `umap-learn` in local benchmarks.
+
 ## [0.3.0] - 2026-04-03
 
 ### Highlights

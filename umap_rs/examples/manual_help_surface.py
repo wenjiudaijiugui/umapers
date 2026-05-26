@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 from importlib import resources
 
-from umap_rs import Umap, __version__, fit_transform
+from umapers import Umap, __version__, fit_transform
 
 
 def _doc_summary(obj: object) -> str:
@@ -14,7 +14,7 @@ def _doc_summary(obj: object) -> str:
 
 
 def main() -> None:
-    print("umap_rs version:", __version__)
+    print("umapers version:", __version__)
     print("runtime signature for fit_transform:", inspect.signature(fit_transform))
     print()
 
@@ -36,7 +36,7 @@ def main() -> None:
 
     print()
 
-    package_root = resources.files("umap_rs")
+    package_root = resources.files("umapers")
     for filename in ("py.typed", "__init__.pyi", "_api.pyi"):
         resource = package_root / filename
         print(f"{filename}: {resource}")

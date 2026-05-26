@@ -7,8 +7,7 @@ umap_rs/target/
 __pycache__/
 *.pyc
 rust_umap_py/python/rust_umap_py/_rust_umap_py*.so
-umap_rs/python/umap_rs/_umap_rs*.so
-umap_rs/python/umap_rs/_rust_umap_py*.so
+umap_rs/python/umapers/_umapers*.so
 
 # Benchmark generated artifacts
 benchmarks/data/

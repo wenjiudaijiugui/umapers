@@ -62,7 +62,7 @@ class UmapKwargs(TypedDict, total=False):
     Example / 示例
     ----------------
     >>> import numpy as np
-    >>> from umap_rs import UmapKwargs, fit_transform
+    >>> from umapers import UmapKwargs, fit_transform
     >>> x = np.random.default_rng(42).normal(size=(200, 16)).astype(np.float32)
     >>> kwargs: UmapKwargs = {"n_neighbors": 15, "n_components": 2, "init": "random"}
     >>> emb = fit_transform(x, **kwargs)
@@ -103,7 +103,7 @@ class Umap:
     Example / 示例
     ----------------
     >>> import numpy as np
-    >>> from umap_rs import Umap
+    >>> from umapers import Umap
     >>> x = np.random.default_rng(42).normal(size=(200, 16)).astype(np.float32)
     >>> model = Umap(n_neighbors=15, n_components=2, init="random")
     >>> emb = model.fit_transform(x)
@@ -167,7 +167,7 @@ class Umap:
         Examples
         --------
         >>> import numpy as np
-        >>> from umap_rs import Umap
+        >>> from umapers import Umap
         >>> x = np.random.default_rng(42).normal(size=(200, 16)).astype(np.float32)
         >>> model = Umap(n_neighbors=15, n_components=2, init="random")
         >>> emb = model.fit_transform(x)
@@ -189,7 +189,7 @@ class Umap:
         Examples
         --------
         >>> import numpy as np
-        >>> from umap_rs import Umap
+        >>> from umapers import Umap
         >>> x = np.random.default_rng(42).normal(size=(200, 16)).astype(np.float32)
         >>> model = Umap(n_neighbors=15, n_components=2, init="random")
         >>> emb = model.fit_transform(x)
@@ -225,7 +225,7 @@ class Umap:
         Example / 示例
         ----------------
         >>> import numpy as np
-        >>> from umap_rs import Umap
+        >>> from umapers import Umap
         >>> x = np.random.default_rng(42).normal(size=(200, 16)).astype(np.float32)
         >>> emb = Umap(n_neighbors=15, n_components=2, init="random").fit_transform(x)
         >>> emb.dtype
@@ -326,7 +326,7 @@ def fit_transform(
     Examples
     --------
     >>> import numpy as np
-    >>> from umap_rs import fit_transform
+    >>> from umapers import fit_transform
     >>> x = np.random.default_rng(42).normal(size=(200, 16)).astype(np.float32)
     >>> emb = fit_transform(x, n_neighbors=15, n_components=2, init="random")
     >>> emb.shape
@@ -357,7 +357,7 @@ def fit_transform(data: MatrixInput, **kwargs: Any) -> Float32Array:
     Examples
     --------
     >>> import numpy as np
-    >>> from umap_rs import fit_transform
+    >>> from umapers import fit_transform
     >>> x = np.random.default_rng(42).normal(size=(200, 16)).astype(np.float32)
     >>> emb = fit_transform(x, n_neighbors=15, n_components=2, init="random")
     >>> emb.shape

@@ -9,12 +9,12 @@ The repository includes:
 
 - a Rust library and CLI under `rust_umap/`
 - reproducible benchmark harnesses under `benchmarks/`
-- a thin Python binding under `umap_rs/`
+- the `umapers` Python package under `umap_rs/`
 
 ## Repository layout
 
 - `rust_umap/`: Rust UMAP crate and CLI binaries
-- `umap_rs/`: PyO3 + maturin Python binding
+- `umap_rs/`: PyO3 + maturin Python binding published/imported as `umapers`
 - `benchmarks/`: fairness-oriented benchmark scripts and reports
 - `reports/`: generated benchmark and regression artifacts
 - `UMAP_MATHEMATICAL_DOCUMENTATION*.md`: mathematical notes
@@ -29,7 +29,7 @@ cargo test
 
 ## Python binding
 
-Version `0.3.0` of the Python binding focuses on IDE discoverability:
+Version `1.0.0` of the Python binding focuses on IDE discoverability:
 
 - public entrypoints ship useful type hints and docstrings
 - editor hover and `help()` now describe the main call patterns
@@ -62,7 +62,7 @@ uv run --python .venv/bin/python maturin develop --manifest-path umap_rs/Cargo.t
 
 This is the stable public API that most users should learn first.
 
-- `from umap_rs import Umap, fit_transform`
+- `from umapers import Umap, fit_transform`
 - `Umap.fit(data)`
 - `Umap.fit_transform(data, out=None)`
 - `Umap.transform(query, out=None)`
@@ -73,7 +73,7 @@ Typical dense example:
 
 ```python
 import numpy as np
-from umap_rs import Umap
+from umapers import Umap
 
 rng = np.random.default_rng(42)
 x = rng.normal(size=(400, 16)).astype(np.float32)
@@ -119,7 +119,7 @@ Example with a shared exact kNN graph:
 ```python
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
-from umap_rs import Umap
+from umapers import Umap
 
 x = np.random.default_rng(42).normal(size=(300, 16)).astype(np.float32)
 k = 15
@@ -165,8 +165,8 @@ This interface is intentionally narrower than a generic graph API:
 The following are internal implementation details and do not carry a public
 compatibility guarantee:
 
-- `umap_rs._umap_rs.UmapCore`
-- `umap_rs._api`
+- `umapers._umapers.UmapCore`
+- `umapers._api`
 - helper functions and `_`-prefixed symbols inside the binding package
 
 ## Current scope boundary

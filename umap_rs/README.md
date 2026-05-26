@@ -1,12 +1,12 @@
-# umap-rs
+# umapers
 
-Python bindings for `rust_umap` built with PyO3 + maturin.
+Python package `umapers`, backed by `rust_umap` and built with PyO3 + maturin.
 
-Version `0.3.0` focuses on IDE-help quality for the public Python API:
+Version `1.0.0` focuses on IDE-help quality for the public Python API:
 
 - the exported surface has useful type hints
 - public methods carry docstrings that explain inputs and outputs
-- `help(umap_rs.Umap)` and editor hover should be informative
+- `help(umapers.Umap)` and editor hover should be informative
 
 The binding remains intentionally thin: Python normalizes arrays and CSR inputs,
 while Rust owns validation and compute-heavy paths whenever practical.
@@ -25,7 +25,7 @@ uv run --python .venv/bin/python python -I -m pytest -q umap_rs/tests/test_bindi
 
 ```python
 import numpy as np
-from umap_rs import Umap
+from umapers import Umap
 
 x = np.random.default_rng(42).normal(size=(200, 16)).astype(np.float32)
 model = Umap(n_neighbors=15, n_components=2, n_epochs=120, random_seed=42, init="random")

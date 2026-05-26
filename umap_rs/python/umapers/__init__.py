@@ -1,4 +1,4 @@
 from ._api import Umap, UmapKwargs, fit_transform
-from ._umap_rs import __version__
+from ._umapers import __version__
 
 __all__ = ["Umap", "UmapKwargs", "fit_transform", "__version__"]

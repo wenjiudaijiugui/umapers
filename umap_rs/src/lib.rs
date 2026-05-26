@@ -349,7 +349,7 @@ fn copy_dense_into_out(dense: &DenseMatrix, mut out: PyReadwriteArray2<'_, f32>)
     Ok(())
 }
 
-#[pyclass(name = "UmapCore", module = "umap_rs._umap_rs")]
+#[pyclass(name = "UmapCore", module = "umapers._umapers")]
 struct PyUmapCore {
     inner: UmapModel,
 }
@@ -906,7 +906,7 @@ impl PyUmapCore {
 }
 
 #[pymodule]
-fn _umap_rs(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn _umapers(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyUmapCore>()?;
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     Ok(())
