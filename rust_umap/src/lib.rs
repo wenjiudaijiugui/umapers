@@ -2113,6 +2113,7 @@ fn sample_unique_candidates<R: Rng + ?Sized>(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn collect_approx_candidate_indices<R: Rng + ?Sized>(
     neighbors: &FlatNeighbors,
     row_idx: usize,
