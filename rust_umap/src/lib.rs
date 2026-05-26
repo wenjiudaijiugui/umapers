@@ -1609,6 +1609,18 @@ fn euclidean_distance(x: &[f32], y: &[f32]) -> f32 {
 
 #[inline(always)]
 fn squared_distance(x: &[f32], y: &[f32]) -> f32 {
+    #[cfg(target_arch = "x86_64")]
+    {
+        if x.len() >= 64 && std::is_x86_feature_detected!("avx2") {
+            // SAFETY: guarded by runtime AVX2 feature detection above.
+            return unsafe { squared_distance_avx2(x, y) };
+        }
+    }
+    squared_distance_scalar(x, y)
+}
+
+#[inline(always)]
+fn squared_distance_scalar(x: &[f32], y: &[f32]) -> f32 {
     let mut acc = 0.0_f32;
     let mut idx = 0;
     while idx < x.len() {
@@ -1619,8 +1631,46 @@ fn squared_distance(x: &[f32], y: &[f32]) -> f32 {
     acc
 }
 
+#[cfg(target_arch = "x86_64")]
+#[target_feature(enable = "avx2")]
+unsafe fn squared_distance_avx2(x: &[f32], y: &[f32]) -> f32 {
+    use std::arch::x86_64::*;
+
+    let mut acc = _mm256_setzero_ps();
+    let mut idx = 0;
+    while idx + 8 <= x.len() {
+        let xv = unsafe { _mm256_loadu_ps(x.as_ptr().add(idx)) };
+        let yv = unsafe { _mm256_loadu_ps(y.as_ptr().add(idx)) };
+        let diff = _mm256_sub_ps(xv, yv);
+        acc = _mm256_add_ps(acc, _mm256_mul_ps(diff, diff));
+        idx += 8;
+    }
+
+    let mut lanes = [0.0_f32; 8];
+    unsafe { _mm256_storeu_ps(lanes.as_mut_ptr(), acc) };
+    let mut sum = lanes.iter().sum::<f32>();
+    while idx < x.len() {
+        let d = x[idx] - y[idx];
+        sum += d * d;
+        idx += 1;
+    }
+    sum
+}
+
 #[inline]
 fn manhattan_distance(x: &[f32], y: &[f32]) -> f32 {
+    #[cfg(target_arch = "x86_64")]
+    {
+        if x.len() >= 64 && std::is_x86_feature_detected!("avx2") {
+            // SAFETY: guarded by runtime AVX2 feature detection above.
+            return unsafe { manhattan_distance_avx2(x, y) };
+        }
+    }
+    manhattan_distance_scalar(x, y)
+}
+
+#[inline]
+fn manhattan_distance_scalar(x: &[f32], y: &[f32]) -> f32 {
     let mut acc = 0.0_f32;
     let mut idx = 0;
     while idx < x.len() {
@@ -1628,6 +1678,33 @@ fn manhattan_distance(x: &[f32], y: &[f32]) -> f32 {
         idx += 1;
     }
     acc
+}
+
+#[cfg(target_arch = "x86_64")]
+#[target_feature(enable = "avx2")]
+unsafe fn manhattan_distance_avx2(x: &[f32], y: &[f32]) -> f32 {
+    use std::arch::x86_64::*;
+
+    let sign_mask = _mm256_set1_ps(-0.0);
+    let mut acc = _mm256_setzero_ps();
+    let mut idx = 0;
+    while idx + 8 <= x.len() {
+        let xv = unsafe { _mm256_loadu_ps(x.as_ptr().add(idx)) };
+        let yv = unsafe { _mm256_loadu_ps(y.as_ptr().add(idx)) };
+        let diff = _mm256_sub_ps(xv, yv);
+        let abs = _mm256_andnot_ps(sign_mask, diff);
+        acc = _mm256_add_ps(acc, abs);
+        idx += 8;
+    }
+
+    let mut lanes = [0.0_f32; 8];
+    unsafe { _mm256_storeu_ps(lanes.as_mut_ptr(), acc) };
+    let mut sum = lanes.iter().sum::<f32>();
+    while idx < x.len() {
+        sum += (x[idx] - y[idx]).abs();
+        idx += 1;
+    }
+    sum
 }
 
 #[allow(dead_code)]
@@ -1638,6 +1715,18 @@ fn cosine_distance(x: &[f32], y: &[f32]) -> f32 {
 
 #[inline]
 fn l2_norm(x: &[f32]) -> f32 {
+    #[cfg(target_arch = "x86_64")]
+    {
+        if x.len() >= 64 && std::is_x86_feature_detected!("avx2") {
+            // SAFETY: guarded by runtime AVX2 feature detection above.
+            return unsafe { l2_norm_avx2(x) };
+        }
+    }
+    l2_norm_scalar(x)
+}
+
+#[inline]
+fn l2_norm_scalar(x: &[f32]) -> f32 {
     let mut acc = 0.0_f32;
     let mut idx = 0;
     while idx < x.len() {
@@ -1647,6 +1736,29 @@ fn l2_norm(x: &[f32]) -> f32 {
     acc.sqrt()
 }
 
+#[cfg(target_arch = "x86_64")]
+#[target_feature(enable = "avx2")]
+unsafe fn l2_norm_avx2(x: &[f32]) -> f32 {
+    use std::arch::x86_64::*;
+
+    let mut acc = _mm256_setzero_ps();
+    let mut idx = 0;
+    while idx + 8 <= x.len() {
+        let xv = unsafe { _mm256_loadu_ps(x.as_ptr().add(idx)) };
+        acc = _mm256_add_ps(acc, _mm256_mul_ps(xv, xv));
+        idx += 8;
+    }
+
+    let mut lanes = [0.0_f32; 8];
+    unsafe { _mm256_storeu_ps(lanes.as_mut_ptr(), acc) };
+    let mut sum = lanes.iter().sum::<f32>();
+    while idx < x.len() {
+        sum += x[idx] * x[idx];
+        idx += 1;
+    }
+    sum.sqrt()
+}
+
 fn compute_l2_norms<M: RowMatrix + ?Sized>(data: &M) -> Vec<f32> {
     (0..data.n_rows())
         .map(|row_idx| l2_norm(data.row(row_idx)))
@@ -1654,12 +1766,57 @@ fn compute_l2_norms<M: RowMatrix + ?Sized>(data: &M) -> Vec<f32> {
 }
 
 #[inline]
-fn cosine_distance_with_norms(x: &[f32], y: &[f32], x_norm: f32, y_norm: f32) -> f32 {
+fn dot_product_scalar(x: &[f32], y: &[f32]) -> f32 {
     let mut dot = 0.0_f32;
-
-    for (&a, &b) in x.iter().zip(y.iter()) {
-        dot += a * b;
+    let mut idx = 0;
+    while idx < x.len() {
+        dot += x[idx] * y[idx];
+        idx += 1;
     }
+    dot
+}
+
+#[cfg(target_arch = "x86_64")]
+#[target_feature(enable = "avx2")]
+unsafe fn dot_product_avx2(x: &[f32], y: &[f32]) -> f32 {
+    use std::arch::x86_64::*;
+
+    let mut acc = _mm256_setzero_ps();
+    let mut idx = 0;
+    while idx + 8 <= x.len() {
+        let xv = unsafe { _mm256_loadu_ps(x.as_ptr().add(idx)) };
+        let yv = unsafe { _mm256_loadu_ps(y.as_ptr().add(idx)) };
+        acc = _mm256_add_ps(acc, _mm256_mul_ps(xv, yv));
+        idx += 8;
+    }
+
+    let mut lanes = [0.0_f32; 8];
+    unsafe { _mm256_storeu_ps(lanes.as_mut_ptr(), acc) };
+    let mut dot = lanes.iter().sum::<f32>();
+    while idx < x.len() {
+        dot += x[idx] * y[idx];
+        idx += 1;
+    }
+    dot
+}
+
+#[inline]
+fn cosine_distance_with_norms(x: &[f32], y: &[f32], x_norm: f32, y_norm: f32) -> f32 {
+    let dot = {
+        #[cfg(target_arch = "x86_64")]
+        {
+            if x.len() >= 64 && std::is_x86_feature_detected!("avx2") {
+                // SAFETY: guarded by runtime AVX2 feature detection above.
+                unsafe { dot_product_avx2(x, y) }
+            } else {
+                dot_product_scalar(x, y)
+            }
+        }
+        #[cfg(not(target_arch = "x86_64"))]
+        {
+            dot_product_scalar(x, y)
+        }
+    };
 
     if x_norm == 0.0 && y_norm == 0.0 {
         0.0
