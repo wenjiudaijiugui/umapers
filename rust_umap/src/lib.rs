@@ -4054,9 +4054,10 @@ fn optimize_layout_inverse<T: RowMatrix + ?Sized>(
 
 fn curve_loss(a: f32, b: f32, xv: &[f32], yv: &[f32]) -> f32 {
     let mut loss = 0.0_f32;
+    let exponent = 2.0 * b;
 
     for (&x, &y) in xv.iter().zip(yv.iter()) {
-        let model = 1.0 / (1.0 + a * x.powf(2.0 * b));
+        let model = 1.0 / (1.0 + a * x.powf(exponent));
         let e = model - y;
         loss += e * e;
     }
