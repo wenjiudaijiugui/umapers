@@ -1794,126 +1794,112 @@ fn exact_nearest_neighbors<M: RowMatrix + Sync + ?Sized>(
     }
 }
 
-fn dedup_sorted_neighbors_euclidean<M: RowMatrix + ?Sized>(
-    mut pairs: Vec<(usize, f32)>,
-    k: usize,
-    all_points: &M,
-    row_point: &[f32],
-) -> Vec<(usize, f32)> {
+// Approximate kNN candidate builders below de-duplicate indices before distance
+// evaluation, so the sorted top-k step can avoid another per-row HashSet.
+fn sorted_unique_neighbors(mut pairs: Vec<(usize, f32)>, k: usize) -> Vec<(usize, f32)> {
     pairs.sort_by(|a, b| a.1.total_cmp(&b.1).then_with(|| a.0.cmp(&b.0)));
-
+    let keep = pairs.len().min(k);
     let mut out = Vec::with_capacity(k);
-    let mut seen = HashSet::with_capacity(k * 2);
-    for (idx, dist) in pairs {
-        if seen.insert(idx) {
-            out.push((idx, dist));
-            if out.len() == k {
-                break;
-            }
-        }
-    }
-
-    if out.len() < k {
-        for idx in 0..all_points.n_rows() {
-            let candidate = all_points.row(idx);
-            if seen.insert(idx) {
-                out.push((idx, euclidean_distance(row_point, candidate)));
-                if out.len() == k {
-                    break;
-                }
-            }
-        }
-        out.sort_by(|a, b| a.1.total_cmp(&b.1).then_with(|| a.0.cmp(&b.0)));
-        out.truncate(k);
-    }
-
+    out.extend_from_slice(&pairs[..keep]);
     out
 }
 
-fn dedup_sorted_neighbors_by<M, F>(
-    mut pairs: Vec<(usize, f32)>,
-    k: usize,
-    all_points: &M,
-    row_point: &[f32],
-    distance_fn: F,
-) -> Vec<(usize, f32)>
-where
-    M: RowMatrix + ?Sized,
-    F: Fn(&[f32], &[f32]) -> f32 + Copy,
-{
-    pairs.sort_by(|a, b| a.1.total_cmp(&b.1).then_with(|| a.0.cmp(&b.0)));
-
-    let mut out = Vec::with_capacity(k);
-    let mut seen = HashSet::with_capacity(k * 2);
-    for (idx, dist) in pairs {
-        if seen.insert(idx) {
-            out.push((idx, dist));
-            if out.len() == k {
-                break;
-            }
-        }
-    }
-
-    if out.len() < k {
-        for idx in 0..all_points.n_rows() {
-            let candidate = all_points.row(idx);
-            if seen.insert(idx) {
-                out.push((idx, distance_fn(row_point, candidate)));
-                if out.len() == k {
-                    break;
-                }
-            }
-        }
-        out.sort_by(|a, b| a.1.total_cmp(&b.1).then_with(|| a.0.cmp(&b.0)));
-        out.truncate(k);
-    }
-
-    out
+// Reusable timestamp marker for unique candidate collection without allocating a
+// fresh HashSet for every approximate-kNN row and iteration.
+struct CandidateMarker {
+    marks: Vec<usize>,
+    current: usize,
 }
 
-fn dedup_sorted_neighbors_cosine<M: RowMatrix + ?Sized>(
-    mut pairs: Vec<(usize, f32)>,
-    k: usize,
-    all_points: &M,
-    all_norms: &[f32],
+impl CandidateMarker {
+    fn new(n_items: usize) -> Self {
+        Self {
+            marks: vec![0; n_items],
+            current: 1,
+        }
+    }
+
+    fn clear(&mut self) {
+        self.current = self.current.wrapping_add(1);
+        if self.current == 0 {
+            self.marks.fill(0);
+            self.current = 1;
+        }
+    }
+
+    fn insert(&mut self, idx: usize) -> bool {
+        if self.marks[idx] == self.current {
+            false
+        } else {
+            self.marks[idx] = self.current;
+            true
+        }
+    }
+}
+
+fn sample_unique_candidates<R: Rng + ?Sized>(
+    rng: &mut R,
+    n_samples: usize,
     row_idx: usize,
-) -> Vec<(usize, f32)> {
-    pairs.sort_by(|a, b| a.1.total_cmp(&b.1).then_with(|| a.0.cmp(&b.0)));
+    target_len: usize,
+    marker: &mut CandidateMarker,
+    out: &mut Vec<usize>,
+) {
+    marker.clear();
+    out.clear();
+    marker.insert(row_idx);
+    out.push(row_idx);
+    while out.len() < target_len {
+        let idx = rng.gen_range(0..n_samples);
+        if marker.insert(idx) {
+            out.push(idx);
+        }
+    }
+}
 
-    let mut out = Vec::with_capacity(k);
-    let mut seen = HashSet::with_capacity(k * 2);
-    for (idx, dist) in pairs {
-        if seen.insert(idx) {
-            out.push((idx, dist));
-            if out.len() == k {
-                break;
+fn collect_approx_candidate_indices<R: Rng + ?Sized>(
+    neighbors: &[Vec<(usize, f32)>],
+    row_idx: usize,
+    n_samples: usize,
+    n_neighbors: usize,
+    max_candidates: usize,
+    rng: &mut R,
+    marker: &mut CandidateMarker,
+    out: &mut Vec<usize>,
+) {
+    marker.clear();
+    out.clear();
+
+    for (idx, _) in &neighbors[row_idx] {
+        if marker.insert(*idx) {
+            out.push(*idx);
+        }
+        for (idx2, _) in &neighbors[*idx] {
+            if marker.insert(*idx2) {
+                out.push(*idx2);
             }
         }
     }
-
-    if out.len() < k {
-        for idx in 0..all_points.n_rows() {
-            let candidate = all_points.row(idx);
-            if seen.insert(idx) {
-                out.push((
-                    idx,
-                    cosine_distance_with_norms(
-                        all_points.row(row_idx),
-                        candidate,
-                        all_norms[row_idx],
-                        all_norms[idx],
-                    ),
-                ));
-                if out.len() == k {
-                    break;
-                }
-            }
-        }
-        out.sort_by(|a, b| a.1.total_cmp(&b.1).then_with(|| a.0.cmp(&b.0)));
-        out.truncate(k);
+    if marker.insert(row_idx) {
+        out.push(row_idx);
     }
 
-    out
+    let exploration = (n_neighbors / 2).max(4).min(max_candidates);
+    for _ in 0..exploration {
+        let idx = rng.gen_range(0..n_samples);
+        if marker.insert(idx) {
+            out.push(idx);
+        }
+    }
+
+    out.sort_unstable();
+    if out.len() > max_candidates {
+        for s in 0..max_candidates {
+            let r = rng.gen_range(s..out.len());
+            out.swap(s, r);
+        }
+        out.truncate(max_candidates);
+    }
 }
 
 fn approximate_nearest_neighbors_euclidean<M: RowMatrix + ?Sized>(
@@ -1925,30 +1911,29 @@ fn approximate_nearest_neighbors_euclidean<M: RowMatrix + ?Sized>(
 ) -> (Vec<Vec<usize>>, Vec<Vec<f32>>) {
     let n_samples = data.n_rows();
     let pool = candidate_pool.max(n_neighbors).min(n_samples - 1);
+    let max_candidates = candidate_pool.max(n_neighbors) * 4 + 1;
     let mut rng = SmallRng::seed_from_u64(seed);
+    let mut candidate_marker = CandidateMarker::new(n_samples);
+    let mut candidate_indices = Vec::with_capacity(max_candidates.max(pool + 1));
 
     let mut neighbors: Vec<Vec<(usize, f32)>> = Vec::with_capacity(n_samples);
     for i in 0..n_samples {
-        let mut sampled = HashSet::with_capacity(pool + 1);
-        sampled.insert(i);
-        while sampled.len() < pool + 1 {
-            sampled.insert(rng.gen_range(0..n_samples));
-        }
+        sample_unique_candidates(
+            &mut rng,
+            n_samples,
+            i,
+            pool + 1,
+            &mut candidate_marker,
+            &mut candidate_indices,
+        );
 
-        let candidates = sampled
-            .into_iter()
-            .map(|j| (j, euclidean_distance(data.row(i), data.row(j))))
+        let candidates = candidate_indices
+            .iter()
+            .map(|&j| (j, euclidean_distance(data.row(i), data.row(j))))
             .collect::<Vec<(usize, f32)>>();
 
-        neighbors.push(dedup_sorted_neighbors_euclidean(
-            candidates,
-            n_neighbors,
-            data,
-            data.row(i),
-        ));
+        neighbors.push(sorted_unique_neighbors(candidates, n_neighbors));
     }
-
-    let max_candidates = candidate_pool.max(n_neighbors) * 4 + 1;
 
     let mut buf_neighbors = neighbors.clone();
 
@@ -1956,36 +1941,23 @@ fn approximate_nearest_neighbors_euclidean<M: RowMatrix + ?Sized>(
         let mut changed = false;
 
         for i in 0..n_samples {
-            let mut candidate_set = HashSet::with_capacity(max_candidates);
-            for (idx, _) in &neighbors[i] {
-                candidate_set.insert(*idx);
-                for (idx2, _) in &neighbors[*idx] {
-                    candidate_set.insert(*idx2);
-                }
-            }
-            candidate_set.insert(i);
-            let exploration = (n_neighbors / 2).max(4).min(max_candidates);
-            for _ in 0..exploration {
-                candidate_set.insert(rng.gen_range(0..n_samples));
-            }
+            collect_approx_candidate_indices(
+                &neighbors,
+                i,
+                n_samples,
+                n_neighbors,
+                max_candidates,
+                &mut rng,
+                &mut candidate_marker,
+                &mut candidate_indices,
+            );
 
-            let mut candidate_vec = candidate_set.into_iter().collect::<Vec<usize>>();
-            candidate_vec.sort_unstable();
-            if candidate_vec.len() > max_candidates {
-                for s in 0..max_candidates {
-                    let r = rng.gen_range(s..candidate_vec.len());
-                    candidate_vec.swap(s, r);
-                }
-                candidate_vec.truncate(max_candidates);
-            }
-
-            let candidate_pairs = candidate_vec
-                .into_iter()
-                .map(|j| (j, euclidean_distance(data.row(i), data.row(j))))
+            let candidate_pairs = candidate_indices
+                .iter()
+                .map(|&j| (j, euclidean_distance(data.row(i), data.row(j))))
                 .collect::<Vec<(usize, f32)>>();
 
-            let updated =
-                dedup_sorted_neighbors_euclidean(candidate_pairs, n_neighbors, data, data.row(i));
+            let updated = sorted_unique_neighbors(candidate_pairs, n_neighbors);
 
             if updated != neighbors[i] {
                 changed = true;
@@ -2031,31 +2003,29 @@ where
 {
     let n_samples = data.n_rows();
     let pool = candidate_pool.max(n_neighbors).min(n_samples - 1);
+    let max_candidates = candidate_pool.max(n_neighbors) * 4 + 1;
     let mut rng = SmallRng::seed_from_u64(seed);
+    let mut candidate_marker = CandidateMarker::new(n_samples);
+    let mut candidate_indices = Vec::with_capacity(max_candidates.max(pool + 1));
 
     let mut neighbors: Vec<Vec<(usize, f32)>> = Vec::with_capacity(n_samples);
     for i in 0..n_samples {
-        let mut sampled = HashSet::with_capacity(pool + 1);
-        sampled.insert(i);
-        while sampled.len() < pool + 1 {
-            sampled.insert(rng.gen_range(0..n_samples));
-        }
+        sample_unique_candidates(
+            &mut rng,
+            n_samples,
+            i,
+            pool + 1,
+            &mut candidate_marker,
+            &mut candidate_indices,
+        );
 
-        let candidates = sampled
-            .into_iter()
-            .map(|j| (j, distance_fn(data.row(i), data.row(j))))
+        let candidates = candidate_indices
+            .iter()
+            .map(|&j| (j, distance_fn(data.row(i), data.row(j))))
             .collect::<Vec<(usize, f32)>>();
 
-        neighbors.push(dedup_sorted_neighbors_by(
-            candidates,
-            n_neighbors,
-            data,
-            data.row(i),
-            distance_fn,
-        ));
+        neighbors.push(sorted_unique_neighbors(candidates, n_neighbors));
     }
-
-    let max_candidates = candidate_pool.max(n_neighbors) * 4 + 1;
 
     let mut buf_neighbors = neighbors.clone();
 
@@ -2063,41 +2033,23 @@ where
         let mut changed = false;
 
         for i in 0..n_samples {
-            let mut candidate_set = HashSet::with_capacity(max_candidates);
-            for (idx, _) in &neighbors[i] {
-                candidate_set.insert(*idx);
-                for (idx2, _) in &neighbors[*idx] {
-                    candidate_set.insert(*idx2);
-                }
-            }
-            candidate_set.insert(i);
-            let exploration = (n_neighbors / 2).max(4).min(max_candidates);
-            for _ in 0..exploration {
-                candidate_set.insert(rng.gen_range(0..n_samples));
-            }
+            collect_approx_candidate_indices(
+                &neighbors,
+                i,
+                n_samples,
+                n_neighbors,
+                max_candidates,
+                &mut rng,
+                &mut candidate_marker,
+                &mut candidate_indices,
+            );
 
-            let mut candidate_vec = candidate_set.into_iter().collect::<Vec<usize>>();
-            candidate_vec.sort_unstable();
-            if candidate_vec.len() > max_candidates {
-                for s in 0..max_candidates {
-                    let r = rng.gen_range(s..candidate_vec.len());
-                    candidate_vec.swap(s, r);
-                }
-                candidate_vec.truncate(max_candidates);
-            }
-
-            let candidate_pairs = candidate_vec
-                .into_iter()
-                .map(|j| (j, distance_fn(data.row(i), data.row(j))))
+            let candidate_pairs = candidate_indices
+                .iter()
+                .map(|&j| (j, distance_fn(data.row(i), data.row(j))))
                 .collect::<Vec<(usize, f32)>>();
 
-            let updated = dedup_sorted_neighbors_by(
-                candidate_pairs,
-                n_neighbors,
-                data,
-                data.row(i),
-                distance_fn,
-            );
+            let updated = sorted_unique_neighbors(candidate_pairs, n_neighbors);
 
             if updated != neighbors[i] {
                 changed = true;
@@ -2138,20 +2090,26 @@ fn approximate_nearest_neighbors_cosine<M: RowMatrix + ?Sized>(
 ) -> (Vec<Vec<usize>>, Vec<Vec<f32>>) {
     let n_samples = data.n_rows();
     let pool = candidate_pool.max(n_neighbors).min(n_samples - 1);
+    let max_candidates = candidate_pool.max(n_neighbors) * 4 + 1;
     let mut rng = SmallRng::seed_from_u64(seed);
     let norms = compute_l2_norms(data);
+    let mut candidate_marker = CandidateMarker::new(n_samples);
+    let mut candidate_indices = Vec::with_capacity(max_candidates.max(pool + 1));
 
     let mut neighbors: Vec<Vec<(usize, f32)>> = Vec::with_capacity(n_samples);
     for i in 0..n_samples {
-        let mut sampled = HashSet::with_capacity(pool + 1);
-        sampled.insert(i);
-        while sampled.len() < pool + 1 {
-            sampled.insert(rng.gen_range(0..n_samples));
-        }
+        sample_unique_candidates(
+            &mut rng,
+            n_samples,
+            i,
+            pool + 1,
+            &mut candidate_marker,
+            &mut candidate_indices,
+        );
 
-        let candidates = sampled
-            .into_iter()
-            .map(|j| {
+        let candidates = candidate_indices
+            .iter()
+            .map(|&j| {
                 (
                     j,
                     cosine_distance_with_norms(data.row(i), data.row(j), norms[i], norms[j]),
@@ -2159,16 +2117,8 @@ fn approximate_nearest_neighbors_cosine<M: RowMatrix + ?Sized>(
             })
             .collect::<Vec<(usize, f32)>>();
 
-        neighbors.push(dedup_sorted_neighbors_cosine(
-            candidates,
-            n_neighbors,
-            data,
-            &norms,
-            i,
-        ));
+        neighbors.push(sorted_unique_neighbors(candidates, n_neighbors));
     }
-
-    let max_candidates = candidate_pool.max(n_neighbors) * 4 + 1;
 
     let mut buf_neighbors = neighbors.clone();
 
@@ -2176,32 +2126,20 @@ fn approximate_nearest_neighbors_cosine<M: RowMatrix + ?Sized>(
         let mut changed = false;
 
         for i in 0..n_samples {
-            let mut candidate_set = HashSet::with_capacity(max_candidates);
-            for (idx, _) in &neighbors[i] {
-                candidate_set.insert(*idx);
-                for (idx2, _) in &neighbors[*idx] {
-                    candidate_set.insert(*idx2);
-                }
-            }
-            candidate_set.insert(i);
-            let exploration = (n_neighbors / 2).max(4).min(max_candidates);
-            for _ in 0..exploration {
-                candidate_set.insert(rng.gen_range(0..n_samples));
-            }
+            collect_approx_candidate_indices(
+                &neighbors,
+                i,
+                n_samples,
+                n_neighbors,
+                max_candidates,
+                &mut rng,
+                &mut candidate_marker,
+                &mut candidate_indices,
+            );
 
-            let mut candidate_vec = candidate_set.into_iter().collect::<Vec<usize>>();
-            candidate_vec.sort_unstable();
-            if candidate_vec.len() > max_candidates {
-                for s in 0..max_candidates {
-                    let r = rng.gen_range(s..candidate_vec.len());
-                    candidate_vec.swap(s, r);
-                }
-                candidate_vec.truncate(max_candidates);
-            }
-
-            let candidate_pairs = candidate_vec
-                .into_iter()
-                .map(|j| {
+            let candidate_pairs = candidate_indices
+                .iter()
+                .map(|&j| {
                     (
                         j,
                         cosine_distance_with_norms(data.row(i), data.row(j), norms[i], norms[j]),
@@ -2209,8 +2147,7 @@ fn approximate_nearest_neighbors_cosine<M: RowMatrix + ?Sized>(
                 })
                 .collect::<Vec<(usize, f32)>>();
 
-            let updated =
-                dedup_sorted_neighbors_cosine(candidate_pairs, n_neighbors, data, &norms, i);
+            let updated = sorted_unique_neighbors(candidate_pairs, n_neighbors);
 
             if updated != neighbors[i] {
                 changed = true;
