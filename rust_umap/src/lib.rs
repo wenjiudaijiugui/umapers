@@ -2,6 +2,7 @@ use nalgebra::{DMatrix, SymmetricEigen};
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 use rand_distr::{Distribution, Normal};
+use rayon::prelude::*;
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
@@ -1024,7 +1025,10 @@ impl UmapModel {
         dense_matrix_from_output_rows(out, self.params.n_components)
     }
 
-    fn transform_rows<Q: RowMatrix + ?Sized>(&self, query: &Q) -> Result<Vec<Vec<f32>>, UmapError> {
+    fn transform_rows<Q: RowMatrix + Sync + ?Sized>(
+        &self,
+        query: &Q,
+    ) -> Result<Vec<Vec<f32>>, UmapError> {
         let train_embedding = self.embedding.as_ref().ok_or(UmapError::NotFitted)?;
         let expected_features = self.n_features.ok_or(UmapError::NotFitted)?;
         let train_data_dense = self.training_data_dense.as_ref();
@@ -1147,7 +1151,7 @@ impl UmapModel {
         dense_matrix_from_output_rows(out, self.n_features.unwrap_or(0))
     }
 
-    fn inverse_transform_rows<Q: RowMatrix + ?Sized>(
+    fn inverse_transform_rows<Q: RowMatrix + Sync + ?Sized>(
         &self,
         embedded_query: &Q,
     ) -> Result<Vec<Vec<f32>>, UmapError> {
@@ -1545,7 +1549,7 @@ fn should_use_approximate_knn(params: &UmapParams, n_samples: usize, n_features:
     true
 }
 
-fn build_fit_knn<M: RowMatrix + ?Sized>(
+fn build_fit_knn<M: RowMatrix + Sync + ?Sized>(
     params: &UmapParams,
     data: &M,
     n_samples: usize,
@@ -1730,42 +1734,32 @@ fn exact_top_k_neighbors_to_reference_euclidean<R: RowMatrix + ?Sized>(
     (row_indices, row_dists)
 }
 
-fn exact_nearest_neighbors_euclidean<M: RowMatrix + ?Sized>(
+fn exact_nearest_neighbors_euclidean<M: RowMatrix + Sync + ?Sized>(
     data: &M,
     n_neighbors: usize,
 ) -> (Vec<Vec<usize>>, Vec<Vec<f32>>) {
     let n_samples = data.n_rows();
-    let mut indices = Vec::with_capacity(n_samples);
-    let mut dists = Vec::with_capacity(n_samples);
-
-    for i in 0..n_samples {
-        let (row_indices, row_dists) =
-            exact_top_k_neighbors_euclidean(data, i, n_samples, n_neighbors);
-        indices.push(row_indices);
-        dists.push(row_dists);
-    }
-
-    (indices, dists)
+    (0..n_samples)
+        .into_par_iter()
+        .map(|i| exact_top_k_neighbors_euclidean(data, i, n_samples, n_neighbors))
+        .unzip()
 }
 
-fn exact_nearest_neighbors_cosine<M: RowMatrix + ?Sized>(
+fn exact_nearest_neighbors_cosine<M: RowMatrix + Sync + ?Sized>(
     data: &M,
     n_neighbors: usize,
 ) -> (Vec<Vec<usize>>, Vec<Vec<f32>>) {
     let n_samples = data.n_rows();
     let norms = compute_l2_norms(data);
-    let mut indices = Vec::with_capacity(n_samples);
-    let mut dists = Vec::with_capacity(n_samples);
 
-    for i in 0..n_samples {
-        let (row_indices, row_dists) = exact_top_k_neighbors(n_samples, n_neighbors, |j| {
-            cosine_distance_with_norms(data.row(i), data.row(j), norms[i], norms[j])
-        });
-        indices.push(row_indices);
-        dists.push(row_dists);
-    }
-
-    (indices, dists)
+    (0..n_samples)
+        .into_par_iter()
+        .map(|i| {
+            exact_top_k_neighbors(n_samples, n_neighbors, |j| {
+                cosine_distance_with_norms(data.row(i), data.row(j), norms[i], norms[j])
+            })
+        })
+        .unzip()
 }
 
 fn exact_nearest_neighbors_by<M, F>(
@@ -1774,25 +1768,21 @@ fn exact_nearest_neighbors_by<M, F>(
     distance_fn: F,
 ) -> (Vec<Vec<usize>>, Vec<Vec<f32>>)
 where
-    M: RowMatrix + ?Sized,
-    F: Fn(&[f32], &[f32]) -> f32 + Copy,
+    M: RowMatrix + Sync + ?Sized,
+    F: Fn(&[f32], &[f32]) -> f32 + Copy + Sync + Send,
 {
     let n_samples = data.n_rows();
-    let mut indices = Vec::with_capacity(n_samples);
-    let mut dists = Vec::with_capacity(n_samples);
-
-    for i in 0..n_samples {
-        let (row_indices, row_dists) = exact_top_k_neighbors(n_samples, n_neighbors, |j| {
-            distance_fn(data.row(i), data.row(j))
-        });
-        indices.push(row_indices);
-        dists.push(row_dists);
-    }
-
-    (indices, dists)
+    (0..n_samples)
+        .into_par_iter()
+        .map(|i| {
+            exact_top_k_neighbors(n_samples, n_neighbors, |j| {
+                distance_fn(data.row(i), data.row(j))
+            })
+        })
+        .unzip()
 }
 
-fn exact_nearest_neighbors<M: RowMatrix + ?Sized>(
+fn exact_nearest_neighbors<M: RowMatrix + Sync + ?Sized>(
     data: &M,
     n_neighbors: usize,
     metric: Metric,
@@ -2288,21 +2278,16 @@ fn exact_nearest_neighbors_to_reference_euclidean<Q, R>(
     n_neighbors: usize,
 ) -> (Vec<Vec<usize>>, Vec<Vec<f32>>)
 where
-    Q: RowMatrix + ?Sized,
-    R: RowMatrix + ?Sized,
+    Q: RowMatrix + Sync + ?Sized,
+    R: RowMatrix + Sync + ?Sized,
 {
-    let mut indices = Vec::with_capacity(query.n_rows());
-    let mut dists = Vec::with_capacity(query.n_rows());
-
-    for i in 0..query.n_rows() {
-        let x = query.row(i);
-        let (row_indices, row_dists) =
-            exact_top_k_neighbors_to_reference_euclidean(x, reference, n_neighbors);
-        indices.push(row_indices);
-        dists.push(row_dists);
-    }
-
-    (indices, dists)
+    (0..query.n_rows())
+        .into_par_iter()
+        .map(|i| {
+            let x = query.row(i);
+            exact_top_k_neighbors_to_reference_euclidean(x, reference, n_neighbors)
+        })
+        .unzip()
 }
 
 fn exact_nearest_neighbors_to_reference_by<Q, R, F>(
@@ -2312,24 +2297,19 @@ fn exact_nearest_neighbors_to_reference_by<Q, R, F>(
     distance_fn: F,
 ) -> (Vec<Vec<usize>>, Vec<Vec<f32>>)
 where
-    Q: RowMatrix + ?Sized,
-    R: RowMatrix + ?Sized,
-    F: Fn(&[f32], &[f32]) -> f32 + Copy,
+    Q: RowMatrix + Sync + ?Sized,
+    R: RowMatrix + Sync + ?Sized,
+    F: Fn(&[f32], &[f32]) -> f32 + Copy + Sync + Send,
 {
-    let mut indices = Vec::with_capacity(query.n_rows());
-    let mut dists = Vec::with_capacity(query.n_rows());
-
-    for i in 0..query.n_rows() {
-        let x = query.row(i);
-        let (row_indices, row_dists) =
+    (0..query.n_rows())
+        .into_par_iter()
+        .map(|i| {
+            let x = query.row(i);
             exact_top_k_neighbors(reference.n_rows(), n_neighbors, |j| {
                 distance_fn(x, reference.row(j))
-            });
-        indices.push(row_indices);
-        dists.push(row_dists);
-    }
-
-    (indices, dists)
+            })
+        })
+        .unzip()
 }
 
 fn exact_nearest_neighbors_to_reference_cosine<Q, R>(
@@ -2338,25 +2318,21 @@ fn exact_nearest_neighbors_to_reference_cosine<Q, R>(
     n_neighbors: usize,
 ) -> (Vec<Vec<usize>>, Vec<Vec<f32>>)
 where
-    Q: RowMatrix + ?Sized,
-    R: RowMatrix + ?Sized,
+    Q: RowMatrix + Sync + ?Sized,
+    R: RowMatrix + Sync + ?Sized,
 {
     let query_norms = compute_l2_norms(query);
     let ref_norms = compute_l2_norms(reference);
-    let mut indices = Vec::with_capacity(query.n_rows());
-    let mut dists = Vec::with_capacity(query.n_rows());
 
-    for i in 0..query.n_rows() {
-        let x = query.row(i);
-        let (row_indices, row_dists) =
+    (0..query.n_rows())
+        .into_par_iter()
+        .map(|i| {
+            let x = query.row(i);
             exact_top_k_neighbors(reference.n_rows(), n_neighbors, |j| {
                 cosine_distance_with_norms(x, reference.row(j), query_norms[i], ref_norms[j])
-            });
-        indices.push(row_indices);
-        dists.push(row_dists);
-    }
-
-    (indices, dists)
+            })
+        })
+        .unzip()
 }
 
 fn exact_nearest_neighbors_to_reference<Q, R>(
@@ -2366,8 +2342,8 @@ fn exact_nearest_neighbors_to_reference<Q, R>(
     metric: Metric,
 ) -> (Vec<Vec<usize>>, Vec<Vec<f32>>)
 where
-    Q: RowMatrix + ?Sized,
-    R: RowMatrix + ?Sized,
+    Q: RowMatrix + Sync + ?Sized,
+    R: RowMatrix + Sync + ?Sized,
 {
     match metric {
         Metric::Euclidean => {
