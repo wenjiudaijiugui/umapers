@@ -1700,14 +1700,14 @@ fn exact_nearest_neighbors_euclidean<M: RowMatrix + ?Sized>(
     n_neighbors: usize,
 ) -> (Vec<Vec<usize>>, Vec<Vec<f32>>) {
     let n_samples = data.n_rows();
-    let mut indices = vec![vec![0_usize; n_neighbors]; n_samples];
-    let mut dists = vec![vec![0.0_f32; n_neighbors]; n_samples];
+    let mut indices = Vec::with_capacity(n_samples);
+    let mut dists = Vec::with_capacity(n_samples);
 
     for i in 0..n_samples {
         let (row_indices, row_dists) =
             exact_top_k_neighbors_euclidean(data, i, n_samples, n_neighbors);
-        indices[i] = row_indices;
-        dists[i] = row_dists;
+        indices.push(row_indices);
+        dists.push(row_dists);
     }
 
     (indices, dists)
@@ -1719,15 +1719,15 @@ fn exact_nearest_neighbors_cosine<M: RowMatrix + ?Sized>(
 ) -> (Vec<Vec<usize>>, Vec<Vec<f32>>) {
     let n_samples = data.n_rows();
     let norms = compute_l2_norms(data);
-    let mut indices = vec![vec![0_usize; n_neighbors]; n_samples];
-    let mut dists = vec![vec![0.0_f32; n_neighbors]; n_samples];
+    let mut indices = Vec::with_capacity(n_samples);
+    let mut dists = Vec::with_capacity(n_samples);
 
     for i in 0..n_samples {
         let (row_indices, row_dists) = exact_top_k_neighbors(n_samples, n_neighbors, |j| {
             cosine_distance_with_norms(data.row(i), data.row(j), norms[i], norms[j])
         });
-        indices[i] = row_indices;
-        dists[i] = row_dists;
+        indices.push(row_indices);
+        dists.push(row_dists);
     }
 
     (indices, dists)
@@ -1743,15 +1743,15 @@ where
     F: Fn(&[f32], &[f32]) -> f32 + Copy,
 {
     let n_samples = data.n_rows();
-    let mut indices = vec![vec![0_usize; n_neighbors]; n_samples];
-    let mut dists = vec![vec![0.0_f32; n_neighbors]; n_samples];
+    let mut indices = Vec::with_capacity(n_samples);
+    let mut dists = Vec::with_capacity(n_samples);
 
     for i in 0..n_samples {
         let (row_indices, row_dists) = exact_top_k_neighbors(n_samples, n_neighbors, |j| {
             distance_fn(data.row(i), data.row(j))
         });
-        indices[i] = row_indices;
-        dists[i] = row_dists;
+        indices.push(row_indices);
+        dists.push(row_dists);
     }
 
     (indices, dists)
@@ -1976,13 +1976,17 @@ fn approximate_nearest_neighbors_euclidean<M: RowMatrix + ?Sized>(
         }
     }
 
-    let mut indices = vec![vec![0_usize; n_neighbors]; n_samples];
-    let mut dists = vec![vec![0.0_f32; n_neighbors]; n_samples];
-    for i in 0..n_samples {
-        for j in 0..n_neighbors {
-            indices[i][j] = neighbors[i][j].0;
-            dists[i][j] = neighbors[i][j].1;
+    let mut indices = Vec::with_capacity(n_samples);
+    let mut dists = Vec::with_capacity(n_samples);
+    for row in neighbors {
+        let mut row_indices = Vec::with_capacity(n_neighbors);
+        let mut row_dists = Vec::with_capacity(n_neighbors);
+        for (idx, dist) in row {
+            row_indices.push(idx);
+            row_dists.push(dist);
         }
+        indices.push(row_indices);
+        dists.push(row_dists);
     }
 
     (indices, dists)
@@ -2084,13 +2088,17 @@ where
         }
     }
 
-    let mut indices = vec![vec![0_usize; n_neighbors]; n_samples];
-    let mut dists = vec![vec![0.0_f32; n_neighbors]; n_samples];
-    for i in 0..n_samples {
-        for j in 0..n_neighbors {
-            indices[i][j] = neighbors[i][j].0;
-            dists[i][j] = neighbors[i][j].1;
+    let mut indices = Vec::with_capacity(n_samples);
+    let mut dists = Vec::with_capacity(n_samples);
+    for row in neighbors {
+        let mut row_indices = Vec::with_capacity(n_neighbors);
+        let mut row_dists = Vec::with_capacity(n_neighbors);
+        for (idx, dist) in row {
+            row_indices.push(idx);
+            row_dists.push(dist);
         }
+        indices.push(row_indices);
+        dists.push(row_dists);
     }
 
     (indices, dists)
@@ -2193,13 +2201,17 @@ fn approximate_nearest_neighbors_cosine<M: RowMatrix + ?Sized>(
         }
     }
 
-    let mut indices = vec![vec![0_usize; n_neighbors]; n_samples];
-    let mut dists = vec![vec![0.0_f32; n_neighbors]; n_samples];
-    for i in 0..n_samples {
-        for j in 0..n_neighbors {
-            indices[i][j] = neighbors[i][j].0;
-            dists[i][j] = neighbors[i][j].1;
+    let mut indices = Vec::with_capacity(n_samples);
+    let mut dists = Vec::with_capacity(n_samples);
+    for row in neighbors {
+        let mut row_indices = Vec::with_capacity(n_neighbors);
+        let mut row_dists = Vec::with_capacity(n_neighbors);
+        for (idx, dist) in row {
+            row_indices.push(idx);
+            row_dists.push(dist);
         }
+        indices.push(row_indices);
+        dists.push(row_dists);
     }
 
     (indices, dists)
@@ -2244,15 +2256,15 @@ where
     Q: RowMatrix + ?Sized,
     R: RowMatrix + ?Sized,
 {
-    let mut indices = vec![vec![0_usize; n_neighbors]; query.n_rows()];
-    let mut dists = vec![vec![0.0_f32; n_neighbors]; query.n_rows()];
+    let mut indices = Vec::with_capacity(query.n_rows());
+    let mut dists = Vec::with_capacity(query.n_rows());
 
     for i in 0..query.n_rows() {
         let x = query.row(i);
         let (row_indices, row_dists) =
             exact_top_k_neighbors_to_reference_euclidean(x, reference, n_neighbors);
-        indices[i] = row_indices;
-        dists[i] = row_dists;
+        indices.push(row_indices);
+        dists.push(row_dists);
     }
 
     (indices, dists)
@@ -2269,8 +2281,8 @@ where
     R: RowMatrix + ?Sized,
     F: Fn(&[f32], &[f32]) -> f32 + Copy,
 {
-    let mut indices = vec![vec![0_usize; n_neighbors]; query.n_rows()];
-    let mut dists = vec![vec![0.0_f32; n_neighbors]; query.n_rows()];
+    let mut indices = Vec::with_capacity(query.n_rows());
+    let mut dists = Vec::with_capacity(query.n_rows());
 
     for i in 0..query.n_rows() {
         let x = query.row(i);
@@ -2278,8 +2290,8 @@ where
             exact_top_k_neighbors(reference.n_rows(), n_neighbors, |j| {
                 distance_fn(x, reference.row(j))
             });
-        indices[i] = row_indices;
-        dists[i] = row_dists;
+        indices.push(row_indices);
+        dists.push(row_dists);
     }
 
     (indices, dists)
@@ -2296,8 +2308,8 @@ where
 {
     let query_norms = compute_l2_norms(query);
     let ref_norms = compute_l2_norms(reference);
-    let mut indices = vec![vec![0_usize; n_neighbors]; query.n_rows()];
-    let mut dists = vec![vec![0.0_f32; n_neighbors]; query.n_rows()];
+    let mut indices = Vec::with_capacity(query.n_rows());
+    let mut dists = Vec::with_capacity(query.n_rows());
 
     for i in 0..query.n_rows() {
         let x = query.row(i);
@@ -2305,8 +2317,8 @@ where
             exact_top_k_neighbors(reference.n_rows(), n_neighbors, |j| {
                 cosine_distance_with_norms(x, reference.row(j), query_norms[i], ref_norms[j])
             });
-        indices[i] = row_indices;
-        dists[i] = row_dists;
+        indices.push(row_indices);
+        dists.push(row_dists);
     }
 
     (indices, dists)
