@@ -192,6 +192,38 @@ impl DenseMatrix {
         })
     }
 
+    fn from_rows_validated(rows: &[Vec<f32>], n_rows: usize, n_cols: usize) -> Self {
+        let mut data = Vec::with_capacity(n_rows.saturating_mul(n_cols));
+        for row in rows {
+            data.extend_from_slice(row);
+        }
+        Self {
+            data,
+            n_rows,
+            n_cols,
+        }
+    }
+
+    fn from_flat_validated(data: &[f32], n_rows: usize, n_cols: usize) -> Self {
+        Self {
+            data: data.to_vec(),
+            n_rows,
+            n_cols,
+        }
+    }
+
+    fn from_row_vectors_validated(mut rows: Vec<Vec<f32>>, n_rows: usize, n_cols: usize) -> Self {
+        let mut data = Vec::with_capacity(n_rows.saturating_mul(n_cols));
+        for row in rows.iter_mut() {
+            data.append(row);
+        }
+        Self {
+            data,
+            n_rows,
+            n_cols,
+        }
+    }
+
     pub fn n_rows(&self) -> usize {
         self.n_rows
     }
@@ -525,7 +557,7 @@ impl UmapModel {
             build_fit_knn(&self.params, &data_view, n_samples, n_features);
         let (embedding, sigmas, rhos) =
             self.build_dense_fit_artifacts(&data_view, &knn_indices, &knn_dists)?;
-        let training_data = DenseMatrix::from_flat(data, n_rows, n_cols)?;
+        let training_data = DenseMatrix::from_flat_validated(data, n_rows, n_cols);
         self.store_dense_fit_state(embedding, training_data, n_features, sigmas, rhos);
         Ok(())
     }
@@ -544,7 +576,7 @@ impl UmapModel {
         let (embedding, sigmas, rhos) =
             self.build_dense_fit_artifacts(&data_view, &knn_indices, &knn_dists)?;
         let out = dense_matrix_from_output_rows(embedding.clone(), self.params.n_components)?;
-        let training_data = DenseMatrix::from_flat(data, n_rows, n_cols)?;
+        let training_data = DenseMatrix::from_flat_validated(data, n_rows, n_cols);
         self.store_dense_fit_state(embedding, training_data, n_features, sigmas, rhos);
         Ok(out)
     }
@@ -652,7 +684,7 @@ impl UmapModel {
         let (embedding, sigmas, rhos) =
             self.build_dense_fit_artifacts(&data_view, knn_indices, knn_dists)?;
         let out = dense_matrix_from_output_rows(embedding.clone(), self.params.n_components)?;
-        let training_data = DenseMatrix::from_flat(data, n_rows, n_cols)?;
+        let training_data = DenseMatrix::from_flat_validated(data, n_rows, n_cols);
         self.store_dense_fit_state(embedding, training_data, n_features, sigmas, rhos);
         Ok(out)
     }
@@ -684,7 +716,7 @@ impl UmapModel {
         let (embedding, sigmas, rhos) =
             self.build_dense_fit_artifacts(&data_view, &knn_index_view, &knn_dist_view)?;
         let out = dense_matrix_from_output_rows(embedding.clone(), self.params.n_components)?;
-        let training_data = DenseMatrix::from_flat(data, n_rows, n_cols)?;
+        let training_data = DenseMatrix::from_flat_validated(data, n_rows, n_cols);
         self.store_dense_fit_state(embedding, training_data, n_features, sigmas, rhos);
         Ok(out)
     }
@@ -732,7 +764,7 @@ impl UmapModel {
         let (embedding, sigmas, rhos) =
             self.build_dense_fit_artifacts(&data_view, &knn_idx_rows, &knn_dist_view)?;
         let out = dense_matrix_from_output_rows(embedding.clone(), self.params.n_components)?;
-        let training_data = DenseMatrix::from_flat(data, n_rows, n_cols)?;
+        let training_data = DenseMatrix::from_flat_validated(data, n_rows, n_cols);
         self.store_dense_fit_state(embedding, training_data, n_features, sigmas, rhos);
         Ok(out)
     }
@@ -746,7 +778,7 @@ impl UmapModel {
     ) -> Result<Vec<Vec<f32>>, UmapError> {
         let (embedding, sigmas, rhos) =
             self.build_dense_fit_artifacts(data, knn_indices, knn_dists)?;
-        let training_data = DenseMatrix::from_rows(data)?;
+        let training_data = DenseMatrix::from_rows_validated(data, data.len(), n_features);
 
         self.store_dense_fit_state(embedding.clone(), training_data, n_features, sigmas, rhos);
         Ok(embedding)
@@ -761,7 +793,7 @@ impl UmapModel {
     ) -> Result<(), UmapError> {
         let (embedding, sigmas, rhos) =
             self.build_dense_fit_artifacts(data, knn_indices, knn_dists)?;
-        let training_data = DenseMatrix::from_rows(data)?;
+        let training_data = DenseMatrix::from_rows_validated(data, data.len(), n_features);
         self.store_dense_fit_state(embedding, training_data, n_features, sigmas, rhos);
         Ok(())
     }
@@ -775,7 +807,8 @@ impl UmapModel {
     ) -> Result<(), UmapError> {
         let (embedding, sigmas, rhos) =
             self.build_dense_fit_artifacts(&data, knn_indices, knn_dists)?;
-        let training_data = DenseMatrix::from_row_vectors(data)?;
+        let n_rows = data.len();
+        let training_data = DenseMatrix::from_row_vectors_validated(data, n_rows, n_features);
         self.store_dense_fit_state(embedding, training_data, n_features, sigmas, rhos);
         Ok(())
     }
@@ -789,7 +822,8 @@ impl UmapModel {
     ) -> Result<Vec<Vec<f32>>, UmapError> {
         let (embedding, sigmas, rhos) =
             self.build_dense_fit_artifacts(&data, knn_indices, knn_dists)?;
-        let training_data = DenseMatrix::from_row_vectors(data)?;
+        let n_rows = data.len();
+        let training_data = DenseMatrix::from_row_vectors_validated(data, n_rows, n_features);
         let out = embedding.clone();
         self.store_dense_fit_state(embedding, training_data, n_features, sigmas, rhos);
         Ok(out)
