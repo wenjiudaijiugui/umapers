@@ -389,14 +389,47 @@ pub(crate) fn exact_nearest_neighbors_dense_query(
         }
     }
 
-    let query_sq_norms = query
-        .iter()
-        .map(|row| row.iter().map(|v| v * v).sum::<f32>())
-        .collect::<Vec<f32>>();
-    let query_l1_norms = query
-        .iter()
-        .map(|row| row.iter().map(|v| v.abs()).sum::<f32>())
-        .collect::<Vec<f32>>();
+    let query_sq_norms = if matches!(metric, Metric::Euclidean | Metric::Cosine) {
+        Some(
+            query
+                .iter()
+                .map(|row| row.iter().map(|v| v * v).sum::<f32>())
+                .collect::<Vec<f32>>(),
+        )
+    } else {
+        None
+    };
+    let query_l1_norms = if matches!(metric, Metric::Manhattan) {
+        Some(
+            query
+                .iter()
+                .map(|row| row.iter().map(|v| v.abs()).sum::<f32>())
+                .collect::<Vec<f32>>(),
+        )
+    } else {
+        None
+    };
+    let query_l2_norms = if matches!(metric, Metric::Cosine) {
+        Some(
+            query_sq_norms
+                .as_ref()
+                .expect("cosine query norms should be computed")
+                .iter()
+                .map(|norm| norm.sqrt())
+                .collect::<Vec<f32>>(),
+        )
+    } else {
+        None
+    };
+    let reference_l2_norms = if matches!(metric, Metric::Cosine) {
+        Some(
+            (0..reference.n_rows())
+                .map(|row| reference.squared_norm(row).sqrt())
+                .collect::<Vec<f32>>(),
+        )
+    } else {
+        None
+    };
 
     let mut indices = Vec::with_capacity(query.len());
     let mut dists = Vec::with_capacity(query.len());
@@ -411,23 +444,31 @@ pub(crate) fn exact_nearest_neighbors_dense_query(
                         dot += q_row[col] * val;
                     }
                     euclidean_distance_from_dot(
-                        query_sq_norms[q_row_idx],
+                        query_sq_norms
+                            .as_ref()
+                            .expect("euclidean query norms should be computed")[q_row_idx],
                         reference.squared_norm(ref_idx),
                         dot,
                     )
                 }
                 Metric::Manhattan => dense_query_to_sparse_manhattan_distance(
                     q_row,
-                    query_l1_norms[q_row_idx],
+                    query_l1_norms
+                        .as_ref()
+                        .expect("manhattan query norms should be computed")[q_row_idx],
                     ref_cols,
                     ref_vals,
                 ),
                 Metric::Cosine => dense_query_to_sparse_cosine_distance(
                     q_row,
-                    query_sq_norms[q_row_idx].sqrt(),
+                    query_l2_norms
+                        .as_ref()
+                        .expect("cosine query norms should be computed")[q_row_idx],
                     ref_cols,
                     ref_vals,
-                    reference.squared_norm(ref_idx).sqrt(),
+                    reference_l2_norms
+                        .as_ref()
+                        .expect("cosine reference norms should be computed")[ref_idx],
                 ),
             };
             push_top_k(
