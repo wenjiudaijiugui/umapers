@@ -4,7 +4,10 @@ use numpy::{PyArray2, PyReadonlyArray1, PyReadonlyArray2, PyReadwriteArray2};
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 use rust_umap::{
-    DenseMatrix, InitMethod, Metric, SparseCsrMatrix, UmapError, UmapModel, UmapParams,
+    fit_transform as fit_transform_stateless_rows,
+    fit_transform_dense as fit_transform_stateless_dense,
+    fit_transform_sparse_csr as fit_transform_sparse_csr_stateless, DenseMatrix, InitMethod,
+    Metric, SparseCsrMatrix, UmapError, UmapModel, UmapParams,
 };
 
 fn parse_metric(metric: &str) -> PyResult<Metric> {
@@ -473,6 +476,36 @@ impl PyUmapCore {
         }
     }
 
+    fn fit_transform_stateless<'py>(
+        &self,
+        py: Python<'py>,
+        data: PyReadonlyArray2<'py, f32>,
+    ) -> PyResult<Bound<'py, PyArray2<f32>>> {
+        let n_components = self.inner.params().n_components;
+        match F32MatrixInput::from_py(&data, "data")? {
+            F32MatrixInput::Slice {
+                values,
+                n_rows,
+                n_cols,
+            } => {
+                let params = self.inner.params().clone();
+                let embedding = py
+                    .allow_threads(move || {
+                        fit_transform_stateless_dense(values, n_rows, n_cols, params)
+                    })
+                    .map_err(map_umap_error)?;
+                dense_to_numpy(py, embedding)
+            }
+            F32MatrixInput::Rows { rows, .. } => {
+                let params = self.inner.params().clone();
+                let embedding = py
+                    .allow_threads(move || fit_transform_stateless_rows(&rows, params))
+                    .map_err(map_umap_error)?;
+                rows_to_numpy(py, embedding, n_components)
+            }
+        }
+    }
+
     fn fit_transform_into<'py>(
         &mut self,
         py: Python<'py>,
@@ -510,6 +543,22 @@ impl PyUmapCore {
         let csr = sparse_csr_from_py(&indptr, &indices, &data, n_cols)?;
         let embedding = py
             .allow_threads(|| self.inner.fit_transform_sparse_csr(csr))
+            .map_err(map_umap_error)?;
+        rows_to_numpy(py, embedding, self.inner.params().n_components)
+    }
+
+    fn fit_transform_sparse_csr_stateless<'py>(
+        &self,
+        py: Python<'py>,
+        indptr: PyReadonlyArray1<'py, i64>,
+        indices: PyReadonlyArray1<'py, i64>,
+        data: PyReadonlyArray1<'py, f32>,
+        n_cols: usize,
+    ) -> PyResult<Bound<'py, PyArray2<f32>>> {
+        let csr = sparse_csr_from_py(&indptr, &indices, &data, n_cols)?;
+        let params = self.inner.params().clone();
+        let embedding = py
+            .allow_threads(move || fit_transform_sparse_csr_stateless(csr, params))
             .map_err(map_umap_error)?;
         rows_to_numpy(py, embedding, self.inner.params().n_components)
     }

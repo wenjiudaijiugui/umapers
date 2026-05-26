@@ -1271,7 +1271,27 @@ impl UmapModel {
 
 pub fn fit_transform(data: &[Vec<f32>], params: UmapParams) -> Result<Vec<Vec<f32>>, UmapError> {
     let mut model = UmapModel::new(params);
-    model.fit_transform(data)
+    let (n_samples, n_features) = validate_data(data)?;
+    validate_params(&model.params, n_samples, n_features)?;
+    let (knn_indices, knn_dists) = build_fit_knn(&model.params, data, n_samples, n_features);
+    let (embedding, _, _) = model.build_dense_fit_artifacts(data, &knn_indices, &knn_dists)?;
+    Ok(embedding)
+}
+
+pub fn fit_transform_dense(
+    data: &[f32],
+    n_rows: usize,
+    n_cols: usize,
+    params: UmapParams,
+) -> Result<DenseMatrix, UmapError> {
+    let mut model = UmapModel::new(params);
+    let data_view = DenseMatrixView::new(data, n_rows, n_cols)?;
+    let (n_samples, n_features) = validate_data(&data_view)?;
+    validate_params(&model.params, n_samples, n_features)?;
+    let (knn_indices, knn_dists) = build_fit_knn(&model.params, &data_view, n_samples, n_features);
+    let (embedding, _, _) =
+        model.build_dense_fit_artifacts(&data_view, &knn_indices, &knn_dists)?;
+    dense_matrix_from_output_rows(embedding, model.params.n_components)
 }
 
 pub fn fit_transform_sparse_csr(
@@ -1279,7 +1299,20 @@ pub fn fit_transform_sparse_csr(
     params: UmapParams,
 ) -> Result<Vec<Vec<f32>>, UmapError> {
     let mut model = UmapModel::new(params);
-    model.fit_transform_sparse_csr(data)
+    let n_samples = data.n_rows();
+    let n_features = data.n_cols();
+    if n_samples == 0 {
+        return Err(UmapError::EmptyData);
+    }
+    if n_samples < 2 {
+        return Err(UmapError::NeedAtLeastTwoSamples);
+    }
+
+    validate_params(&model.params, n_samples, n_features)?;
+    let (knn_indices, knn_dists) =
+        sparse::exact_nearest_neighbors(&data, model.params.n_neighbors, model.params.metric);
+    let (embedding, _, _) = model.build_sparse_fit_artifacts(&data, &knn_indices, &knn_dists)?;
+    Ok(embedding)
 }
 
 fn validate_and_trim_precomputed_knn<I, D>(

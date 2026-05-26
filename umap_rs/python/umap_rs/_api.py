@@ -441,4 +441,10 @@ def fit_transform(data: Any, **kwargs: Any) -> np.ndarray:
     (200, 2)
     """
     model = Umap(**kwargs)
-    return model.fit_transform(data)
+    csr = _maybe_as_csr_parts(data, "data")
+    if csr is not None:
+        indptr, indices, values, _, n_cols = csr
+        return model._core.fit_transform_sparse_csr_stateless(indptr, indices, values, n_cols)
+
+    arr = _as_f32_matrix(data, "data")
+    return model._core.fit_transform_stateless(arr)
