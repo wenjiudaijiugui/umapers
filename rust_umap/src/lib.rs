@@ -3715,26 +3715,6 @@ fn euclidean_distance_with_grad(x: &[f32], y: &[f32]) -> (f32, Vec<f32>) {
     (dist, grad)
 }
 
-#[inline]
-fn attractive_grad_coeff(dist_squared: f32, a: f32, b: f32, scale: f32) -> f32 {
-    if dist_squared > 0.0 {
-        let dist_pow_b = dist_squared.powf(b);
-        scale * dist_pow_b / (dist_squared * (a * dist_pow_b + 1.0))
-    } else {
-        0.0
-    }
-}
-
-#[inline]
-fn repulsive_grad_coeff(dist_squared: f32, a: f32, b: f32, scale: f32) -> f32 {
-    if dist_squared > 0.0 {
-        let dist_pow_b = dist_squared.powf(b);
-        scale / ((0.001 + dist_squared) * (a * dist_pow_b + 1.0))
-    } else {
-        0.0
-    }
-}
-
 #[allow(clippy::too_many_arguments)]
 fn optimize_layout_training(
     embedding: &mut Vec<Vec<f32>>,
@@ -3765,8 +3745,6 @@ fn optimize_layout_training(
     let mut epoch_of_next_negative_sample = epochs_per_negative_sample.clone();
 
     let mut rng = SmallRng::seed_from_u64(seed);
-    let attractive_scale = -2.0 * a * b;
-    let repulsive_scale = 2.0 * repulsion_strength * b;
 
     for epoch in 0..n_epochs {
         let alpha = initial_alpha * (1.0 - epoch as f32 / n_epochs as f32);
@@ -3781,7 +3759,12 @@ fn optimize_layout_training(
 
             if head != tail {
                 let dist_squared = squared_distance(&embedding[head], &embedding[tail]);
-                let grad_coeff = attractive_grad_coeff(dist_squared, a, b, attractive_scale);
+                let grad_coeff = if dist_squared > 0.0 {
+                    let dist_pow_b = dist_squared.powf(b);
+                    -2.0 * a * b * dist_squared.powf(b - 1.0) / (a * dist_pow_b + 1.0)
+                } else {
+                    0.0
+                };
 
                 let (current, other) = two_rows_mut(embedding.as_mut_slice(), head, tail);
                 for d in 0..dim {
@@ -3810,7 +3793,12 @@ fn optimize_layout_training(
 
                 let dist_squared = squared_distance(&embedding[head], &embedding[neg_idx]);
 
-                let grad_coeff = repulsive_grad_coeff(dist_squared, a, b, repulsive_scale);
+                let grad_coeff = if dist_squared > 0.0 {
+                    let dist_pow_b = dist_squared.powf(b);
+                    2.0 * repulsion_strength * b / ((0.001 + dist_squared) * (a * dist_pow_b + 1.0))
+                } else {
+                    0.0
+                };
 
                 if grad_coeff > 0.0 {
                     let (current, other) = two_rows_mut(embedding.as_mut_slice(), head, neg_idx);
@@ -3857,8 +3845,6 @@ fn optimize_layout_transform(
     let mut epoch_of_next_negative_sample = epochs_per_negative_sample.clone();
 
     let mut rng = SmallRng::seed_from_u64(seed);
-    let attractive_scale = -2.0 * a * b;
-    let repulsive_scale = 2.0 * repulsion_strength * b;
 
     for epoch in 0..n_epochs {
         let alpha = initial_alpha * (1.0 - epoch as f32 / n_epochs as f32);
@@ -3876,7 +3862,12 @@ fn optimize_layout_transform(
             }
 
             let dist_squared = squared_distance(&embedding[head], &base_embedding[tail]);
-            let grad_coeff = attractive_grad_coeff(dist_squared, a, b, attractive_scale);
+            let grad_coeff = if dist_squared > 0.0 {
+                let dist_pow_b = dist_squared.powf(b);
+                -2.0 * a * b * dist_squared.powf(b - 1.0) / (a * dist_pow_b + 1.0)
+            } else {
+                0.0
+            };
 
             {
                 let current = &mut embedding[head];
@@ -3902,7 +3893,12 @@ fn optimize_layout_transform(
                 let neg_idx = rng.gen_range(0..n_vertices);
 
                 let dist_squared = squared_distance(&embedding[head], &base_embedding[neg_idx]);
-                let grad_coeff = repulsive_grad_coeff(dist_squared, a, b, repulsive_scale);
+                let grad_coeff = if dist_squared > 0.0 {
+                    let dist_pow_b = dist_squared.powf(b);
+                    2.0 * repulsion_strength * b / ((0.001 + dist_squared) * (a * dist_pow_b + 1.0))
+                } else {
+                    0.0
+                };
 
                 if grad_coeff > 0.0 {
                     let current = &mut embedding[head];
