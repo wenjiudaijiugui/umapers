@@ -1837,6 +1837,72 @@ fn sorted_unique_neighbors(mut pairs: Vec<(usize, f32)>, k: usize) -> Vec<(usize
     out
 }
 
+#[derive(Clone)]
+struct FlatNeighbors {
+    indices: Vec<usize>,
+    dists: Vec<f32>,
+    row_len: usize,
+}
+
+impl FlatNeighbors {
+    fn new(n_rows: usize, row_len: usize) -> Self {
+        Self {
+            indices: vec![0; n_rows.saturating_mul(row_len)],
+            dists: vec![0.0; n_rows.saturating_mul(row_len)],
+            row_len,
+        }
+    }
+
+    #[inline]
+    fn row_range(&self, row_idx: usize) -> std::ops::Range<usize> {
+        let start = row_idx * self.row_len;
+        start..start + self.row_len
+    }
+
+    #[inline]
+    fn row_indices(&self, row_idx: usize) -> &[usize] {
+        &self.indices[self.row_range(row_idx)]
+    }
+
+    fn set_row(&mut self, row_idx: usize, row: &[(usize, f32)]) {
+        debug_assert_eq!(row.len(), self.row_len);
+        let range = self.row_range(row_idx);
+        for (offset, &(idx, dist)) in row.iter().enumerate() {
+            let pos = range.start + offset;
+            self.indices[pos] = idx;
+            self.dists[pos] = dist;
+        }
+    }
+
+    fn copy_row_from(&mut self, other: &Self, row_idx: usize) {
+        let range = self.row_range(row_idx);
+        self.indices[range.clone()].copy_from_slice(&other.indices[range.clone()]);
+        self.dists[range.clone()].copy_from_slice(&other.dists[range]);
+    }
+
+    fn row_eq(&self, row_idx: usize, row: &[(usize, f32)]) -> bool {
+        if row.len() != self.row_len {
+            return false;
+        }
+        let range = self.row_range(row_idx);
+        row.iter().enumerate().all(|(offset, &(idx, dist))| {
+            let pos = range.start + offset;
+            self.indices[pos] == idx && self.dists[pos] == dist
+        })
+    }
+
+    fn into_knn_rows(self, n_rows: usize) -> KnnRows {
+        let mut indices = Vec::with_capacity(n_rows);
+        let mut dists = Vec::with_capacity(n_rows);
+        for row_idx in 0..n_rows {
+            let range = self.row_range(row_idx);
+            indices.push(self.indices[range.clone()].to_vec());
+            dists.push(self.dists[range].to_vec());
+        }
+        (indices, dists)
+    }
+}
+
 // Reusable timestamp marker for unique candidate collection without allocating a
 // fresh HashSet for every approximate-kNN row and iteration.
 struct CandidateMarker {
@@ -1891,7 +1957,7 @@ fn sample_unique_candidates<R: Rng + ?Sized>(
 }
 
 fn collect_approx_candidate_indices<R: Rng + ?Sized>(
-    neighbors: &[Vec<(usize, f32)>],
+    neighbors: &FlatNeighbors,
     row_idx: usize,
     n_samples: usize,
     n_neighbors: usize,
@@ -1903,13 +1969,13 @@ fn collect_approx_candidate_indices<R: Rng + ?Sized>(
     marker.clear();
     out.clear();
 
-    for (idx, _) in &neighbors[row_idx] {
-        if marker.insert(*idx) {
-            out.push(*idx);
+    for &idx in neighbors.row_indices(row_idx) {
+        if marker.insert(idx) {
+            out.push(idx);
         }
-        for (idx2, _) in &neighbors[*idx] {
-            if marker.insert(*idx2) {
-                out.push(*idx2);
+        for &idx2 in neighbors.row_indices(idx) {
+            if marker.insert(idx2) {
+                out.push(idx2);
             }
         }
     }
@@ -1949,7 +2015,7 @@ fn approximate_nearest_neighbors_euclidean<M: RowMatrix + ?Sized>(
     let mut candidate_marker = CandidateMarker::new(n_samples);
     let mut candidate_indices = Vec::with_capacity(max_candidates.max(pool + 1));
 
-    let mut neighbors: Vec<Vec<(usize, f32)>> = Vec::with_capacity(n_samples);
+    let mut neighbors = FlatNeighbors::new(n_samples, n_neighbors);
     for i in 0..n_samples {
         sample_unique_candidates(
             &mut rng,
@@ -1965,7 +2031,8 @@ fn approximate_nearest_neighbors_euclidean<M: RowMatrix + ?Sized>(
             .map(|&j| (j, euclidean_distance(data.row(i), data.row(j))))
             .collect::<Vec<(usize, f32)>>();
 
-        neighbors.push(sorted_unique_neighbors(candidates, n_neighbors));
+        let row = sorted_unique_neighbors(candidates, n_neighbors);
+        neighbors.set_row(i, &row);
     }
 
     let mut buf_neighbors = neighbors.clone();
@@ -1992,11 +2059,11 @@ fn approximate_nearest_neighbors_euclidean<M: RowMatrix + ?Sized>(
 
             let updated = sorted_unique_neighbors(candidate_pairs, n_neighbors);
 
-            if updated != neighbors[i] {
-                changed = true;
-                buf_neighbors[i] = updated;
+            if neighbors.row_eq(i, &updated) {
+                buf_neighbors.copy_row_from(&neighbors, i);
             } else {
-                buf_neighbors[i].clone_from(&neighbors[i]);
+                changed = true;
+                buf_neighbors.set_row(i, &updated);
             }
         }
 
@@ -2006,20 +2073,7 @@ fn approximate_nearest_neighbors_euclidean<M: RowMatrix + ?Sized>(
         }
     }
 
-    let mut indices = Vec::with_capacity(n_samples);
-    let mut dists = Vec::with_capacity(n_samples);
-    for row in neighbors {
-        let mut row_indices = Vec::with_capacity(n_neighbors);
-        let mut row_dists = Vec::with_capacity(n_neighbors);
-        for (idx, dist) in row {
-            row_indices.push(idx);
-            row_dists.push(dist);
-        }
-        indices.push(row_indices);
-        dists.push(row_dists);
-    }
-
-    (indices, dists)
+    neighbors.into_knn_rows(n_samples)
 }
 
 fn approximate_nearest_neighbors_by<M, F>(
@@ -2041,7 +2095,7 @@ where
     let mut candidate_marker = CandidateMarker::new(n_samples);
     let mut candidate_indices = Vec::with_capacity(max_candidates.max(pool + 1));
 
-    let mut neighbors: Vec<Vec<(usize, f32)>> = Vec::with_capacity(n_samples);
+    let mut neighbors = FlatNeighbors::new(n_samples, n_neighbors);
     for i in 0..n_samples {
         sample_unique_candidates(
             &mut rng,
@@ -2057,7 +2111,8 @@ where
             .map(|&j| (j, distance_fn(data.row(i), data.row(j))))
             .collect::<Vec<(usize, f32)>>();
 
-        neighbors.push(sorted_unique_neighbors(candidates, n_neighbors));
+        let row = sorted_unique_neighbors(candidates, n_neighbors);
+        neighbors.set_row(i, &row);
     }
 
     let mut buf_neighbors = neighbors.clone();
@@ -2084,11 +2139,11 @@ where
 
             let updated = sorted_unique_neighbors(candidate_pairs, n_neighbors);
 
-            if updated != neighbors[i] {
-                changed = true;
-                buf_neighbors[i] = updated;
+            if neighbors.row_eq(i, &updated) {
+                buf_neighbors.copy_row_from(&neighbors, i);
             } else {
-                buf_neighbors[i].clone_from(&neighbors[i]);
+                changed = true;
+                buf_neighbors.set_row(i, &updated);
             }
         }
 
@@ -2098,20 +2153,7 @@ where
         }
     }
 
-    let mut indices = Vec::with_capacity(n_samples);
-    let mut dists = Vec::with_capacity(n_samples);
-    for row in neighbors {
-        let mut row_indices = Vec::with_capacity(n_neighbors);
-        let mut row_dists = Vec::with_capacity(n_neighbors);
-        for (idx, dist) in row {
-            row_indices.push(idx);
-            row_dists.push(dist);
-        }
-        indices.push(row_indices);
-        dists.push(row_dists);
-    }
-
-    (indices, dists)
+    neighbors.into_knn_rows(n_samples)
 }
 
 fn approximate_nearest_neighbors_cosine<M: RowMatrix + ?Sized>(
@@ -2129,7 +2171,7 @@ fn approximate_nearest_neighbors_cosine<M: RowMatrix + ?Sized>(
     let mut candidate_marker = CandidateMarker::new(n_samples);
     let mut candidate_indices = Vec::with_capacity(max_candidates.max(pool + 1));
 
-    let mut neighbors: Vec<Vec<(usize, f32)>> = Vec::with_capacity(n_samples);
+    let mut neighbors = FlatNeighbors::new(n_samples, n_neighbors);
     for i in 0..n_samples {
         sample_unique_candidates(
             &mut rng,
@@ -2150,7 +2192,8 @@ fn approximate_nearest_neighbors_cosine<M: RowMatrix + ?Sized>(
             })
             .collect::<Vec<(usize, f32)>>();
 
-        neighbors.push(sorted_unique_neighbors(candidates, n_neighbors));
+        let row = sorted_unique_neighbors(candidates, n_neighbors);
+        neighbors.set_row(i, &row);
     }
 
     let mut buf_neighbors = neighbors.clone();
@@ -2182,11 +2225,11 @@ fn approximate_nearest_neighbors_cosine<M: RowMatrix + ?Sized>(
 
             let updated = sorted_unique_neighbors(candidate_pairs, n_neighbors);
 
-            if updated != neighbors[i] {
-                changed = true;
-                buf_neighbors[i] = updated;
+            if neighbors.row_eq(i, &updated) {
+                buf_neighbors.copy_row_from(&neighbors, i);
             } else {
-                buf_neighbors[i].clone_from(&neighbors[i]);
+                changed = true;
+                buf_neighbors.set_row(i, &updated);
             }
         }
 
@@ -2196,20 +2239,7 @@ fn approximate_nearest_neighbors_cosine<M: RowMatrix + ?Sized>(
         }
     }
 
-    let mut indices = Vec::with_capacity(n_samples);
-    let mut dists = Vec::with_capacity(n_samples);
-    for row in neighbors {
-        let mut row_indices = Vec::with_capacity(n_neighbors);
-        let mut row_dists = Vec::with_capacity(n_neighbors);
-        for (idx, dist) in row {
-            row_indices.push(idx);
-            row_dists.push(dist);
-        }
-        indices.push(row_indices);
-        dists.push(row_dists);
-    }
-
-    (indices, dists)
+    neighbors.into_knn_rows(n_samples)
 }
 
 fn approximate_nearest_neighbors<M: RowMatrix + ?Sized>(
