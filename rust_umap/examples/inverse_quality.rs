@@ -74,6 +74,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         approx_knn_candidates: 30,
         approx_knn_iters: 10,
         approx_knn_threshold: 4096,
+        ..UmapParams::default()
     };
 
     let mut model = UmapModel::new(params);

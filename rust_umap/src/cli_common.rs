@@ -183,10 +183,17 @@ pub fn parse_init(s: &str) -> Result<InitMethod, Box<dyn Error>> {
 
 pub fn parse_metric(s: &str) -> Result<Metric, Box<dyn Error>> {
     match s.to_ascii_lowercase().as_str() {
-        "euclidean" => Ok(Metric::Euclidean),
+        "euclidean" | "l2" => Ok(Metric::Euclidean),
         "manhattan" | "l1" => Ok(Metric::Manhattan),
         "cosine" => Ok(Metric::Cosine),
-        _ => Err(format!("unsupported metric '{s}', expected euclidean|manhattan|cosine").into()),
+        "chebyshev" | "linfinity" | "linf" => Ok(Metric::Chebyshev),
+        "correlation" => Ok(Metric::Correlation),
+        "canberra" => Ok(Metric::Canberra),
+        "braycurtis" | "bray_curtis" => Ok(Metric::BrayCurtis),
+        _ => Err(format!(
+            "unsupported metric '{s}', expected euclidean|manhattan|cosine|chebyshev|correlation|canberra|braycurtis"
+        )
+        .into()),
     }
 }
 

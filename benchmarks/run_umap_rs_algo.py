@@ -38,8 +38,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--knn-dists", default="", help="optional precomputed kNN distances CSV")
     p.add_argument("--knn-metric", choices=["euclidean", "manhattan", "cosine"], default="euclidean")
     p.add_argument("--use-approximate-knn", type=parse_bool, default=False)
-    p.add_argument("--approx-knn-candidates", type=int, default=30)
-    p.add_argument("--approx-knn-iters", type=int, default=10)
+    p.add_argument("--approx-knn-candidates", type=int, default=50)
+    p.add_argument("--approx-knn-iters", type=int, default=14)
     p.add_argument("--approx-knn-threshold", type=int, default=4096)
     return p.parse_args()
 

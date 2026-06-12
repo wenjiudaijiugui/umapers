@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="690" viewBox="0 0 1120 690">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="94" y="34" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700" fill="#18181b">Synthetic Large Runtime Probe</text>
+<text x="94" y="58" font-family="Inter, Arial, sans-serif" font-size="13" fill="#71717a">Auto, exact, approximate, and umap-learn on larger synthetic classification matrices.</text>
+<line x1="94" y1="596.00" x2="1076" y2="596.00" stroke="#d4d4d8" stroke-width="1"/>
+<text x="82" y="600.00" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">0.0s</text>
+<line x1="94" y1="492.40" x2="1076" y2="492.40" stroke="#d4d4d8" stroke-width="1"/>
+<text x="82" y="496.40" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">1.1s</text>
+<line x1="94" y1="388.80" x2="1076" y2="388.80" stroke="#d4d4d8" stroke-width="1"/>
+<text x="82" y="392.80" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">2.2s</text>
+<line x1="94" y1="285.20" x2="1076" y2="285.20" stroke="#d4d4d8" stroke-width="1"/>
+<text x="82" y="289.20" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">3.2s</text>
+<line x1="94" y1="181.60" x2="1076" y2="181.60" stroke="#d4d4d8" stroke-width="1"/>
+<text x="82" y="185.60" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">4.3s</text>
+<line x1="94" y1="78.00" x2="1076" y2="78.00" stroke="#d4d4d8" stroke-width="1"/>
+<text x="82" y="82.00" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">5.4s</text>
+<line x1="94.00" y1="78" x2="94.00" y2="596" stroke="#f4f4f5" stroke-width="1"/>
+<text x="94.00" y="620" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#18181b">4200x96</text>
+<text x="94.00" y="638" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="10" fill="#71717a">403,200</text>
+<line x1="237.13" y1="78" x2="237.13" y2="596" stroke="#f4f4f5" stroke-width="1"/>
+<text x="237.13" y="620" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#18181b">5000x112</text>
+<text x="237.13" y="638" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="10" fill="#71717a">560,000</text>
+<line x1="374.75" y1="78" x2="374.75" y2="596" stroke="#f4f4f5" stroke-width="1"/>
+<text x="374.75" y="620" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#18181b">6000x128</text>
+<text x="374.75" y="638" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="10" fill="#71717a">768,000</text>
+<line x1="500.10" y1="78" x2="500.10" y2="596" stroke="#f4f4f5" stroke-width="1"/>
+<text x="500.10" y="620" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#18181b">8000x128</text>
+<text x="500.10" y="638" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="10" fill="#71717a">1,024,000</text>
+<line x1="694.55" y1="78" x2="694.55" y2="596" stroke="#f4f4f5" stroke-width="1"/>
+<text x="694.55" y="620" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#18181b">10000x160</text>
+<text x="694.55" y="638" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="10" fill="#71717a">1,600,000</text>
+<line x1="899.33" y1="78" x2="899.33" y2="596" stroke="#f4f4f5" stroke-width="1"/>
+<text x="899.33" y="620" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#18181b">16000x160</text>
+<text x="899.33" y="638" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="10" fill="#71717a">2,560,000</text>
+<line x1="1076.00" y1="78" x2="1076.00" y2="596" stroke="#f4f4f5" stroke-width="1"/>
+<text x="1076.00" y="620" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#18181b">20000x192</text>
+<text x="1076.00" y="638" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="10" fill="#71717a">3,840,000</text>
+<line x1="94" y1="78" x2="94" y2="596" stroke="#18181b" stroke-width="1.2"/>
+<line x1="94" y1="596" x2="1076" y2="596" stroke="#18181b" stroke-width="1.2"/>
+<text x="28" y="337.00" transform="rotate(-90 28 337.00)" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="13" fill="#18181b">runtime seconds</text>
+<text x="585.00" y="668" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="13" fill="#18181b">dataset matrix size, log scale</text>
+<polyline fill="none" stroke="#2563eb" stroke-width="2.8" points="94.00,535.22 237.13,523.50 374.75,508.36 500.10,478.22 694.55,446.97 899.33,349.43 1076.00,271.34"/>
+<circle cx="94.00" cy="535.22" r="4.5" fill="#2563eb"/>
+<circle cx="237.13" cy="523.50" r="4.5" fill="#2563eb"/>
+<circle cx="374.75" cy="508.36" r="4.5" fill="#2563eb"/>
+<circle cx="500.10" cy="478.22" r="4.5" fill="#2563eb"/>
+<circle cx="694.55" cy="446.97" r="4.5" fill="#2563eb"/>
+<circle cx="899.33" cy="349.43" r="4.5" fill="#2563eb"/>
+<circle cx="1076.00" cy="271.34" r="4.5" fill="#2563eb"/>
+<polyline fill="none" stroke="#16a34a" stroke-width="2.8" points="94.00,534.93 237.13,522.61 374.75,510.21 500.10,480.09 694.55,446.61 899.33,350.83 1076.00,267.11"/>
+<circle cx="94.00" cy="534.93" r="4.5" fill="#16a34a"/>
+<circle cx="237.13" cy="522.61" r="4.5" fill="#16a34a"/>
+<circle cx="374.75" cy="510.21" r="4.5" fill="#16a34a"/>
+<circle cx="500.10" cy="480.09" r="4.5" fill="#16a34a"/>
+<circle cx="694.55" cy="446.61" r="4.5" fill="#16a34a"/>
+<circle cx="899.33" cy="350.83" r="4.5" fill="#16a34a"/>
+<circle cx="1076.00" cy="267.11" r="4.5" fill="#16a34a"/>
+<polyline fill="none" stroke="#9333ea" stroke-width="2.8" points="94.00,529.11 237.13,515.25 374.75,496.41 500.10,466.98 694.55,434.37 899.33,336.94 1076.00,268.26"/>
+<circle cx="94.00" cy="529.11" r="4.5" fill="#9333ea"/>
+<circle cx="237.13" cy="515.25" r="4.5" fill="#9333ea"/>
+<circle cx="374.75" cy="496.41" r="4.5" fill="#9333ea"/>
+<circle cx="500.10" cy="466.98" r="4.5" fill="#9333ea"/>
+<circle cx="694.55" cy="434.37" r="4.5" fill="#9333ea"/>
+<circle cx="899.33" cy="336.94" r="4.5" fill="#9333ea"/>
+<circle cx="1076.00" cy="268.26" r="4.5" fill="#9333ea"/>
+<polyline fill="none" stroke="#dc2626" stroke-width="2.8" points="94.00,503.39 237.13,487.80 374.75,465.54 500.10,424.02 694.55,369.60 899.33,228.83 1076.00,133.50"/>
+<circle cx="94.00" cy="503.39" r="4.5" fill="#dc2626"/>
+<circle cx="237.13" cy="487.80" r="4.5" fill="#dc2626"/>
+<circle cx="374.75" cy="465.54" r="4.5" fill="#dc2626"/>
+<circle cx="500.10" cy="424.02" r="4.5" fill="#dc2626"/>
+<circle cx="694.55" cy="369.60" r="4.5" fill="#dc2626"/>
+<circle cx="899.33" cy="228.83" r="4.5" fill="#dc2626"/>
+<circle cx="1076.00" cy="133.50" r="4.5" fill="#dc2626"/>
+<rect x="856" y="90" width="194" height="104" rx="6" fill="#ffffff" stroke="#d4d4d8"/>
+<line x1="870" y1="112" x2="904" y2="112" stroke="#2563eb" stroke-width="3"/>
+<circle cx="887" cy="112" r="4.5" fill="#2563eb"/>
+<text x="916" y="116" font-family="Inter, Arial, sans-serif" font-size="12" fill="#18181b">umapers auto</text>
+<line x1="870" y1="134" x2="904" y2="134" stroke="#16a34a" stroke-width="3"/>
+<circle cx="887" cy="134" r="4.5" fill="#16a34a"/>
+<text x="916" y="138" font-family="Inter, Arial, sans-serif" font-size="12" fill="#18181b">umapers exact</text>
+<line x1="870" y1="156" x2="904" y2="156" stroke="#9333ea" stroke-width="3"/>
+<circle cx="887" cy="156" r="4.5" fill="#9333ea"/>
+<text x="916" y="160" font-family="Inter, Arial, sans-serif" font-size="12" fill="#18181b">umapers approx</text>
+<line x1="870" y1="178" x2="904" y2="178" stroke="#dc2626" stroke-width="3"/>
+<circle cx="887" cy="178" r="4.5" fill="#dc2626"/>
+<text x="916" y="182" font-family="Inter, Arial, sans-serif" font-size="12" fill="#18181b">umap-learn</text>
+</svg>

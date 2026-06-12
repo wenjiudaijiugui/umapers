@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="720" viewBox="0 0 1180 720">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="98" y="34" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700" fill="#18181b">Synthetic UMAP Runtime Scaling</text>
+<text x="98" y="58" font-family="Inter, Arial, sans-serif" font-size="13" fill="#71717a">30 synthetic datasets; x-axis is samples x features; y-axis is runtime in seconds; both axes use log scale.</text>
+<line x1="98" y1="552.07" x2="1138" y2="552.07" stroke="#d4d4d8" stroke-width="1"/>
+<text x="86" y="556.07" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">0.05s</text>
+<line x1="98" y1="490.22" x2="1138" y2="490.22" stroke="#d4d4d8" stroke-width="1"/>
+<text x="86" y="494.22" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">0.1s</text>
+<line x1="98" y1="428.37" x2="1138" y2="428.37" stroke="#d4d4d8" stroke-width="1"/>
+<text x="86" y="432.37" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">0.2s</text>
+<line x1="98" y1="346.60" x2="1138" y2="346.60" stroke="#d4d4d8" stroke-width="1"/>
+<text x="86" y="350.60" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">0.5s</text>
+<line x1="98" y1="284.75" x2="1138" y2="284.75" stroke="#d4d4d8" stroke-width="1"/>
+<text x="86" y="288.75" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">1s</text>
+<line x1="98" y1="222.90" x2="1138" y2="222.90" stroke="#d4d4d8" stroke-width="1"/>
+<text x="86" y="226.90" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">2s</text>
+<line x1="98" y1="141.14" x2="1138" y2="141.14" stroke="#d4d4d8" stroke-width="1"/>
+<text x="86" y="145.14" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">5s</text>
+<line x1="98.00" y1="86" x2="98.00" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<text x="98.00" y="642" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#18181b">120x4</text>
+<text x="98.00" y="659" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="10" fill="#71717a">480</text>
+<line x1="195.09" y1="86" x2="195.09" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="267.68" y1="86" x2="267.68" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="333.14" y1="86" x2="333.14" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="387.11" y1="86" x2="387.11" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="391.02" y1="86" x2="391.02" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<text x="391.02" y="642" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#18181b">400x8</text>
+<text x="391.02" y="659" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="10" fill="#71717a">3,200</text>
+<line x1="463.61" y1="86" x2="463.61" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="505.61" y1="86" x2="505.61" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="560.70" y1="86" x2="560.70" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="595.17" y1="86" x2="595.17" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="635.69" y1="86" x2="635.69" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<text x="635.69" y="642" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#18181b">650x24</text>
+<text x="635.69" y="659" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="10" fill="#71717a">15,600</text>
+<line x1="666.14" y1="86" x2="666.14" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="721.56" y1="86" x2="721.56" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="736.69" y1="86" x2="736.69" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="761.38" y1="86" x2="761.38" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="819.25" y1="86" x2="819.25" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<text x="819.25" y="642" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#18181b">1600x32</text>
+<text x="819.25" y="659" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="10" fill="#71717a">51,200</text>
+<line x1="833.10" y1="86" x2="833.10" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="888.19" y1="86" x2="888.19" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="900.07" y1="86" x2="900.07" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="944.51" y1="86" x2="944.51" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="954.88" y1="86" x2="954.88" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<text x="954.88" y="642" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#18181b">2200x56</text>
+<text x="954.88" y="659" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="10" fill="#71717a">123,200</text>
+<line x1="992.12" y1="86" x2="992.12" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="1001.30" y1="86" x2="1001.30" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="1033.37" y1="86" x2="1033.37" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="1041.60" y1="86" x2="1041.60" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="1069.76" y1="86" x2="1069.76" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<text x="1069.76" y="642" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#18181b">3600x72</text>
+<text x="1069.76" y="659" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="10" fill="#71717a">259,200</text>
+<line x1="1077.20" y1="86" x2="1077.20" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="1102.30" y1="86" x2="1102.30" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="1109.10" y1="86" x2="1109.10" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<line x1="1138.00" y1="86" x2="1138.00" y2="616" stroke="#f4f4f5" stroke-width="1"/>
+<text x="1138.00" y="642" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#18181b">4200x96</text>
+<text x="1138.00" y="659" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="10" fill="#71717a">403,200</text>
+<line x1="98" y1="86" x2="98" y2="616" stroke="#18181b" stroke-width="1.2"/>
+<line x1="98" y1="616" x2="1138" y2="616" stroke="#18181b" stroke-width="1.2"/>
+<text x="30" y="351.00" transform="rotate(-90 30 351.00)" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="13" fill="#18181b">runtime seconds, log scale</text>
+<text x="618.00" y="694" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="13" fill="#18181b">dataset matrix size, log scale</text>
+<polyline fill="none" stroke="#2563eb" stroke-width="2.8" points="98.00,578.05 195.09,582.41 267.68,579.05 333.14,565.43 387.11,544.73 391.02,519.88 463.61,532.07 505.61,488.71 560.70,504.24 595.17,471.71 635.69,476.75 666.14,454.13 721.56,456.38 736.69,433.89 761.38,433.69 819.25,412.44 833.10,406.18 888.19,391.16 900.07,383.39 944.51,376.61 954.88,367.16 992.12,360.83 1001.30,350.18 1033.37,350.12 1041.60,342.26 1069.76,342.50 1077.20,335.50 1102.30,332.65 1109.10,323.88 1138.00,316.29"/>
+<polyline fill="none" stroke="#dc2626" stroke-width="2.8" points="98.00,589.22 195.09,564.25 267.68,547.77 333.14,529.76 387.11,445.82 391.02,464.63 463.61,490.24 505.61,417.83 560.70,439.32 595.17,382.62 635.69,400.09 666.14,346.97 721.56,364.97 736.69,309.05 761.38,326.96 819.25,270.71 833.10,288.24 888.19,236.00 900.07,249.47 944.51,204.81 954.88,218.39 992.12,179.12 1001.30,190.21 1033.37,156.22 1041.60,165.71 1069.76,135.35 1077.20,144.40 1102.30,119.15 1109.10,124.35 1138.00,279.77"/>
+<circle cx="98.00" cy="578.05" r="3.8" fill="#2563eb"/>
+<circle cx="98.00" cy="589.22" r="3.8" fill="#dc2626"/>
+<circle cx="195.09" cy="582.41" r="3.8" fill="#2563eb"/>
+<circle cx="195.09" cy="564.25" r="3.8" fill="#dc2626"/>
+<circle cx="267.68" cy="579.05" r="3.8" fill="#2563eb"/>
+<circle cx="267.68" cy="547.77" r="3.8" fill="#dc2626"/>
+<circle cx="333.14" cy="565.43" r="3.8" fill="#2563eb"/>
+<circle cx="333.14" cy="529.76" r="3.8" fill="#dc2626"/>
+<circle cx="387.11" cy="544.73" r="3.8" fill="#2563eb"/>
+<circle cx="387.11" cy="445.82" r="3.8" fill="#dc2626"/>
+<circle cx="391.02" cy="519.88" r="3.8" fill="#2563eb"/>
+<circle cx="391.02" cy="464.63" r="3.8" fill="#dc2626"/>
+<circle cx="463.61" cy="532.07" r="3.8" fill="#2563eb"/>
+<circle cx="463.61" cy="490.24" r="3.8" fill="#dc2626"/>
+<circle cx="505.61" cy="488.71" r="3.8" fill="#2563eb"/>
+<circle cx="505.61" cy="417.83" r="3.8" fill="#dc2626"/>
+<circle cx="560.70" cy="504.24" r="3.8" fill="#2563eb"/>
+<circle cx="560.70" cy="439.32" r="3.8" fill="#dc2626"/>
+<circle cx="595.17" cy="471.71" r="3.8" fill="#2563eb"/>
+<circle cx="595.17" cy="382.62" r="3.8" fill="#dc2626"/>
+<circle cx="635.69" cy="476.75" r="3.8" fill="#2563eb"/>
+<circle cx="635.69" cy="400.09" r="3.8" fill="#dc2626"/>
+<circle cx="666.14" cy="454.13" r="3.8" fill="#2563eb"/>
+<circle cx="666.14" cy="346.97" r="3.8" fill="#dc2626"/>
+<circle cx="721.56" cy="456.38" r="3.8" fill="#2563eb"/>
+<circle cx="721.56" cy="364.97" r="3.8" fill="#dc2626"/>
+<circle cx="736.69" cy="433.89" r="3.8" fill="#2563eb"/>
+<circle cx="736.69" cy="309.05" r="3.8" fill="#dc2626"/>
+<circle cx="761.38" cy="433.69" r="3.8" fill="#2563eb"/>
+<circle cx="761.38" cy="326.96" r="3.8" fill="#dc2626"/>
+<circle cx="819.25" cy="412.44" r="3.8" fill="#2563eb"/>
+<circle cx="819.25" cy="270.71" r="3.8" fill="#dc2626"/>
+<circle cx="833.10" cy="406.18" r="3.8" fill="#2563eb"/>
+<circle cx="833.10" cy="288.24" r="3.8" fill="#dc2626"/>
+<circle cx="888.19" cy="391.16" r="3.8" fill="#2563eb"/>
+<circle cx="888.19" cy="236.00" r="3.8" fill="#dc2626"/>
+<circle cx="900.07" cy="383.39" r="3.8" fill="#2563eb"/>
+<circle cx="900.07" cy="249.47" r="3.8" fill="#dc2626"/>
+<circle cx="944.51" cy="376.61" r="3.8" fill="#2563eb"/>
+<circle cx="944.51" cy="204.81" r="3.8" fill="#dc2626"/>
+<circle cx="954.88" cy="367.16" r="3.8" fill="#2563eb"/>
+<circle cx="954.88" cy="218.39" r="3.8" fill="#dc2626"/>
+<circle cx="992.12" cy="360.83" r="3.8" fill="#2563eb"/>
+<circle cx="992.12" cy="179.12" r="3.8" fill="#dc2626"/>
+<circle cx="1001.30" cy="350.18" r="3.8" fill="#2563eb"/>
+<circle cx="1001.30" cy="190.21" r="3.8" fill="#dc2626"/>
+<circle cx="1033.37" cy="350.12" r="3.8" fill="#2563eb"/>
+<circle cx="1033.37" cy="156.22" r="3.8" fill="#dc2626"/>
+<circle cx="1041.60" cy="342.26" r="3.8" fill="#2563eb"/>
+<circle cx="1041.60" cy="165.71" r="3.8" fill="#dc2626"/>
+<circle cx="1069.76" cy="342.50" r="3.8" fill="#2563eb"/>
+<circle cx="1069.76" cy="135.35" r="3.8" fill="#dc2626"/>
+<circle cx="1077.20" cy="335.50" r="3.8" fill="#2563eb"/>
+<circle cx="1077.20" cy="144.40" r="3.8" fill="#dc2626"/>
+<circle cx="1102.30" cy="332.65" r="3.8" fill="#2563eb"/>
+<circle cx="1102.30" cy="119.15" r="3.8" fill="#dc2626"/>
+<circle cx="1109.10" cy="323.88" r="3.8" fill="#2563eb"/>
+<circle cx="1109.10" cy="124.35" r="3.8" fill="#dc2626"/>
+<circle cx="1138.00" cy="316.29" r="3.8" fill="#2563eb"/>
+<circle cx="1138.00" cy="279.77" r="3.8" fill="#dc2626"/>
+<rect x="918" y="98" width="190" height="64" rx="6" fill="#ffffff" stroke="#d4d4d8"/>
+<line x1="934" y1="120" x2="968" y2="120" stroke="#2563eb" stroke-width="3"/>
+<circle cx="951" cy="120" r="5" fill="#2563eb"/>
+<text x="980" y="124" font-family="Inter, Arial, sans-serif" font-size="13" fill="#18181b">umap-rs</text>
+<line x1="934" y1="144" x2="968" y2="144" stroke="#dc2626" stroke-width="3"/>
+<circle cx="951" cy="144" r="5" fill="#dc2626"/>
+<text x="980" y="148" font-family="Inter, Arial, sans-serif" font-size="13" fill="#18181b">umap-learn</text>
+</svg>

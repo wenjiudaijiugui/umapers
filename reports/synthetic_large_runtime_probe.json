@@ -1,0 +1,221 @@
+{
+  "datasets": [
+    {
+      "auto_over_exact": 0.9951394960717108,
+      "auto_over_learn": 0.6562804237664756,
+      "matrix_size": 403200,
+      "n_features": 96,
+      "n_samples": 4200,
+      "name": "class_4200x96",
+      "umap_learn": {
+        "time_sec": 0.9669471890083514
+      },
+      "umapers_approximate": {
+        "knn_sec": 0.064590792,
+        "optimize_sec": 0.606844186,
+        "time_sec": 0.6984134999802336,
+        "used_approximate_knn": true
+      },
+      "umapers_auto": {
+        "knn_sec": 0.02307301,
+        "optimize_sec": 0.583091639,
+        "time_sec": 0.6345885109622031,
+        "used_approximate_knn": false
+      },
+      "umapers_exact": {
+        "knn_sec": 0.013694244,
+        "optimize_sec": 0.59766457,
+        "time_sec": 0.6376879959716462,
+        "used_approximate_knn": false
+      }
+    },
+    {
+      "auto_over_exact": 0.9879262327962978,
+      "auto_over_learn": 0.6701138442379903,
+      "matrix_size": 560000,
+      "n_features": 112,
+      "n_samples": 5000,
+      "name": "class_5000x112",
+      "umap_learn": {
+        "time_sec": 1.1297323380131274
+      },
+      "umapers_approximate": {
+        "knn_sec": 0.076353322,
+        "optimize_sec": 0.735837253,
+        "time_sec": 0.843119656026829,
+        "used_approximate_knn": true
+      },
+      "umapers_auto": {
+        "knn_sec": 0.035009512,
+        "optimize_sec": 0.689705036,
+        "time_sec": 0.7570492799859494,
+        "used_approximate_knn": false
+      },
+      "umapers_exact": {
+        "knn_sec": 0.021207756,
+        "optimize_sec": 0.713078013,
+        "time_sec": 0.7663014249992557,
+        "used_approximate_knn": false
+      }
+    },
+    {
+      "auto_over_exact": 1.0215639276347475,
+      "auto_over_learn": 0.6717968178595326,
+      "matrix_size": 768000,
+      "n_features": 128,
+      "n_samples": 6000,
+      "name": "class_6000x128",
+      "umap_learn": {
+        "time_sec": 1.3621916309930384
+      },
+      "umapers_approximate": {
+        "knn_sec": 0.096611311,
+        "optimize_sec": 0.906411708,
+        "time_sec": 1.039817821001634,
+        "used_approximate_knn": true
+      },
+      "umapers_auto": {
+        "knn_sec": 0.051780947,
+        "optimize_sec": 0.829510653,
+        "time_sec": 0.9151160030160099,
+        "used_approximate_knn": false
+      },
+      "umapers_exact": {
+        "knn_sec": 0.032722358,
+        "optimize_sec": 0.826529333,
+        "time_sec": 0.8957990569761023,
+        "used_approximate_knn": false
+      }
+    },
+    {
+      "auto_over_exact": 1.0161378816578608,
+      "auto_over_learn": 0.6848705237182711,
+      "matrix_size": 1024000,
+      "n_features": 128,
+      "n_samples": 8000,
+      "name": "class_8000x128",
+      "umap_learn": {
+        "time_sec": 1.795707957004197
+      },
+      "umapers_approximate": {
+        "knn_sec": 0.12243767,
+        "optimize_sec": 1.181192682,
+        "time_sec": 1.34712035296252,
+        "used_approximate_knn": true
+      },
+      "umapers_auto": {
+        "knn_sec": 0.073944258,
+        "optimize_sec": 1.113597144,
+        "time_sec": 1.229827448958531,
+        "used_approximate_knn": false
+      },
+      "umapers_exact": {
+        "knn_sec": 0.054412577,
+        "optimize_sec": 1.112977399,
+        "time_sec": 1.210295837954618,
+        "used_approximate_knn": false
+      }
+    },
+    {
+      "auto_over_exact": 0.997592553768039,
+      "auto_over_learn": 0.6582356006342398,
+      "matrix_size": 1600000,
+      "n_features": 160,
+      "n_samples": 10000,
+      "name": "class_10000x160",
+      "umap_learn": {
+        "time_sec": 2.363964246993419
+      },
+      "umapers_approximate": {
+        "knn_sec": 0.168246288,
+        "optimize_sec": 1.465931004,
+        "time_sec": 1.6876695930259302,
+        "used_approximate_knn": true
+      },
+      "umapers_auto": {
+        "knn_sec": 0.114643585,
+        "optimize_sec": 1.388191376,
+        "time_sec": 1.5560454259975813,
+        "used_approximate_knn": false
+      },
+      "umapers_exact": {
+        "knn_sec": 0.099043318,
+        "optimize_sec": 1.408397871,
+        "time_sec": 1.5598005619831383,
+        "used_approximate_knn": false
+      }
+    },
+    {
+      "auto_over_exact": 1.0056992416400021,
+      "auto_over_learn": 0.6715353198485804,
+      "matrix_size": 2560000,
+      "n_features": 160,
+      "n_samples": 16000,
+      "name": "class_16000x160",
+      "umap_learn": {
+        "time_sec": 3.833809401956387
+      },
+      "umapers_approximate": {
+        "knn_sec": 0.248039885,
+        "optimize_sec": 2.370521596,
+        "time_sec": 2.704944795987103,
+        "used_approximate_knn": true
+      },
+      "umapers_auto": {
+        "knn_sec": 0.248867887,
+        "optimize_sec": 2.240704155,
+        "time_sec": 2.574538422981277,
+        "used_approximate_knn": false
+      },
+      "umapers_exact": {
+        "knn_sec": 0.245818501,
+        "optimize_sec": 2.230068833,
+        "time_sec": 2.5599486569990404,
+        "used_approximate_knn": false
+      }
+    },
+    {
+      "auto_over_exact": 0.9871428418769945,
+      "auto_over_learn": 0.7019768136478001,
+      "matrix_size": 3840000,
+      "n_features": 192,
+      "n_samples": 20000,
+      "name": "class_20000x192",
+      "umap_learn": {
+        "time_sec": 4.829134792031255
+      },
+      "umapers_approximate": {
+        "knn_sec": 0.320238805,
+        "optimize_sec": 2.99660025,
+        "time_sec": 3.422051472007297,
+        "used_approximate_knn": true
+      },
+      "umapers_auto": {
+        "knn_sec": 0.311012738,
+        "optimize_sec": 2.969407368,
+        "time_sec": 3.389940653985832,
+        "used_approximate_knn": true
+      },
+      "umapers_exact": {
+        "knn_sec": 0.449364804,
+        "optimize_sec": 2.882171427,
+        "time_sec": 3.4340933350031264,
+        "used_approximate_knn": false
+      }
+    }
+  ],
+  "environment": {
+    "python": "3.13.9",
+    "umap_learn": "0.5.12",
+    "umapers": "1.1.0"
+  },
+  "generated_at": "2026-06-12T18:52:19+0800",
+  "settings": {
+    "build_profile": "release",
+    "init": "spectral",
+    "n_epochs": 150,
+    "n_neighbors": 15,
+    "seed": 13,
+    "warmup_note": "small path plus discarded >4096-sample large path"
+  }
+}

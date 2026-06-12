@@ -760,6 +760,7 @@ mod tests {
                 approx_knn_candidates: 30,
                 approx_knn_iters: 10,
                 approx_knn_threshold: 4096,
+                ..UmapParams::default()
             },
             alignment_regularization: 0.1,
             alignment_learning_rate: 0.2,
@@ -805,6 +806,7 @@ mod tests {
             approx_knn_candidates: 30,
             approx_knn_iters: 10,
             approx_knn_threshold: 4096,
+            ..UmapParams::default()
         };
 
         let mut embeddings = Vec::with_capacity(slices.len());
@@ -880,6 +882,7 @@ mod tests {
             approx_knn_candidates: 30,
             approx_knn_iters: 10,
             approx_knn_threshold: 4096,
+            ..UmapParams::default()
         };
 
         let mut unaligned = AlignedUmapModel::new(AlignedUmapParams {
@@ -937,6 +940,7 @@ mod tests {
             approx_knn_candidates: 30,
             approx_knn_iters: 10,
             approx_knn_threshold: 4096,
+            ..UmapParams::default()
         };
 
         let mut initial_embeddings = Vec::with_capacity(slices.len());

@@ -31,8 +31,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--init", choices=["random", "spectral"], default="random")
     p.add_argument("--metric", choices=["euclidean", "manhattan", "cosine"], default="euclidean")
     p.add_argument("--use-approximate-knn", type=parse_bool, default=True)
-    p.add_argument("--approx-knn-candidates", type=int, default=30)
-    p.add_argument("--approx-knn-iters", type=int, default=10)
+    p.add_argument("--approx-knn-candidates", type=int, default=50)
+    p.add_argument("--approx-knn-iters", type=int, default=14)
     p.add_argument("--approx-knn-threshold", type=int, default=4096)
     return p.parse_args()
 

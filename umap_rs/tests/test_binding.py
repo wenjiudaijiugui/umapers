@@ -1,5 +1,7 @@
 import inspect
+import importlib
 from importlib import resources
+import subprocess
 
 import numpy as np
 
@@ -13,6 +15,8 @@ import pytest
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path = [p for p in sys.path if Path(p or ".").resolve() != _REPO_ROOT]
 
+from umapers import AlignedUmap
+from umapers import ParametricUmap
 from umapers import Umap
 from umapers import __version__
 from umapers import fit_transform
@@ -40,7 +44,7 @@ def make_dataset(n_samples: int = 180, n_features: int = 12, seed: int = 42) -> 
 def _skip_until_python_package_1() -> None:
     major = int(__version__.split(".", 1)[0])
     if major < 1:
-        pytest.skip("1.0.0 docstring/type assets are not shipped yet")
+        pytest.skip("Python package docstring/type assets require version 1 or newer")
 
 
 def test_public_api_has_helpful_docstrings() -> None:
@@ -54,6 +58,8 @@ def test_public_api_has_helpful_docstrings() -> None:
         "Umap.fit_transform_with_knn": inspect.getdoc(Umap.fit_transform_with_knn) or "",
         "Umap.transform": inspect.getdoc(Umap.transform) or "",
         "Umap.inverse_transform": inspect.getdoc(Umap.inverse_transform) or "",
+        "ParametricUmap": inspect.getdoc(ParametricUmap) or "",
+        "AlignedUmap": inspect.getdoc(AlignedUmap) or "",
         "fit_transform": inspect.getdoc(fit_transform) or "",
     }
 
@@ -82,11 +88,66 @@ def test_package_ships_typing_markers_and_stubs() -> None:
     _skip_until_python_package_1()
 
     package_root = resources.files("umapers")
-    expected_files = ("py.typed", "__init__.pyi", "_api.pyi")
+    expected_files = ("py.typed", "__init__.pyi", "_api.pyi", "plot.pyi", "diagnostics.pyi")
 
     for filename in expected_files:
         resource = package_root / filename
         assert resource.is_file(), f"missing package resource: {filename}"
+
+
+def test_import_umapers_does_not_import_optional_ecosystem_dependencies() -> None:
+    code = (
+        "import sys, umapers; "
+        "print('matplotlib' in sys.modules); "
+        "print('sklearn' in sys.modules)"
+    )
+    result = subprocess.run(
+        [sys.executable, "-I", "-c", code],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.stdout.splitlines() == ["False", "False"]
+
+
+def test_plot_points_is_optional_and_returns_axes_when_available() -> None:
+    plot = importlib.import_module("umapers.plot")
+    emb = np.array([[0.0, 0.1], [1.0, 1.1], [0.2, 1.3]], dtype=np.float32)
+
+    if importlib.util.find_spec("matplotlib") is None:
+        with pytest.raises(ImportError, match="umapers.plot requires matplotlib"):
+            plot.points(emb)
+        return
+
+    axes = plot.points(emb, labels=np.array([0, 1, 0]))
+    assert hasattr(axes, "scatter")
+
+
+def test_trustworthiness_report_uses_optional_sklearn() -> None:
+    diagnostics = importlib.import_module("umapers.diagnostics")
+    x = make_dataset(n_samples=48, n_features=6, seed=62)
+    emb = Umap(
+        n_neighbors=6,
+        n_components=2,
+        n_epochs=20,
+        init="random",
+        random_seed=47,
+        use_approximate_knn=False,
+    ).fit_transform(x)
+
+    if importlib.util.find_spec("sklearn") is None:
+        with pytest.raises(ImportError, match="requires scikit-learn"):
+            diagnostics.trustworthiness_report(x, emb, n_neighbors=5)
+        return
+
+    report = diagnostics.trustworthiness_report(x, emb, n_neighbors=5)
+
+    assert report["n_samples"] == x.shape[0]
+    assert report["n_features"] == x.shape[1]
+    assert report["n_components"] == emb.shape[1]
+    assert report["n_neighbors"] == 5
+    assert 0.0 <= report["trustworthiness"] <= 1.0
 
 
 def test_fit_transform_out_buffer_and_inverse_roundtrip() -> None:
@@ -117,6 +178,37 @@ def test_fit_transform_out_buffer_and_inverse_roundtrip() -> None:
     assert reconstructed.shape == query.shape
     assert np.all(np.isfinite(transformed))
     assert np.all(np.isfinite(reconstructed))
+
+
+def test_default_ann_params_use_quality_tuned_recall_budget() -> None:
+    model = Umap()
+    assert model.use_approximate_knn is True
+    assert model.approx_knn_candidates == 50
+    assert model.approx_knn_iters == 14
+
+    params = model.get_params()
+    assert params["approx_knn_candidates"] == 50
+    assert params["approx_knn_iters"] == 14
+
+
+def test_profile_fit_transform_reports_stage_timings() -> None:
+    x = make_dataset(n_samples=72, n_features=6, seed=83)
+    model = Umap(n_neighbors=8, n_components=2, n_epochs=20, random_seed=31, init="random")
+
+    profiled = model.profile_fit_transform(x)
+    embedding = profiled["embedding"]
+    timings = profiled["timings"]
+
+    assert embedding.shape == (x.shape[0], 2)
+    assert np.all(np.isfinite(embedding))
+    assert profiled["n_samples"] == x.shape[0]
+    assert profiled["n_features"] == x.shape[1]
+    assert profiled["n_epochs"] == 20
+    assert profiled["n_edges"] > 0
+    assert profiled["used_approximate_knn"] is False
+    assert timings["total_sec"] > 0.0
+    assert timings["knn_sec"] >= 0.0
+    assert timings["optimize_sec"] >= 0.0
 
 
 def test_ann_mode_overrides_legacy_knn_flags(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -159,6 +251,271 @@ def test_ann_mode_overrides_legacy_knn_flags(monkeypatch: pytest.MonkeyPatch) ->
 def test_ann_mode_rejects_unknown_value() -> None:
     with pytest.raises(ValueError, match="unsupported ann_mode 'hybrid'"):
         Umap(ann_mode="hybrid")
+
+
+def test_knn_diagnostics_reports_ann_recall_and_sets_attribute() -> None:
+    x = make_dataset(n_samples=96, n_features=8, seed=61)
+    model = Umap(
+        n_neighbors=8,
+        n_components=2,
+        n_epochs=20,
+        metric="euclidean",
+        init="random",
+        random_seed=45,
+        ann_mode="approximate",
+        approx_knn_candidates=24,
+        approx_knn_iters=7,
+    )
+
+    assert not hasattr(model, "knn_diagnostics_")
+    diagnostics = model.knn_diagnostics(x)
+
+    assert diagnostics is model.knn_diagnostics_
+    assert diagnostics["n_samples"] == x.shape[0]
+    assert diagnostics["n_features"] == x.shape[1]
+    assert diagnostics["n_neighbors"] == 8
+    assert diagnostics["metric"] == "euclidean"
+    assert diagnostics["candidate_pool"] >= 8
+    assert diagnostics["n_iters"] == 7
+    assert diagnostics["mean_recall"] >= diagnostics["worst_decile_recall"]
+    assert diagnostics["worst_decile_recall"] + 1e-6 >= diagnostics["min_recall"]
+    assert diagnostics["mean_recall"] >= 0.60
+    assert diagnostics["per_row_recall"].shape == (x.shape[0],)
+    assert diagnostics["per_row_recall"].dtype == np.float32
+    assert np.all((diagnostics["per_row_recall"] >= 0.0) & (diagnostics["per_row_recall"] <= 1.0))
+
+    model.set_params(n_neighbors=9)
+    assert not hasattr(model, "knn_diagnostics_")
+
+
+def test_get_params_returns_constructor_arguments() -> None:
+    model = Umap(
+        n_neighbors=9,
+        n_components=3,
+        n_epochs=25,
+        metric="cosine",
+        init="random",
+        ann_mode="exact",
+        target_metric="categorical",
+        target_weight=0.25,
+        target_n_neighbors=5,
+    )
+
+    params = model.get_params()
+
+    assert set(params) == set(api._PARAM_NAMES)
+    assert params["n_neighbors"] == 9
+    assert params["n_components"] == 3
+    assert params["n_epochs"] == 25
+    assert params["metric"] == "cosine"
+    assert params["ann_mode"] == "exact"
+    assert params["use_approximate_knn"] is False
+    assert params["target_metric"] == "categorical"
+    assert params["target_weight"] == 0.25
+    assert params["target_n_neighbors"] == 5
+
+
+def test_set_params_rebuilds_core_and_clears_fitted_attributes() -> None:
+    x = make_dataset(n_samples=48, n_features=6, seed=80)
+    model = Umap(
+        n_neighbors=6,
+        n_components=2,
+        n_epochs=20,
+        init="random",
+        random_seed=69,
+        use_approximate_knn=False,
+    )
+    model.fit(x)
+    original_core = model._core
+    assert model.n_features_in_ == x.shape[1]
+    assert model.n_samples_fit_ == x.shape[0]
+    assert model.embedding_.shape == (x.shape[0], 2)
+
+    returned = model.set_params(n_neighbors=7, target_metric="categorical", target_weight=0.2)
+
+    assert returned is model
+    assert model.n_neighbors == 7
+    assert model.target_metric == "categorical"
+    assert model.target_weight == 0.2
+    assert model._core is not original_core
+    assert not hasattr(model, "embedding_")
+    assert not hasattr(model, "n_features_in_")
+    assert not hasattr(model, "n_samples_fit_")
+
+
+def test_set_params_rejects_unknown_parameter() -> None:
+    with pytest.raises(ValueError, match="Invalid parameter 'unknown'"):
+        Umap().set_params(unknown=1)
+
+
+def test_sklearn_clone_and_pipeline_smoke() -> None:
+    sklearn_base = pytest.importorskip("sklearn.base")
+    sklearn_pipeline = pytest.importorskip("sklearn.pipeline")
+    sklearn_preprocessing = pytest.importorskip("sklearn.preprocessing")
+
+    clone = sklearn_base.clone
+    Pipeline = sklearn_pipeline.Pipeline
+    FunctionTransformer = sklearn_preprocessing.FunctionTransformer
+
+    x = make_dataset(n_samples=60, n_features=7, seed=81)
+    model = Umap(
+        n_neighbors=6,
+        n_components=2,
+        n_epochs=20,
+        metric="minkowski",
+        metric_kwds={"p": 3.0},
+        init="random",
+        random_seed=77,
+        use_approximate_knn=False,
+    )
+
+    cloned = clone(model)
+    assert isinstance(cloned, Umap)
+    assert cloned.get_params() == model.get_params()
+    assert not hasattr(cloned, "embedding_")
+
+    pipeline = Pipeline(
+        [
+            ("umap", model),
+            ("identity", FunctionTransformer(validate=False)),
+        ]
+    )
+    emb = pipeline.fit_transform(x)
+
+    assert emb.shape == (x.shape[0], 2)
+    assert np.all(np.isfinite(emb))
+    assert pipeline.get_params()["umap__n_neighbors"] == 6
+
+
+def test_target_metric_none_with_y_is_noop() -> None:
+    x = make_dataset(n_samples=72, n_features=8, seed=82)
+    labels = np.arange(x.shape[0], dtype=np.int64) % 3
+    params = dict(
+        n_neighbors=8,
+        n_components=2,
+        n_epochs=30,
+        init="random",
+        random_seed=71,
+        use_approximate_knn=False,
+    )
+
+    base = Umap(**params).fit_transform(x)
+    with_y = Umap(**params, target_metric=None).fit_transform(x, labels)
+
+    np.testing.assert_array_equal(with_y, base)
+
+
+def test_categorical_target_weight_zero_matches_unsupervised() -> None:
+    x = make_dataset(n_samples=72, n_features=8, seed=83)
+    labels = np.arange(x.shape[0], dtype=np.int64) % 3
+    params = dict(
+        n_neighbors=8,
+        n_components=2,
+        n_epochs=30,
+        init="random",
+        random_seed=73,
+        use_approximate_knn=False,
+    )
+
+    base = Umap(**params).fit_transform(x)
+    supervised_zero = Umap(**params, target_metric="categorical", target_weight=0.0).fit_transform(x, labels)
+
+    np.testing.assert_array_equal(supervised_zero, base)
+
+
+def test_categorical_supervised_fit_transform_changes_embedding_and_supports_out() -> None:
+    x = make_dataset(n_samples=84, n_features=8, seed=84)
+    labels = np.where(np.arange(x.shape[0]) < x.shape[0] // 2, 0, 1).astype(np.int64)
+    labels[::7] = -1
+    params = dict(
+        n_neighbors=8,
+        n_components=2,
+        n_epochs=30,
+        init="random",
+        random_seed=79,
+        use_approximate_knn=False,
+    )
+
+    base = Umap(**params).fit_transform(x)
+    out = np.empty((x.shape[0], 2), dtype=np.float32)
+    supervised = Umap(
+        **params,
+        target_metric="categorical",
+        target_weight=0.7,
+        target_n_neighbors=4,
+    ).fit_transform(x, labels, out=out)
+
+    assert supervised is out
+    assert supervised.shape == base.shape
+    assert supervised.dtype == np.float32
+    assert np.all(np.isfinite(supervised))
+    assert not np.array_equal(supervised, base)
+
+
+def test_categorical_supervised_fit_supports_dense_input() -> None:
+    x = make_dataset(n_samples=48, n_features=6, seed=85)
+    labels = (np.arange(x.shape[0], dtype=np.int64) % 2).astype(np.int64)
+
+    model = Umap(
+        n_neighbors=6,
+        n_components=2,
+        n_epochs=20,
+        init="random",
+        random_seed=81,
+        use_approximate_knn=False,
+        target_metric="categorical",
+    )
+
+    assert model.fit(x, labels) is model
+    assert model._core.n_features == x.shape[1]
+
+
+def test_categorical_supervised_rejects_sparse_input() -> None:
+    scipy_sparse = pytest.importorskip("scipy.sparse")
+
+    x = make_dataset(n_samples=48, n_features=6, seed=86)
+    x[x < 0.1] = 0.0
+    labels = np.arange(x.shape[0], dtype=np.int64) % 2
+    model = Umap(
+        n_neighbors=6,
+        n_components=2,
+        n_epochs=20,
+        init="random",
+        random_seed=83,
+        use_approximate_knn=False,
+        target_metric="categorical",
+    )
+
+    with pytest.raises(ValueError, match="categorical supervised UMAP currently supports dense input only"):
+        model.fit_transform(scipy_sparse.csr_matrix(x), labels)
+
+
+def test_categorical_supervised_rejects_label_length_mismatch() -> None:
+    x = make_dataset(n_samples=48, n_features=6, seed=87)
+    labels = np.zeros(x.shape[0] - 1, dtype=np.int64)
+    model = Umap(
+        n_neighbors=6,
+        n_components=2,
+        n_epochs=20,
+        init="random",
+        random_seed=85,
+        use_approximate_knn=False,
+        target_metric="categorical",
+    )
+
+    with pytest.raises(ValueError, match="target label length"):
+        model.fit_transform(x, labels)
+
+
+def test_categorical_supervised_rejects_invalid_target_parameters() -> None:
+    with pytest.raises(ValueError, match="unsupported target_metric 'continuous'"):
+        Umap(target_metric="continuous")
+
+    with pytest.raises(ValueError, match="target_weight must be finite and in \\[0, 1\\]"):
+        Umap(target_metric="categorical", target_weight=1.1)
+
+    with pytest.raises(ValueError, match="target_n_neighbors must be >= 1"):
+        Umap(target_metric="categorical", target_n_neighbors=0)
 
 
 def test_transform_and_inverse_transform_support_out_buffers() -> None:
@@ -300,11 +657,249 @@ def test_precomputed_knn_rejects_non_finite_distances_early() -> None:
 
 
 def test_unsupported_metric_and_init_are_rejected() -> None:
-    with pytest.raises(ValueError, match="unsupported metric 'chebyshev'"):
-        Umap(metric="chebyshev")
+    with pytest.raises(ValueError, match="unsupported metric 'hamming'"):
+        Umap(metric="hamming")
 
     with pytest.raises(ValueError, match="unsupported init 'pca'"):
         Umap(init="pca")
+
+
+def test_expanded_dense_metrics_fit_transform_and_transform() -> None:
+    x = make_dataset(n_samples=72, n_features=8, seed=88)
+    query = x[:9]
+
+    metric_specs = [
+        ("chebyshev", None),
+        ("minkowski", {"p": 3.0}),
+        ("correlation", None),
+        ("canberra", None),
+        ("braycurtis", None),
+    ]
+
+    for metric, metric_kwds in metric_specs:
+        model = Umap(
+            n_neighbors=8,
+            n_components=2,
+            n_epochs=30,
+            metric=metric,
+            metric_kwds=metric_kwds,
+            init="random",
+            random_seed=89,
+            use_approximate_knn=False,
+        )
+        emb = model.fit_transform(x)
+        transformed = model.transform(query)
+
+        assert emb.shape == (x.shape[0], 2)
+        assert transformed.shape == (query.shape[0], 2)
+        assert np.all(np.isfinite(emb))
+        assert np.all(np.isfinite(transformed))
+
+
+def test_expanded_metric_kwds_validation() -> None:
+    with pytest.raises(ValueError, match="requires metric_kwds"):
+        Umap(metric="minkowski")
+
+    with pytest.raises(ValueError, match="finite and > 0"):
+        Umap(metric="minkowski", metric_kwds={"p": 0.0})
+
+    with pytest.raises(ValueError, match="unsupported metric_kwds for minkowski: w"):
+        Umap(metric="minkowski", metric_kwds={"p": 2.0, "w": [1.0, 2.0]})
+
+    with pytest.raises(ValueError, match="unsupported metric_kwds for euclidean: p"):
+        Umap(metric="euclidean", metric_kwds={"p": 2.0})
+
+
+def test_output_dens_returns_embedding_and_radii() -> None:
+    x = make_dataset(n_samples=64, n_features=8, seed=90)
+    model = Umap(
+        n_neighbors=8,
+        n_components=2,
+        n_epochs=30,
+        init="random",
+        random_seed=95,
+        use_approximate_knn=False,
+        output_dens=True,
+    )
+
+    embedding, radii_original, radii_embedding = model.fit_transform(x)
+
+    assert embedding.shape == (x.shape[0], 2)
+    assert radii_original.shape == (x.shape[0],)
+    assert radii_embedding.shape == (x.shape[0],)
+    assert model.embedding_ is embedding
+    assert np.array_equal(model.radii_original_, radii_original)
+    assert np.array_equal(model.radii_embedding_, radii_embedding)
+    assert np.all(np.isfinite(radii_original))
+    assert np.all(np.isfinite(radii_embedding))
+
+
+def test_densmap_lambda_zero_matches_standard_umap() -> None:
+    x = make_dataset(n_samples=64, n_features=8, seed=92)
+    params = dict(
+        n_neighbors=8,
+        n_components=2,
+        n_epochs=30,
+        init="random",
+        random_seed=97,
+        use_approximate_knn=False,
+    )
+
+    standard = Umap(**params).fit_transform(x)
+    dens_zero = Umap(**params, densmap=True, dens_lambda=0.0).fit_transform(x)
+
+    np.testing.assert_array_equal(dens_zero, standard)
+
+
+def test_densmap_rejects_invalid_params_and_out_buffer() -> None:
+    x = make_dataset(n_samples=32, n_features=6, seed=94)
+
+    with pytest.raises(ValueError, match="dens_lambda must be finite and >= 0"):
+        Umap(dens_lambda=-1.0)
+
+    with pytest.raises(ValueError, match="dens_frac must be finite and in \\[0, 1\\]"):
+        Umap(dens_frac=1.5)
+
+    with pytest.raises(ValueError, match="dens_var_shift must be finite and > 0"):
+        Umap(dens_var_shift=0.0)
+
+    with pytest.raises(ValueError, match="out cannot be used when output_dens=True"):
+        Umap(
+            n_neighbors=6,
+            n_components=2,
+            n_epochs=20,
+            init="random",
+            random_seed=99,
+            use_approximate_knn=False,
+            output_dens=True,
+        ).fit_transform(x, out=np.empty((x.shape[0], 2), dtype=np.float32))
+
+
+def test_parametric_umap_fit_transform_and_transform_are_finite() -> None:
+    x = make_dataset(n_samples=48, n_features=6, seed=96)
+    query = x[:7]
+    model = ParametricUmap(
+        n_neighbors=6,
+        n_components=2,
+        n_epochs=20,
+        hidden_dim=8,
+        train_epochs=6,
+        batch_size=16,
+        inference_batch_size=16,
+        learning_rate=0.01,
+        random_seed=105,
+    )
+
+    embedding = model.fit_transform(x)
+    transformed = model.transform(query)
+
+    assert embedding.dtype == np.float32
+    assert embedding.shape == (x.shape[0], 2)
+    assert transformed.shape == (query.shape[0], 2)
+    assert model.embedding_ is embedding
+    assert model.teacher_embedding_.shape == (x.shape[0], 2)
+    assert model.n_features_in_ == x.shape[1]
+    assert np.all(np.isfinite(embedding))
+    assert np.all(np.isfinite(transformed))
+
+
+def test_parametric_umap_is_deterministic_with_fixed_seed() -> None:
+    x = make_dataset(n_samples=40, n_features=5, seed=98)
+    params = dict(
+        n_neighbors=6,
+        n_components=2,
+        n_epochs=20,
+        hidden_dim=8,
+        train_epochs=5,
+        batch_size=16,
+        inference_batch_size=16,
+        random_seed=107,
+    )
+
+    emb_a = ParametricUmap(**params).fit_transform(x)
+    emb_b = ParametricUmap(**params).fit_transform(x)
+
+    np.testing.assert_array_equal(emb_a, emb_b)
+
+
+def test_parametric_umap_transform_requires_fit_and_rejects_invalid_params() -> None:
+    x = make_dataset(n_samples=32, n_features=5, seed=100)
+
+    with pytest.raises(RuntimeError, match="model is not fitted yet"):
+        ParametricUmap(hidden_dim=8, train_epochs=4).transform(x[:3])
+
+    with pytest.raises(ValueError, match="hidden_dim must be >= 1"):
+        ParametricUmap(hidden_dim=0).fit_transform(x)
+
+    with pytest.raises(ValueError, match="learning_rate must be finite and > 0"):
+        ParametricUmap(learning_rate=0.0).fit_transform(x)
+
+
+def test_aligned_umap_identity_and_explicit_relations_work() -> None:
+    x0 = make_dataset(n_samples=40, n_features=6, seed=102)
+    x1 = (x0 + 0.05).astype(np.float32)
+    relation = np.column_stack([np.arange(0, 40, 2), np.arange(0, 40, 2)]).astype(np.int64)
+    model = AlignedUmap(
+        n_neighbors=6,
+        n_components=2,
+        n_epochs=20,
+        init="random",
+        random_seed=109,
+        alignment_epochs=12,
+    )
+
+    identity_embeddings = model.fit_transform_identity([x0, x1])
+    explicit_embeddings = model.fit_transform([x0, x1], [relation])
+
+    assert len(identity_embeddings) == 2
+    assert len(explicit_embeddings) == 2
+    assert identity_embeddings[0].shape == (x0.shape[0], 2)
+    assert explicit_embeddings[1].shape == (x1.shape[0], 2)
+    assert np.all(np.isfinite(identity_embeddings[0]))
+    assert np.all(np.isfinite(explicit_embeddings[1]))
+    assert model.embeddings_[0].shape == (x0.shape[0], 2)
+
+
+def test_aligned_umap_is_deterministic_with_fixed_seed() -> None:
+    x0 = make_dataset(n_samples=36, n_features=5, seed=104)
+    x1 = (x0 * 1.02).astype(np.float32)
+    params = dict(
+        n_neighbors=6,
+        n_components=2,
+        n_epochs=20,
+        init="random",
+        random_seed=111,
+        alignment_epochs=10,
+    )
+
+    emb_a = AlignedUmap(**params).fit_transform_identity([x0, x1])
+    emb_b = AlignedUmap(**params).fit_transform_identity([x0, x1])
+
+    for lhs, rhs in zip(emb_a, emb_b):
+        np.testing.assert_array_equal(lhs, rhs)
+
+
+def test_aligned_umap_rejects_invalid_identity_and_relation_inputs() -> None:
+    x0 = make_dataset(n_samples=32, n_features=5, seed=106)
+    x1 = make_dataset(n_samples=30, n_features=5, seed=108)
+    model = AlignedUmap(
+        n_neighbors=6,
+        n_components=2,
+        n_epochs=20,
+        init="random",
+        random_seed=113,
+        alignment_epochs=8,
+    )
+
+    with pytest.raises(ValueError, match="equal sample counts"):
+        model.fit_transform_identity([x0, x1])
+
+    with pytest.raises(ValueError, match="out of range"):
+        bad_relation = np.array([[0, 0], [1, x0.shape[0] + 1]], dtype=np.int64)
+        model.fit_transform([x0, x0], [bad_relation])
+
+    with pytest.raises(ValueError, match="shape \\(n_pairs, 2\\)"):
+        model.fit_transform([x0, x0], [np.zeros((4, 3), dtype=np.int64)])
 
 
 def test_precomputed_knn_rejects_shape_mismatch_early() -> None:
@@ -629,8 +1224,80 @@ def test_precomputed_knn_rejects_invalid_metric() -> None:
         use_approximate_knn=False,
     )
 
-    with pytest.raises(ValueError, match="unsupported metric 'chebyshev'"):
-        model.fit_transform_with_knn(x, knn_idx, knn_dist, knn_metric="chebyshev")
+    with pytest.raises(ValueError, match="unsupported metric 'hamming'"):
+        model.fit_transform_with_knn(x, knn_idx, knn_dist, knn_metric="hamming")
+
+
+def test_sparse_csr_expanded_metric_support_and_dense_only_rejection() -> None:
+    scipy_sparse = pytest.importorskip("scipy.sparse")
+
+    x = make_dataset(n_samples=64, n_features=12, seed=56)
+    x[x < 0.15] = 0.0
+    x_csr = scipy_sparse.csr_matrix(x)
+
+    for metric, metric_kwds in [
+        ("chebyshev", None),
+        ("minkowski", {"p": 3.0}),
+        ("correlation", None),
+    ]:
+        model = Umap(
+            n_neighbors=7,
+            n_components=2,
+            n_epochs=30,
+            metric=metric,
+            metric_kwds=metric_kwds,
+            init="random",
+            random_seed=91,
+            use_approximate_knn=False,
+        )
+        emb = model.fit_transform(x_csr)
+        transformed = model.transform(x[:8])
+
+        assert emb.shape == (x.shape[0], 2)
+        assert transformed.shape == (8, 2)
+        assert np.all(np.isfinite(emb))
+        assert np.all(np.isfinite(transformed))
+
+    with pytest.raises(ValueError, match="dense input only"):
+        Umap(
+            n_neighbors=7,
+            n_components=2,
+            n_epochs=20,
+            metric="canberra",
+            init="random",
+            random_seed=93,
+            use_approximate_knn=False,
+        ).fit_transform(x_csr)
+
+
+def test_sparse_csr_rejects_densmap_and_output_dens() -> None:
+    scipy_sparse = pytest.importorskip("scipy.sparse")
+
+    x = make_dataset(n_samples=40, n_features=8, seed=57)
+    x[x < 0.15] = 0.0
+    x_csr = scipy_sparse.csr_matrix(x)
+
+    with pytest.raises(ValueError, match="dense input only"):
+        Umap(
+            n_neighbors=6,
+            n_components=2,
+            n_epochs=20,
+            init="random",
+            random_seed=101,
+            use_approximate_knn=False,
+            densmap=True,
+        ).fit_transform(x_csr)
+
+    with pytest.raises(ValueError, match="dense input only"):
+        Umap(
+            n_neighbors=6,
+            n_components=2,
+            n_epochs=20,
+            init="random",
+            random_seed=103,
+            use_approximate_knn=False,
+            output_dens=True,
+        ).fit(x_csr)
 
 
 def test_sparse_csr_fit_transform_and_dense_transform_out_buffer() -> None:
@@ -661,6 +1328,83 @@ def test_sparse_csr_fit_transform_and_dense_transform_out_buffer() -> None:
     transformed = model.transform(query, out=transformed_out)
     assert transformed is transformed_out
     assert np.all(np.isfinite(transformed))
+
+
+def test_sparse_csr_fit_supports_sparse_query_transform() -> None:
+    scipy_sparse = pytest.importorskip("scipy.sparse")
+
+    x = make_dataset(n_samples=84, n_features=16, seed=58)
+    x[x < 0.2] = 0.0
+    x_csr = scipy_sparse.csr_matrix(x)
+
+    model = Umap(
+        n_neighbors=7,
+        n_components=2,
+        n_epochs=40,
+        metric="cosine",
+        init="random",
+        random_seed=37,
+        use_approximate_knn=False,
+    )
+    model.fit_transform(x_csr)
+
+    dense_query = x[:11]
+    csr_query = scipy_sparse.csr_matrix(dense_query)
+    dense_transformed = model.transform(dense_query)
+    sparse_transformed = model.transform(csr_query)
+
+    assert sparse_transformed.shape == dense_transformed.shape
+    np.testing.assert_allclose(sparse_transformed, dense_transformed, rtol=1e-6, atol=1e-6)
+
+    out = np.empty((csr_query.shape[0], 2), dtype=np.float32)
+    transformed_out = model.transform(csr_query, out=out)
+    assert transformed_out is out
+    np.testing.assert_allclose(transformed_out, dense_transformed, rtol=1e-6, atol=1e-6)
+
+
+def test_sparse_csc_and_coo_inputs_normalize_to_csr() -> None:
+    scipy_sparse = pytest.importorskip("scipy.sparse")
+
+    x = make_dataset(n_samples=72, n_features=12, seed=59)
+    x[x < 0.2] = 0.0
+    x_csc = scipy_sparse.csc_matrix(x)
+
+    model = Umap(
+        n_neighbors=7,
+        n_components=2,
+        n_epochs=35,
+        metric="euclidean",
+        init="random",
+        random_seed=41,
+        use_approximate_knn=False,
+    )
+    emb = model.fit_transform(x_csc)
+
+    query = x[:9]
+    transformed_dense = model.transform(query)
+    transformed_coo = model.transform(scipy_sparse.coo_matrix(query))
+
+    assert emb.shape == (x.shape[0], 2)
+    assert transformed_coo.shape == transformed_dense.shape
+    assert np.all(np.isfinite(emb))
+    np.testing.assert_allclose(transformed_coo, transformed_dense, rtol=1e-6, atol=1e-6)
+
+
+def test_sparse_query_after_dense_fit_is_explicitly_unsupported() -> None:
+    scipy_sparse = pytest.importorskip("scipy.sparse")
+
+    x = make_dataset(n_samples=64, n_features=10, seed=60)
+    model = Umap(
+        n_neighbors=6,
+        n_components=2,
+        n_epochs=30,
+        init="random",
+        random_seed=43,
+        use_approximate_knn=False,
+    ).fit(x)
+
+    with pytest.raises(ValueError, match="sparse query transform is supported only for sparse-fitted models"):
+        model.transform(scipy_sparse.csr_matrix(x[:5]))
 
 
 def test_sparse_csr_fit_tracks_feature_count_for_inverse_out_error() -> None:

@@ -35,10 +35,17 @@ fn parse_bool(s: &str) -> Result<bool, Box<dyn Error>> {
 
 fn parse_metric(s: &str) -> Result<Metric, Box<dyn Error>> {
     match s.to_ascii_lowercase().as_str() {
-        "euclidean" => Ok(Metric::Euclidean),
+        "euclidean" | "l2" => Ok(Metric::Euclidean),
         "manhattan" | "l1" => Ok(Metric::Manhattan),
         "cosine" => Ok(Metric::Cosine),
-        _ => Err(format!("unsupported metric '{s}', expected euclidean|manhattan|cosine").into()),
+        "chebyshev" | "linfinity" | "linf" => Ok(Metric::Chebyshev),
+        "correlation" => Ok(Metric::Correlation),
+        "canberra" => Ok(Metric::Canberra),
+        "braycurtis" | "bray_curtis" => Ok(Metric::BrayCurtis),
+        _ => Err(format!(
+            "unsupported metric '{s}', expected euclidean|manhattan|cosine|chebyshev|correlation|canberra|braycurtis"
+        )
+        .into()),
     }
 }
 
@@ -55,6 +62,11 @@ fn metric_name(metric: Metric) -> &'static str {
         Metric::Euclidean => "euclidean",
         Metric::Manhattan => "manhattan",
         Metric::Cosine => "cosine",
+        Metric::Chebyshev => "chebyshev",
+        Metric::Minkowski { .. } => "minkowski",
+        Metric::Correlation => "correlation",
+        Metric::Canberra => "canberra",
+        Metric::BrayCurtis => "braycurtis",
     }
 }
 
@@ -232,6 +244,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             approx_knn_candidates: cfg.approx_knn_candidates,
             approx_knn_iters: cfg.approx_knn_iters,
             approx_knn_threshold: cfg.approx_knn_threshold,
+            ..UmapParams::default()
         },
         alignment_regularization: cfg.alignment_regularization,
         alignment_learning_rate: cfg.alignment_learning_rate,

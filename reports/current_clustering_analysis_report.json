@@ -1,0 +1,1336 @@
+{
+  "datasets": [
+    {
+      "aggregate": {
+        "pca2_kmeans": {
+          "scores": {
+            "adjusted_mutual_info": {
+              "mean": 0.45837354744932485,
+              "std": 0.0010636353008536272
+            },
+            "adjusted_rand": {
+              "mean": 0.3247707113621478,
+              "std": 0.0019022289400147546
+            },
+            "completeness": {
+              "mean": 0.4699425739344312,
+              "std": 0.0006758168001530794
+            },
+            "explained_variance_ratio_sum": {
+              "mean": 0.21594974398612976,
+              "std": 0.0
+            },
+            "homogeneity": {
+              "mean": 0.45786470888600217,
+              "std": 0.0014398752674502542
+            },
+            "normalized_mutual_info": {
+              "mean": 0.46382459083351407,
+              "std": 0.0010457467317400767
+            },
+            "silhouette": {
+              "mean": 0.37678542733192444,
+              "std": 0.001095432458654717
+            },
+            "v_measure": {
+              "mean": 0.46382459083351407,
+              "std": 0.0010457467317400975
+            }
+          },
+          "time_sec": {
+            "mean": 0.263018652331084,
+            "std": 0.039375048107155405
+          }
+        },
+        "raw_kmeans": {
+          "scores": {
+            "adjusted_mutual_info": {
+              "mean": 0.6459073806067656,
+              "std": 0.036039581375726264
+            },
+            "adjusted_rand": {
+              "mean": 0.5048356430630659,
+              "std": 0.04665911208199255
+            },
+            "completeness": {
+              "mean": 0.6725430114110217,
+              "std": 0.03363493351974275
+            },
+            "homogeneity": {
+              "mean": 0.6281596653269853,
+              "std": 0.037353570663626566
+            },
+            "normalized_mutual_info": {
+              "mean": 0.649579491861656,
+              "std": 0.035647348765429916
+            },
+            "silhouette": {
+              "mean": 0.14339477817217508,
+              "std": 0.0034822577339880642
+            },
+            "v_measure": {
+              "mean": 0.649579491861656,
+              "std": 0.035647348765429916
+            }
+          },
+          "time_sec": {
+            "mean": 0.2446927123431427,
+            "std": 0.011747475329318052
+          }
+        },
+        "umap_learn2_kmeans": {
+          "scores": {
+            "adjusted_mutual_info": {
+              "mean": 0.8731119343931207,
+              "std": 0.016046439894352775
+            },
+            "adjusted_rand": {
+              "mean": 0.8281202807790508,
+              "std": 0.027610625850511935
+            },
+            "completeness": {
+              "mean": 0.8784765522461325,
+              "std": 0.01387371153507128
+            },
+            "homogeneity": {
+              "mean": 0.8703237116355754,
+              "std": 0.01788460895126989
+            },
+            "normalized_mutual_info": {
+              "mean": 0.8743758352685701,
+              "std": 0.015883496806617367
+            },
+            "silhouette": {
+              "mean": 0.6979160308837891,
+              "std": 0.0065767542390776056
+            },
+            "v_measure": {
+              "mean": 0.87437583526857,
+              "std": 0.015883496806617416
+            }
+          },
+          "time_sec": {
+            "mean": 4.433469854683305,
+            "std": 3.894038232759745
+          }
+        },
+        "umap_rs2_kmeans": {
+          "scores": {
+            "adjusted_mutual_info": {
+              "mean": 0.8753214127839991,
+              "std": 0.021367390918689496
+            },
+            "adjusted_rand": {
+              "mean": 0.8390834446225371,
+              "std": 0.03527134731003549
+            },
+            "completeness": {
+              "mean": 0.8779031009113646,
+              "std": 0.020392905200690432
+            },
+            "homogeneity": {
+              "mean": 0.8752196746494348,
+              "std": 0.021910777951199875
+            },
+            "normalized_mutual_info": {
+              "mean": 0.8765585746688541,
+              "std": 0.02115402310365435
+            },
+            "silhouette": {
+              "mean": 0.7132491072018942,
+              "std": 0.00544555056900015
+            },
+            "v_measure": {
+              "mean": 0.8765585746688541,
+              "std": 0.021154023103654322
+            }
+          },
+          "time_sec": {
+            "mean": 0.41068792934917536,
+            "std": 0.00402199114692245
+          }
+        }
+      },
+      "dataset": "digits",
+      "n_classes": 10,
+      "n_features": 64,
+      "n_samples": 1797,
+      "runs": [
+        {
+          "method": "raw_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.6125475414461189,
+            "adjusted_rand": 0.46374106260976505,
+            "completeness": 0.6406885709245553,
+            "homogeneity": 0.5942197818981138,
+            "normalized_mutual_info": 0.6165798814287764,
+            "silhouette": 0.14304712414741516,
+            "v_measure": 0.6165798814287764
+          },
+          "seed": 11,
+          "time_sec": 0.24601118097780272
+        },
+        {
+          "method": "pca2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.45957801714781427,
+            "adjusted_rand": 0.3261761527683093,
+            "completeness": 0.4704966254291331,
+            "explained_variance_ratio_sum": 0.21594974398612976,
+            "homogeneity": 0.4596409668657698,
+            "normalized_mutual_info": 0.4650054478193006,
+            "silhouette": 0.3754105269908905,
+            "v_measure": 0.4650054478193006
+          },
+          "seed": 11,
+          "time_sec": 0.31857659999514
+        },
+        {
+          "method": "umap_rs2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.8975400793488226,
+            "adjusted_rand": 0.8735740707614632,
+            "completeness": 0.899271981169014,
+            "homogeneity": 0.8978406352287244,
+            "normalized_mutual_info": 0.8985557381869562,
+            "silhouette": 0.7194848656654358,
+            "v_measure": 0.8985557381869561
+          },
+          "seed": 11,
+          "time_sec": 0.41328102903207764
+        },
+        {
+          "method": "umap_learn2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.894812103205094,
+            "adjusted_rand": 0.8664260822380874,
+            "completeness": 0.896973557943424,
+            "homogeneity": 0.8947398961351893,
+            "normalized_mutual_info": 0.895855334728203,
+            "silhouette": 0.7009709477424622,
+            "v_measure": 0.895855334728203
+          },
+          "seed": 11,
+          "time_sec": 9.940418647020124
+        },
+        {
+          "method": "raw_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.6292163849016454,
+            "adjusted_rand": 0.4806723562027978,
+            "completeness": 0.6578771916731269,
+            "homogeneity": 0.6100725521649806,
+            "normalized_mutual_info": 0.6330736991519115,
+            "silhouette": 0.13931436836719513,
+            "v_measure": 0.6330736991519115
+          },
+          "seed": 23,
+          "time_sec": 0.2583757580141537
+        },
+        {
+          "method": "pca2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.4569909795693179,
+            "adjusted_rand": 0.32208147027137163,
+            "completeness": 0.46899111307013597,
+            "explained_variance_ratio_sum": 0.21594974398612976,
+            "homogeneity": 0.4561142911563645,
+            "normalized_mutual_info": 0.46246308392388424,
+            "silhouette": 0.37809109687805176,
+            "v_measure": 0.4624630839238842
+          },
+          "seed": 23,
+          "time_sec": 0.23849197902018204
+        },
+        {
+          "method": "umap_rs2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.8819489403870157,
+            "adjusted_rand": 0.8530454935531913,
+            "completeness": 0.8839916775412272,
+            "homogeneity": 0.8822488342824508,
+            "normalized_mutual_info": 0.8831193960338652,
+            "silhouette": 0.714044988155365,
+            "v_measure": 0.8831193960338654
+          },
+          "seed": 23,
+          "time_sec": 0.4050071469973773
+        },
+        {
+          "method": "umap_learn2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.8680115765087622,
+            "adjusted_rand": 0.815526280164726,
+            "completeness": 0.874895093848815,
+            "homogeneity": 0.8638319387321989,
+            "normalized_mutual_info": 0.8693283200236863,
+            "silhouette": 0.7039965391159058,
+            "v_measure": 0.8693283200236862
+          },
+          "seed": 23,
+          "time_sec": 1.7008972820476629
+        },
+        {
+          "method": "raw_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.6959582154725321,
+            "adjusted_rand": 0.5700935103766351,
+            "completeness": 0.719063271635383,
+            "homogeneity": 0.6801866619178618,
+            "normalized_mutual_info": 0.69908489500428,
+            "silhouette": 0.14782284200191498,
+            "v_measure": 0.69908489500428
+          },
+          "seed": 37,
+          "time_sec": 0.22969119803747162
+        },
+        {
+          "method": "pca2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.45855164563084233,
+            "adjusted_rand": 0.3260545110467625,
+            "completeness": 0.47033998330402454,
+            "explained_variance_ratio_sum": 0.21594974398612976,
+            "homogeneity": 0.45783886863587225,
+            "normalized_mutual_info": 0.46400524075735733,
+            "silhouette": 0.37685465812683105,
+            "v_measure": 0.4640052407573573
+          },
+          "seed": 37,
+          "time_sec": 0.23198737797793
+        },
+        {
+          "method": "umap_rs2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.846475218616159,
+            "adjusted_rand": 0.7906307695529572,
+            "completeness": 0.8504456440238527,
+            "homogeneity": 0.8455695544371293,
+            "normalized_mutual_info": 0.848000589785741,
+            "silhouette": 0.7062174677848816,
+            "v_measure": 0.848000589785741
+          },
+          "seed": 37,
+          "time_sec": 0.4137756120180711
+        },
+        {
+          "method": "umap_learn2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.8565121234655061,
+            "adjusted_rand": 0.8024084799343388,
+            "completeness": 0.8635610049461586,
+            "homogeneity": 0.8523993000393381,
+            "normalized_mutual_info": 0.8579438510538209,
+            "silhouette": 0.6887806057929993,
+            "v_measure": 0.8579438510538208
+          },
+          "seed": 37,
+          "time_sec": 1.6590936349821277
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "pca2_kmeans": {
+          "scores": {
+            "adjusted_mutual_info": {
+              "mean": 0.8808149509129969,
+              "std": 0.0
+            },
+            "adjusted_rand": {
+              "mean": 0.8950582389649661,
+              "std": 0.0
+            },
+            "completeness": {
+              "mean": 0.8801578192501838,
+              "std": 0.0
+            },
+            "explained_variance_ratio_sum": {
+              "mean": 0.5540634393692017,
+              "std": 0.0
+            },
+            "homogeneity": {
+              "mean": 0.8839811557048378,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.8820653444077604,
+              "std": 0.0
+            },
+            "silhouette": {
+              "mean": 0.561050534248352,
+              "std": 0.0
+            },
+            "v_measure": {
+              "mean": 0.8820653444077603,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.014492550651387623,
+            "std": 0.0045755763616036884
+          }
+        },
+        "raw_kmeans": {
+          "scores": {
+            "adjusted_mutual_info": {
+              "mean": 0.874579440437926,
+              "std": 0.0
+            },
+            "adjusted_rand": {
+              "mean": 0.8974949815093206,
+              "std": 1.1102230246251565e-16
+            },
+            "completeness": {
+              "mean": 0.8729636016078731,
+              "std": 0.0
+            },
+            "homogeneity": {
+              "mean": 0.8788432003662366,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.8758935341223069,
+              "std": 0.0
+            },
+            "silhouette": {
+              "mean": 0.28485891222953796,
+              "std": 0.0
+            },
+            "v_measure": {
+              "mean": 0.875893534122307,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.0194376139746358,
+            "std": 0.005233211641330162
+          }
+        },
+        "umap_learn2_kmeans": {
+          "scores": {
+            "adjusted_mutual_info": {
+              "mean": 0.7860964861881784,
+              "std": 0.010231865739335932
+            },
+            "adjusted_rand": {
+              "mean": 0.7930315371459167,
+              "std": 0.013332596983354754
+            },
+            "completeness": {
+              "mean": 0.7847737542501848,
+              "std": 0.01017871617265922
+            },
+            "homogeneity": {
+              "mean": 0.7919282038655475,
+              "std": 0.010070116483791405
+            },
+            "normalized_mutual_info": {
+              "mean": 0.788334734162404,
+              "std": 0.010125126832834947
+            },
+            "silhouette": {
+              "mean": 0.7058626015981039,
+              "std": 0.009510919818529036
+            },
+            "v_measure": {
+              "mean": 0.7883347341624041,
+              "std": 0.010125126832834999
+            }
+          },
+          "time_sec": {
+            "mean": 0.06763254697822656,
+            "std": 0.0016263304378709707
+          }
+        },
+        "umap_rs2_kmeans": {
+          "scores": {
+            "adjusted_mutual_info": {
+              "mean": 0.7788614645397036,
+              "std": 0.010231865739335932
+            },
+            "adjusted_rand": {
+              "mean": 0.7836039674081592,
+              "std": 0.013332596983354754
+            },
+            "completeness": {
+              "mean": 0.7775763150207243,
+              "std": 0.01017871617265922
+            },
+            "homogeneity": {
+              "mean": 0.7848075562125203,
+              "std": 0.010070116483791405
+            },
+            "normalized_mutual_info": {
+              "mean": 0.7811751883185325,
+              "std": 0.010125126832834948
+            },
+            "silhouette": {
+              "mean": 0.6977075139681498,
+              "std": 0.008787060803838552
+            },
+            "v_measure": {
+              "mean": 0.7811751883185325,
+              "std": 0.010125126832834999
+            }
+          },
+          "time_sec": {
+            "mean": 0.05271438165800646,
+            "std": 0.0018863958794468505
+          }
+        }
+      },
+      "dataset": "wine",
+      "n_classes": 3,
+      "n_features": 13,
+      "n_samples": 178,
+      "runs": [
+        {
+          "method": "raw_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.874579440437926,
+            "adjusted_rand": 0.8974949815093207,
+            "completeness": 0.8729636016078731,
+            "homogeneity": 0.8788432003662366,
+            "normalized_mutual_info": 0.8758935341223069,
+            "silhouette": 0.28485891222953796,
+            "v_measure": 0.875893534122307
+          },
+          "seed": 11,
+          "time_sec": 0.0264104149537161
+        },
+        {
+          "method": "pca2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.8808149509129969,
+            "adjusted_rand": 0.8950582389649661,
+            "completeness": 0.8801578192501838,
+            "explained_variance_ratio_sum": 0.5540634393692017,
+            "homogeneity": 0.8839811557048378,
+            "normalized_mutual_info": 0.8820653444077604,
+            "silhouette": 0.561050534248352,
+            "v_measure": 0.8820653444077603
+          },
+          "seed": 11,
+          "time_sec": 0.020962139999028295
+        },
+        {
+          "method": "umap_rs2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.7933315078366532,
+            "adjusted_rand": 0.8024591068836742,
+            "completeness": 0.7919711934796453,
+            "homogeneity": 0.7990488515185749,
+            "normalized_mutual_info": 0.7954942800062754,
+            "silhouette": 0.7010155320167542,
+            "v_measure": 0.7954942800062755
+          },
+          "seed": 11,
+          "time_sec": 0.05090964201372117
+        },
+        {
+          "method": "umap_learn2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.7933315078366532,
+            "adjusted_rand": 0.8024591068836742,
+            "completeness": 0.7919711934796453,
+            "homogeneity": 0.7990488515185749,
+            "normalized_mutual_info": 0.7954942800062754,
+            "silhouette": 0.7009757161140442,
+            "v_measure": 0.7954942800062755
+          },
+          "seed": 11,
+          "time_sec": 0.0664451289921999
+        },
+        {
+          "method": "raw_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.874579440437926,
+            "adjusted_rand": 0.8974949815093207,
+            "completeness": 0.8729636016078731,
+            "homogeneity": 0.8788432003662366,
+            "normalized_mutual_info": 0.8758935341223069,
+            "silhouette": 0.28485891222953796,
+            "v_measure": 0.875893534122307
+          },
+          "seed": 23,
+          "time_sec": 0.013803007022943348
+        },
+        {
+          "method": "pca2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.8808149509129969,
+            "adjusted_rand": 0.8950582389649661,
+            "completeness": 0.8801578192501838,
+            "explained_variance_ratio_sum": 0.5540634393692017,
+            "homogeneity": 0.8839811557048378,
+            "normalized_mutual_info": 0.8820653444077604,
+            "silhouette": 0.561050534248352,
+            "v_measure": 0.8820653444077603
+          },
+          "seed": 23,
+          "time_sec": 0.011368022998794913
+        },
+        {
+          "method": "umap_rs2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.771626442891229,
+            "adjusted_rand": 0.7741763976704018,
+            "completeness": 0.7703788757912637,
+            "homogeneity": 0.7776869085594929,
+            "normalized_mutual_info": 0.774015642474661,
+            "silhouette": 0.6856799125671387,
+            "v_measure": 0.774015642474661
+          },
+          "seed": 23,
+          "time_sec": 0.05191530496813357
+        },
+        {
+          "method": "umap_learn2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.7933315078366532,
+            "adjusted_rand": 0.8024591068836742,
+            "completeness": 0.7919711934796453,
+            "homogeneity": 0.7990488515185749,
+            "normalized_mutual_info": 0.7954942800062754,
+            "silhouette": 0.6974536180496216,
+            "v_measure": 0.7954942800062755
+          },
+          "seed": 23,
+          "time_sec": 0.06993211497319862
+        },
+        {
+          "method": "raw_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.874579440437926,
+            "adjusted_rand": 0.8974949815093207,
+            "completeness": 0.8729636016078731,
+            "homogeneity": 0.8788432003662366,
+            "normalized_mutual_info": 0.8758935341223069,
+            "silhouette": 0.28485891222953796,
+            "v_measure": 0.875893534122307
+          },
+          "seed": 37,
+          "time_sec": 0.018099419947247952
+        },
+        {
+          "method": "pca2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.8808149509129969,
+            "adjusted_rand": 0.8950582389649661,
+            "completeness": 0.8801578192501838,
+            "explained_variance_ratio_sum": 0.5540634393692017,
+            "homogeneity": 0.8839811557048378,
+            "normalized_mutual_info": 0.8820653444077604,
+            "silhouette": 0.561050534248352,
+            "v_measure": 0.8820653444077603
+          },
+          "seed": 37,
+          "time_sec": 0.011147488956339657
+        },
+        {
+          "method": "umap_rs2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.771626442891229,
+            "adjusted_rand": 0.7741763976704018,
+            "completeness": 0.7703788757912637,
+            "homogeneity": 0.7776869085594929,
+            "normalized_mutual_info": 0.774015642474661,
+            "silhouette": 0.7064270973205566,
+            "v_measure": 0.774015642474661
+          },
+          "seed": 37,
+          "time_sec": 0.05531819799216464
+        },
+        {
+          "method": "umap_learn2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.771626442891229,
+            "adjusted_rand": 0.7741763976704018,
+            "completeness": 0.7703788757912637,
+            "homogeneity": 0.7776869085594929,
+            "normalized_mutual_info": 0.774015642474661,
+            "silhouette": 0.7191584706306458,
+            "v_measure": 0.774015642474661
+          },
+          "seed": 37,
+          "time_sec": 0.06652039696928114
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "pca2_kmeans": {
+          "scores": {
+            "adjusted_mutual_info": {
+              "mean": 0.5397564175813019,
+              "std": 0.0
+            },
+            "adjusted_rand": {
+              "mean": 0.6592305570949524,
+              "std": 0.0
+            },
+            "completeness": {
+              "mean": 0.5497771086053297,
+              "std": 0.0
+            },
+            "explained_variance_ratio_sum": {
+              "mean": 0.6324321031570435,
+              "std": 0.0
+            },
+            "homogeneity": {
+              "mean": 0.5313015625322899,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.5403814627831327,
+              "std": 0.0
+            },
+            "silhouette": {
+              "mean": 0.5084690451622009,
+              "std": 0.0
+            },
+            "v_measure": {
+              "mean": 0.5403814627831328,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.08199375468151023,
+            "std": 0.0018357342853926265
+          }
+        },
+        "raw_kmeans": {
+          "scores": {
+            "adjusted_mutual_info": {
+              "mean": 0.5391842733524052,
+              "std": 0.010480102251765551
+            },
+            "adjusted_rand": {
+              "mean": 0.6593232854900388,
+              "std": 0.008059152097874682
+            },
+            "completeness": {
+              "mean": 0.54854796588282,
+              "std": 0.01188145227207517
+            },
+            "homogeneity": {
+              "mean": 0.5313498499041661,
+              "std": 0.009138690682150421
+            },
+            "normalized_mutual_info": {
+              "mean": 0.5398093127056801,
+              "std": 0.010467235005182669
+            },
+            "silhouette": {
+              "mean": 0.34391283988952637,
+              "std": 0.0007503824908879573
+            },
+            "v_measure": {
+              "mean": 0.5398093127056801,
+              "std": 0.010467235005182722
+            }
+          },
+          "time_sec": {
+            "mean": 0.03630774097594743,
+            "std": 0.0010011851580787588
+          }
+        },
+        "umap_learn2_kmeans": {
+          "scores": {
+            "adjusted_mutual_info": {
+              "mean": 0.7024064309670074,
+              "std": 0.005852940190770963
+            },
+            "adjusted_rand": {
+              "mean": 0.7857018244748714,
+              "std": 0.005169075463398703
+            },
+            "completeness": {
+              "mean": 0.7190854974917142,
+              "std": 0.005859450788973012
+            },
+            "homogeneity": {
+              "mean": 0.6872624723095703,
+              "std": 0.005950835746303921
+            },
+            "normalized_mutual_info": {
+              "mean": 0.702812816220218,
+              "std": 0.005844840841046326
+            },
+            "silhouette": {
+              "mean": 0.5680761734644572,
+              "std": 0.011646819331482488
+            },
+            "v_measure": {
+              "mean": 0.702812816220218,
+              "std": 0.005844840841046326
+            }
+          },
+          "time_sec": {
+            "mean": 0.27302691200748086,
+            "std": 0.0062751883286251905
+          }
+        },
+        "umap_rs2_kmeans": {
+          "scores": {
+            "adjusted_mutual_info": {
+              "mean": 0.7201747519070367,
+              "std": 0.0582407719320737
+            },
+            "adjusted_rand": {
+              "mean": 0.8122986678691672,
+              "std": 0.05024580723142731
+            },
+            "completeness": {
+              "mean": 0.7259562939806198,
+              "std": 0.05955760206052384
+            },
+            "homogeneity": {
+              "mean": 0.7154220499663774,
+              "std": 0.057827164894191437
+            },
+            "normalized_mutual_info": {
+              "mean": 0.720550974437327,
+              "std": 0.058163147547194476
+            },
+            "silhouette": {
+              "mean": 0.5808680653572083,
+              "std": 0.007453236179273611
+            },
+            "v_measure": {
+              "mean": 0.7205509744373271,
+              "std": 0.05816314754719449
+            }
+          },
+          "time_sec": {
+            "mean": 0.135026049024115,
+            "std": 0.0027990701539804914
+          }
+        }
+      },
+      "dataset": "breast_cancer",
+      "n_classes": 2,
+      "n_features": 30,
+      "n_samples": 569,
+      "runs": [
+        {
+          "method": "raw_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.5540053760919088,
+            "adjusted_rand": 0.6707206476880808,
+            "completeness": 0.5653508768266773,
+            "homogeneity": 0.5442739102091959,
+            "normalized_mutual_info": 0.5546122184105559,
+            "silhouette": 0.3449740409851074,
+            "v_measure": 0.554612218410556
+          },
+          "seed": 11,
+          "time_sec": 0.037707018957007676
+        },
+        {
+          "method": "pca2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.5397564175813019,
+            "adjusted_rand": 0.6592305570949524,
+            "completeness": 0.5497771086053297,
+            "explained_variance_ratio_sum": 0.6324321031570435,
+            "homogeneity": 0.5313015625322899,
+            "normalized_mutual_info": 0.5403814627831327,
+            "silhouette": 0.5084690451622009,
+            "v_measure": 0.5403814627831328
+          },
+          "seed": 11,
+          "time_sec": 0.08080815302673727
+        },
+        {
+          "method": "umap_rs2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.6655256996571689,
+            "adjusted_rand": 0.7742048960108927,
+            "completeness": 0.6617362230526055,
+            "homogeneity": 0.6702569432365417,
+            "normalized_mutual_info": 0.6659693297493271,
+            "silhouette": 0.5796695947647095,
+            "v_measure": 0.6659693297493272
+          },
+          "seed": 11,
+          "time_sec": 0.1335930890054442
+        },
+        {
+          "method": "umap_learn2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.706724642696892,
+            "adjusted_rand": 0.7920586769866512,
+            "completeness": 0.7222561221271573,
+            "homogeneity": 0.6926138262224776,
+            "normalized_mutual_info": 0.7071244630541574,
+            "silhouette": 0.5591747164726257,
+            "v_measure": 0.7071244630541574
+          },
+          "seed": 11,
+          "time_sec": 0.2674752770108171
+        },
+        {
+          "method": "raw_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.5317737219826533,
+            "adjusted_rand": 0.6536246043910179,
+            "completeness": 0.5401465104108912,
+            "homogeneity": 0.5248878197516512,
+            "normalized_mutual_info": 0.5324078598532422,
+            "silhouette": 0.34338223934173584,
+            "v_measure": 0.5324078598532422
+          },
+          "seed": 23,
+          "time_sec": 0.03542082296917215
+        },
+        {
+          "method": "pca2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.5397564175813019,
+            "adjusted_rand": 0.6592305570949524,
+            "completeness": 0.5497771086053297,
+            "explained_variance_ratio_sum": 0.6324321031570435,
+            "homogeneity": 0.5313015625322899,
+            "normalized_mutual_info": 0.5403814627831327,
+            "silhouette": 0.5084690451622009,
+            "v_measure": 0.5403814627831328
+          },
+          "seed": 23,
+          "time_sec": 0.08458671602420509
+        },
+        {
+          "method": "umap_rs2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.6941317589870576,
+            "adjusted_rand": 0.7793974053643712,
+            "completeness": 0.7108699438594978,
+            "homogeneity": 0.6789617684559951,
+            "normalized_mutual_info": 0.6945495774030745,
+            "silhouette": 0.5905364155769348,
+            "v_measure": 0.6945495774030745
+          },
+          "seed": 23,
+          "time_sec": 0.13893817603820935
+        },
+        {
+          "method": "umap_learn2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.6941317589870576,
+            "adjusted_rand": 0.7793974053643712,
+            "completeness": 0.7108699438594978,
+            "homogeneity": 0.6789617684559951,
+            "normalized_mutual_info": 0.6945495774030745,
+            "silhouette": 0.5605250000953674,
+            "v_measure": 0.6945495774030745
+          },
+          "seed": 23,
+          "time_sec": 0.2817986860172823
+        },
+        {
+          "method": "raw_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.5317737219826534,
+            "adjusted_rand": 0.6536246043910179,
+            "completeness": 0.5401465104108913,
+            "homogeneity": 0.5248878197516513,
+            "normalized_mutual_info": 0.5324078598532422,
+            "silhouette": 0.34338223934173584,
+            "v_measure": 0.5324078598532422
+          },
+          "seed": 37,
+          "time_sec": 0.03579538100166246
+        },
+        {
+          "method": "pca2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.5397564175813019,
+            "adjusted_rand": 0.6592305570949524,
+            "completeness": 0.5497771086053297,
+            "explained_variance_ratio_sum": 0.6324321031570435,
+            "homogeneity": 0.5313015625322899,
+            "normalized_mutual_info": 0.5403814627831327,
+            "silhouette": 0.5084690451622009,
+            "v_measure": 0.5403814627831328
+          },
+          "seed": 37,
+          "time_sec": 0.08058639499358833
+        },
+        {
+          "method": "umap_rs2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.8008667970768836,
+            "adjusted_rand": 0.8832937022322372,
+            "completeness": 0.805262715029756,
+            "homogeneity": 0.797047438206595,
+            "normalized_mutual_info": 0.8011340161595792,
+            "silhouette": 0.5723981857299805,
+            "v_measure": 0.8011340161595794
+          },
+          "seed": 37,
+          "time_sec": 0.13254688202869147
+        },
+        {
+          "method": "umap_learn2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.7063628912170727,
+            "adjusted_rand": 0.7856493910735913,
+            "completeness": 0.7241304264884877,
+            "homogeneity": 0.6902118222502385,
+            "normalized_mutual_info": 0.7067644082034221,
+            "silhouette": 0.5845288038253784,
+            "v_measure": 0.7067644082034221
+          },
+          "seed": 37,
+          "time_sec": 0.2698067729943432
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "pca2_kmeans": {
+          "scores": {
+            "adjusted_mutual_info": {
+              "mean": 0.655222847923487,
+              "std": 6.409875621278546e-17
+            },
+            "adjusted_rand": {
+              "mean": 0.6201351808870379,
+              "std": 0.0
+            },
+            "completeness": {
+              "mean": 0.659847677962776,
+              "std": 6.409875621278546e-17
+            },
+            "explained_variance_ratio_sum": {
+              "mean": 0.9581322073936462,
+              "std": 0.0
+            },
+            "homogeneity": {
+              "mean": 0.6591265018049008,
+              "std": 9.064933036736789e-17
+            },
+            "normalized_mutual_info": {
+              "mean": 0.659486892724918,
+              "std": 0.0
+            },
+            "silhouette": {
+              "mean": 0.509168267250061,
+              "std": 0.0
+            },
+            "v_measure": {
+              "mean": 0.659486892724918,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.012192887312266976,
+            "std": 0.004879689365847181
+          }
+        },
+        "raw_kmeans": {
+          "scores": {
+            "adjusted_mutual_info": {
+              "mean": 0.6552228479234871,
+              "std": 0.0
+            },
+            "adjusted_rand": {
+              "mean": 0.6201351808870379,
+              "std": 0.0
+            },
+            "completeness": {
+              "mean": 0.6598476779627759,
+              "std": 0.0
+            },
+            "homogeneity": {
+              "mean": 0.6591265018049008,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.659486892724918,
+              "std": 0.0
+            },
+            "silhouette": {
+              "mean": 0.45994827151298523,
+              "std": 0.0
+            },
+            "v_measure": {
+              "mean": 0.659486892724918,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.014383054687641561,
+            "std": 0.0012429193889152508
+          }
+        },
+        "umap_learn2_kmeans": {
+          "scores": {
+            "adjusted_mutual_info": {
+              "mean": 0.6822379055917654,
+              "std": 0.043272210633094305
+            },
+            "adjusted_rand": {
+              "mean": 0.6459236461021273,
+              "std": 0.0462651462631475
+            },
+            "completeness": {
+              "mean": 0.6895754168454644,
+              "std": 0.04663923589785928
+            },
+            "homogeneity": {
+              "mean": 0.6828636207866362,
+              "std": 0.03901194306573273
+            },
+            "normalized_mutual_info": {
+              "mean": 0.6861823381586953,
+              "std": 0.04275486282276766
+            },
+            "silhouette": {
+              "mean": 0.6193554600079855,
+              "std": 0.03606948762156473
+            },
+            "v_measure": {
+              "mean": 0.6861823381586953,
+              "std": 0.04275486282276768
+            }
+          },
+          "time_sec": {
+            "mean": 0.05480818101204932,
+            "std": 0.0031659376354608504
+          }
+        },
+        "umap_rs2_kmeans": {
+          "scores": {
+            "adjusted_mutual_info": {
+              "mean": 0.7145631383863181,
+              "std": 0.03660662750984362
+            },
+            "adjusted_rand": {
+              "mean": 0.6800812073943033,
+              "std": 0.0349554102553896
+            },
+            "completeness": {
+              "mean": 0.7244622008968172,
+              "std": 0.040196728084747356
+            },
+            "homogeneity": {
+              "mean": 0.7119289318952203,
+              "std": 0.03225204555182663
+            },
+            "normalized_mutual_info": {
+              "mean": 0.7181215335539138,
+              "std": 0.03617248410021645
+            },
+            "silhouette": {
+              "mean": 0.5971163908640543,
+              "std": 0.005736050231063979
+            },
+            "v_measure": {
+              "mean": 0.7181215335539138,
+              "std": 0.03617248410021643
+            }
+          },
+          "time_sec": {
+            "mean": 0.042674175347201526,
+            "std": 0.0052269522338634165
+          }
+        }
+      },
+      "dataset": "iris",
+      "n_classes": 3,
+      "n_features": 4,
+      "n_samples": 150,
+      "runs": [
+        {
+          "method": "raw_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.6552228479234871,
+            "adjusted_rand": 0.6201351808870379,
+            "completeness": 0.6598476779627759,
+            "homogeneity": 0.6591265018049008,
+            "normalized_mutual_info": 0.659486892724918,
+            "silhouette": 0.45994827151298523,
+            "v_measure": 0.659486892724918
+          },
+          "seed": 11,
+          "time_sec": 0.015933587041217834
+        },
+        {
+          "method": "pca2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.655222847923487,
+            "adjusted_rand": 0.6201351808870379,
+            "completeness": 0.659847677962776,
+            "explained_variance_ratio_sum": 0.9581322073936462,
+            "homogeneity": 0.659126501804901,
+            "normalized_mutual_info": 0.659486892724918,
+            "silhouette": 0.509168267250061,
+            "v_measure": 0.659486892724918
+          },
+          "seed": 11,
+          "time_sec": 0.008996433985885233
+        },
+        {
+          "method": "umap_rs2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.7404479329348985,
+            "adjusted_rand": 0.7047984150250471,
+            "completeness": 0.7528855799070537,
+            "homogeneity": 0.7347345720120544,
+            "normalized_mutual_info": 0.7436993423535393,
+            "silhouette": 0.6051930785179138,
+            "v_measure": 0.7436993423535394
+          },
+          "seed": 11,
+          "time_sec": 0.04344119399320334
+        },
+        {
+          "method": "umap_learn2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.6367798843330272,
+            "adjusted_rand": 0.5917675070941648,
+            "completeness": 0.6418986335467403,
+            "homogeneity": 0.6406508337597631,
+            "normalized_mutual_info": 0.6412741266574404,
+            "silhouette": 0.6134485602378845,
+            "v_measure": 0.6412741266574405
+          },
+          "seed": 11,
+          "time_sec": 0.056967390002682805
+        },
+        {
+          "method": "raw_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.6552228479234871,
+            "adjusted_rand": 0.6201351808870379,
+            "completeness": 0.6598476779627759,
+            "homogeneity": 0.6591265018049008,
+            "normalized_mutual_info": 0.659486892724918,
+            "silhouette": 0.45994827151298523,
+            "v_measure": 0.659486892724918
+          },
+          "seed": 23,
+          "time_sec": 0.012890739017166197
+        },
+        {
+          "method": "pca2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.6552228479234871,
+            "adjusted_rand": 0.6201351808870379,
+            "completeness": 0.6598476779627759,
+            "explained_variance_ratio_sum": 0.9581322073936462,
+            "homogeneity": 0.6591265018049008,
+            "normalized_mutual_info": 0.659486892724918,
+            "silhouette": 0.509168267250061,
+            "v_measure": 0.659486892724918
+          },
+          "seed": 23,
+          "time_sec": 0.008494504960253835
+        },
+        {
+          "method": "umap_rs2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.7404479329348986,
+            "adjusted_rand": 0.7047984150250471,
+            "completeness": 0.7528855799070538,
+            "homogeneity": 0.7347345720120545,
+            "normalized_mutual_info": 0.7436993423535394,
+            "silhouette": 0.5924232602119446,
+            "v_measure": 0.7436993423535394
+          },
+          "seed": 23,
+          "time_sec": 0.03592353902058676
+        },
+        {
+          "method": "umap_learn2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.6694858995073706,
+            "adjusted_rand": 0.6412050161871702,
+            "completeness": 0.6739420370825991,
+            "homogeneity": 0.6732054565880913,
+            "normalized_mutual_info": 0.6735735454651065,
+            "silhouette": 0.57843017578125,
+            "v_measure": 0.6735735454651064
+          },
+          "seed": 23,
+          "time_sec": 0.05033179803285748
+        },
+        {
+          "method": "raw_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.6552228479234871,
+            "adjusted_rand": 0.6201351808870379,
+            "completeness": 0.6598476779627759,
+            "homogeneity": 0.6591265018049008,
+            "normalized_mutual_info": 0.659486892724918,
+            "silhouette": 0.45994827151298523,
+            "v_measure": 0.659486892724918
+          },
+          "seed": 37,
+          "time_sec": 0.014324838004540652
+        },
+        {
+          "method": "pca2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.655222847923487,
+            "adjusted_rand": 0.6201351808870379,
+            "completeness": 0.659847677962776,
+            "explained_variance_ratio_sum": 0.9581322073936462,
+            "homogeneity": 0.659126501804901,
+            "normalized_mutual_info": 0.659486892724918,
+            "silhouette": 0.509168267250061,
+            "v_measure": 0.659486892724918
+          },
+          "seed": 37,
+          "time_sec": 0.01908772299066186
+        },
+        {
+          "method": "umap_rs2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.6627935492891572,
+            "adjusted_rand": 0.6306467921328158,
+            "completeness": 0.667615442876344,
+            "homogeneity": 0.6663176516615523,
+            "normalized_mutual_info": 0.6669659159546625,
+            "silhouette": 0.5937328338623047,
+            "v_measure": 0.6669659159546626
+          },
+          "seed": 37,
+          "time_sec": 0.04865779302781448
+        },
+        {
+          "method": "umap_learn2_kmeans",
+          "scores": {
+            "adjusted_mutual_info": 0.7404479329348985,
+            "adjusted_rand": 0.7047984150250471,
+            "completeness": 0.7528855799070537,
+            "homogeneity": 0.7347345720120544,
+            "normalized_mutual_info": 0.7436993423535393,
+            "silhouette": 0.6661876440048218,
+            "v_measure": 0.7436993423535394
+          },
+          "seed": 37,
+          "time_sec": 0.05712535500060767
+        }
+      ]
+    }
+  ],
+  "environment": {
+    "python": "3.13.9",
+    "umap_learn": "0.5.12",
+    "umapers": "1.1.0"
+  },
+  "generated_at": "2026-06-12T18:49:20+0800",
+  "settings": {
+    "init": "spectral",
+    "n_epochs": 200,
+    "n_neighbors": 15,
+    "seeds": [
+      11,
+      23,
+      37
+    ]
+  }
+}

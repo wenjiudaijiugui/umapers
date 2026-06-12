@@ -16,6 +16,11 @@ fn metric_name(metric: Metric) -> &'static str {
         Metric::Euclidean => "euclidean",
         Metric::Manhattan => "manhattan",
         Metric::Cosine => "cosine",
+        Metric::Chebyshev => "chebyshev",
+        Metric::Minkowski { .. } => "minkowski",
+        Metric::Correlation => "correlation",
+        Metric::Canberra => "canberra",
+        Metric::BrayCurtis => "braycurtis",
     }
 }
 fn usage() {

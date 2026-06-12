@@ -1,0 +1,553 @@
+{
+  "environment": {
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.13.9 (main, Oct 31 2025, 23:02:44) [Clang 21.1.4 ]",
+    "umap_learn_import_error": "",
+    "umap_learn_version": "0.5.12",
+    "umapers_version": "1.1.0"
+  },
+  "generated_at": "2026-06-12T18:55:40+0800",
+  "scenarios": [
+    {
+      "comparability": "direct",
+      "dataset": "sklearn.load_digits",
+      "description": "Dense unsupervised embedding on the sklearn digits dataset.",
+      "scenario": "dense_fit_transform_digits",
+      "umap_learn": {
+        "embedding_silhouette": 0.47015202045440674,
+        "finite": true,
+        "ok": true,
+        "shape": [
+          420,
+          2
+        ],
+        "time_sec": 0.08614369097631425,
+        "trustworthiness": 0.9474317539386032
+      },
+      "umap_rs": {
+        "embedding_silhouette": 0.44250982999801636,
+        "finite": true,
+        "ok": true,
+        "shape": [
+          420,
+          2
+        ],
+        "time_sec": 0.05057754198787734,
+        "top_level_shape": [
+          120,
+          2
+        ],
+        "trustworthiness": 0.9440372412975153
+      }
+    },
+    {
+      "comparability": "direct",
+      "dataset": "sklearn.load_digits",
+      "description": "Fit on train digits, transform held-out digits, and reconstruct a small query batch.",
+      "scenario": "transform_inverse_digits",
+      "umap_learn": {
+        "embedding_knn_accuracy": 0.9222222222222223,
+        "inverse_mse_first24": 0.6141834259033203,
+        "ok": true,
+        "query_finite": true,
+        "query_shape": [
+          90,
+          2
+        ],
+        "time_sec": 2.257551300979685
+      },
+      "umap_rs": {
+        "embedding_knn_accuracy": 0.9222222222222223,
+        "fit_out_identity": true,
+        "inverse_mse_first24": 0.5465845465660095,
+        "ok": true,
+        "query_finite": true,
+        "query_shape": [
+          90,
+          2
+        ],
+        "time_sec": 0.032285708002746105,
+        "transform_out_identity": true
+      }
+    },
+    {
+      "comparability": "direct",
+      "dataset": "sklearn.load_wine",
+      "description": "Categorical supervised embedding on sklearn wine labels.",
+      "scenario": "categorical_supervised_wine",
+      "umap_learn": {
+        "embedding_silhouette": 0.8753282427787781,
+        "finite": true,
+        "ok": true,
+        "shape": [
+          178,
+          2
+        ],
+        "time_sec": 0.16311146802036092,
+        "trustworthiness": 0.915149166989539
+      },
+      "umap_rs": {
+        "embedding_silhouette": 0.8561186790466309,
+        "finite": true,
+        "ok": true,
+        "shape": [
+          178,
+          2
+        ],
+        "time_sec": 0.024433581973426044,
+        "trustworthiness": 0.9175530978126871
+      }
+    },
+    {
+      "comparability": "direct",
+      "dataset": "sklearn.load_breast_cancer",
+      "description": "Dense metric sweep across currently exposed metric names.",
+      "scenario": "expanded_metric_sweep_breast_cancer",
+      "umap_learn": {
+        "braycurtis": {
+          "embedding_silhouette": 0.5894243121147156,
+          "finite": true,
+          "shape": [
+            220,
+            2
+          ],
+          "trustworthiness": 0.8943787508335186
+        },
+        "canberra": {
+          "embedding_silhouette": 0.5577977299690247,
+          "finite": true,
+          "shape": [
+            220,
+            2
+          ],
+          "trustworthiness": 0.8585663480773505
+        },
+        "chebyshev": {
+          "embedding_silhouette": 0.35763514041900635,
+          "finite": true,
+          "shape": [
+            220,
+            2
+          ],
+          "trustworthiness": 0.8705067792842853
+        },
+        "correlation": {
+          "embedding_silhouette": 0.16411535441875458,
+          "finite": true,
+          "shape": [
+            220,
+            2
+          ],
+          "trustworthiness": 0.7710780173371861
+        },
+        "cosine": {
+          "embedding_silhouette": 0.502505898475647,
+          "finite": true,
+          "shape": [
+            220,
+            2
+          ],
+          "trustworthiness": 0.8788930873527451
+        },
+        "euclidean": {
+          "embedding_silhouette": 0.457534521818161,
+          "finite": true,
+          "shape": [
+            220,
+            2
+          ],
+          "trustworthiness": 0.8965747943987553
+        },
+        "manhattan": {
+          "embedding_silhouette": 0.5443486571311951,
+          "finite": true,
+          "shape": [
+            220,
+            2
+          ],
+          "trustworthiness": 0.8826650366748167
+        },
+        "minkowski": {
+          "embedding_silhouette": 0.4447783827781677,
+          "finite": true,
+          "shape": [
+            220,
+            2
+          ],
+          "trustworthiness": 0.8999466548121805
+        },
+        "ok": true,
+        "time_sec": 0.5685157009866089
+      },
+      "umap_rs": {
+        "braycurtis": {
+          "embedding_silhouette": 0.5549382567405701,
+          "finite": true,
+          "shape": [
+            220,
+            2
+          ],
+          "trustworthiness": 0.8822516114692154
+        },
+        "canberra": {
+          "embedding_silhouette": 0.41484150290489197,
+          "finite": true,
+          "shape": [
+            220,
+            2
+          ],
+          "trustworthiness": 0.8564392087130474
+        },
+        "chebyshev": {
+          "embedding_silhouette": 0.34632962942123413,
+          "finite": true,
+          "shape": [
+            220,
+            2
+          ],
+          "trustworthiness": 0.8593354078684152
+        },
+        "correlation": {
+          "embedding_silhouette": 0.19113214313983917,
+          "finite": true,
+          "shape": [
+            220,
+            2
+          ],
+          "trustworthiness": 0.7772104912202712
+        },
+        "cosine": {
+          "embedding_silhouette": 0.2589435875415802,
+          "finite": true,
+          "shape": [
+            220,
+            2
+          ],
+          "trustworthiness": 0.8838497443876416
+        },
+        "euclidean": {
+          "embedding_silhouette": 0.37112662196159363,
+          "finite": true,
+          "shape": [
+            220,
+            2
+          ],
+          "trustworthiness": 0.9014536563680818
+        },
+        "manhattan": {
+          "embedding_silhouette": 0.47505924105644226,
+          "finite": true,
+          "shape": [
+            220,
+            2
+          ],
+          "trustworthiness": 0.8840453434096466
+        },
+        "minkowski": {
+          "embedding_silhouette": 0.436087042093277,
+          "finite": true,
+          "shape": [
+            220,
+            2
+          ],
+          "trustworthiness": 0.9062058235163369
+        },
+        "ok": true,
+        "time_sec": 0.16448256699368358
+      }
+    },
+    {
+      "comparability": "direct",
+      "dataset": "sklearn.load_breast_cancer",
+      "description": "densMAP with output radii on breast cancer features.",
+      "scenario": "densmap_output_breast_cancer",
+      "umap_learn": {
+        "embedding_silhouette": 0.40138232707977295,
+        "finite": true,
+        "ok": true,
+        "radii_embedding_finite": true,
+        "radii_embedding_shape": [
+          260
+        ],
+        "radii_original_finite": true,
+        "radii_original_shape": [
+          260
+        ],
+        "shape": [
+          260,
+          2
+        ],
+        "time_sec": 8.391041583032347,
+        "trustworthiness": 0.8878444019748367
+      },
+      "umap_rs": {
+        "embedding_silhouette": 0.43793901801109314,
+        "finite": true,
+        "ok": true,
+        "radii_embedding_finite": true,
+        "radii_embedding_shape": [
+          260
+        ],
+        "radii_original_finite": true,
+        "radii_original_shape": [
+          260
+        ],
+        "shape": [
+          260,
+          2
+        ],
+        "time_sec": 0.026278453005943447,
+        "trustworthiness": 0.8882067208154165
+      }
+    },
+    {
+      "comparability": "direct",
+      "dataset": "sklearn.load_digits thresholded to sparse",
+      "description": "Sparse CSR fit plus sparse COO query on thresholded real digits features.",
+      "scenario": "sparse_digits_csr_csc_coo",
+      "umap_learn": {
+        "csc_fit_shape": [
+          360,
+          2
+        ],
+        "embedding_silhouette": 0.35211071372032166,
+        "finite": true,
+        "ok": true,
+        "shape": [
+          360,
+          2
+        ],
+        "sparse_query_finite": true,
+        "sparse_query_shape": [
+          40,
+          2
+        ],
+        "sparsity": 0.3286458333333333,
+        "time_sec": 0.05718239303678274,
+        "trustworthiness": 0.9550725689404934
+      },
+      "umap_rs": {
+        "csc_fit_shape": [
+          360,
+          2
+        ],
+        "embedding_silhouette": 0.21233418583869934,
+        "finite": true,
+        "ok": true,
+        "shape": [
+          360,
+          2
+        ],
+        "sparse_query_finite": true,
+        "sparse_query_shape": [
+          40,
+          2
+        ],
+        "sparsity": 0.3286458333333333,
+        "time_sec": 0.06058354501146823,
+        "trustworthiness": 0.958952588292211
+      }
+    },
+    {
+      "comparability": "library-native precomputed contracts, not byte-identical graph input",
+      "dataset": "sklearn.load_wine",
+      "description": "Library-native precomputed exact kNN path. Contracts differ: umap-rs receives neighbors excluding self; umap-learn receives its native self-inclusive kNN tuple.",
+      "scenario": "precomputed_knn_wine",
+      "umap_learn": {
+        "embedding_silhouette": 0.5934620499610901,
+        "finite": true,
+        "ok": true,
+        "shape": [
+          178,
+          2
+        ],
+        "time_sec": 0.44884039799217135,
+        "trustworthiness": 0.9378412172871685
+      },
+      "umap_rs": {
+        "embedding_silhouette": 0.5582283735275269,
+        "finite": true,
+        "ok": true,
+        "shape": [
+          178,
+          2
+        ],
+        "time_sec": 0.02033109898911789,
+        "trustworthiness": 0.9375476970401418
+      }
+    },
+    {
+      "comparability": "algorithmic ANN comparison; backends differ",
+      "dataset": "sklearn.load_digits",
+      "description": "Approximate-neighbor embedding on digits. umap-rs additionally reports exact-vs-approx kNN recall.",
+      "scenario": "approximate_ann_digits",
+      "umap_learn": {
+        "embedding_silhouette": 0.41426992416381836,
+        "finite": true,
+        "ok": true,
+        "shape": [
+          500,
+          2
+        ],
+        "time_sec": 0.11568001296836883,
+        "trustworthiness": 0.9473464866735894
+      },
+      "umap_rs": {
+        "embedding_silhouette": 0.4288283884525299,
+        "finite": true,
+        "knn_mean_recall": 0.9734540581703186,
+        "knn_worst_decile_recall": 0.8181819319725037,
+        "ok": true,
+        "shape": [
+          500,
+          2
+        ],
+        "time_sec": 0.06206954299705103,
+        "trustworthiness": 0.9394517133956386
+      }
+    },
+    {
+      "comparability": "optional extension comparison; umap-learn requires TensorFlow stack",
+      "dataset": "sklearn.load_breast_cancer",
+      "description": "Parametric training/inference on breast cancer features.",
+      "scenario": "parametric_breast_cancer",
+      "umap_learn": {
+        "error": "umap-learn ParametricUMAP unavailable in this environment: ImportError: umap.parametric_umap requires Tensorflow >= 2.0",
+        "error_type": "RuntimeError",
+        "ok": false,
+        "time_sec": 0.00045077496906742454,
+        "traceback_tail": [
+          "Traceback (most recent call last):",
+          "  File \"/home/shenshang/sundry/umap-rs/benchmarks/current_feature_parity_report.py\", line 62, in timed",
+          "    payload = fn()",
+          "  File \"/home/shenshang/sundry/umap-rs/benchmarks/current_feature_parity_report.py\", line 619, in ul",
+          "    raise RuntimeError(",
+          "        f\"umap-learn ParametricUMAP unavailable in this environment: {type(exc).__name__}: {exc}\"",
+          "    ) from exc",
+          "RuntimeError: umap-learn ParametricUMAP unavailable in this environment: ImportError: umap.parametric_umap requires Tensorflow >= 2.0"
+        ]
+      },
+      "umap_rs": {
+        "n_features_in": 30,
+        "ok": true,
+        "query_finite": true,
+        "query_shape": [
+          44,
+          2
+        ],
+        "time_sec": 0.020504372951108962,
+        "train_finite": true,
+        "train_shape": [
+          176,
+          2
+        ]
+      }
+    },
+    {
+      "comparability": "aligned API semantics differ but relation task is equivalent",
+      "dataset": "sklearn.load_digits shifted batches",
+      "description": "Two related digits batches with explicit index relations.",
+      "scenario": "aligned_digits_batches",
+      "umap_learn": {
+        "aligned_pair_mean_gap": 3.219245195388794,
+        "finite": true,
+        "ok": true,
+        "shapes": [
+          [
+            90,
+            2
+          ],
+          [
+            90,
+            2
+          ]
+        ],
+        "time_sec": 5.298126216977835
+      },
+      "umap_rs": {
+        "aligned_pair_mean_gap": 0.639227032661438,
+        "finite": true,
+        "ok": true,
+        "shapes": [
+          [
+            90,
+            2
+          ],
+          [
+            90,
+            2
+          ]
+        ],
+        "time_sec": 0.026924135978333652
+      }
+    },
+    {
+      "comparability": "ecosystem utility comparison",
+      "dataset": "sklearn.load_wine",
+      "description": "Optional diagnostics/plotting helpers around a real wine embedding.",
+      "scenario": "ecosystem_helpers_wine",
+      "umap_learn": {
+        "note": "umap-learn trustworthiness is usually consumed through sklearn.manifold.trustworthiness, not a UMAP class method.",
+        "ok": true,
+        "plot_module": {
+          "error": "umap.plot requires pandas matplotlib datashader bokeh holoviews scikit-image and colorcet to be installed",
+          "error_type": "ImportError",
+          "ok": false
+        },
+        "time_sec": 0.008875348954461515
+      },
+      "umap_rs": {
+        "diagnostics": {
+          "n_components": 2,
+          "n_features": 13,
+          "n_neighbors": 10,
+          "n_samples": 178,
+          "trustworthiness": 0.918599827139153
+        },
+        "ok": true,
+        "plot_points": {
+          "error": "umapers.plot requires matplotlib; install `umapers[plot]`",
+          "error_type": "ImportError",
+          "ok": false
+        },
+        "time_sec": 0.0024809149908833206
+      }
+    },
+    {
+      "comparability": "boundary behavior",
+      "dataset": "sklearn.load_digits thresholded to sparse",
+      "description": "Sparse-trained inverse_transform boundary check.",
+      "scenario": "sparse_inverse_boundary",
+      "umap_learn": {
+        "inverse_error": "Inverse transform not available for sparse input.",
+        "inverse_error_type": "ValueError",
+        "ok": true,
+        "sparse_fit_shape": [
+          120,
+          2
+        ],
+        "time_sec": 0.00583297701086849
+      },
+      "umap_rs": {
+        "inverse_error": "invalid parameter: inverse_transform is not supported for sparse-trained models yet",
+        "inverse_error_type": "ValueError",
+        "ok": true,
+        "sparse_fit_shape": [
+          120,
+          2
+        ],
+        "time_sec": 0.012957873987033963
+      }
+    }
+  ],
+  "warmup": {
+    "umap_learn": {
+      "ok": true,
+      "shape": [
+        40,
+        2
+      ],
+      "time_sec": 4.54360842902679
+    }
+  }
+}

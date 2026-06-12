@@ -5,6 +5,24 @@ All notable changes to this repository are documented in this file.
 The format follows Keep a Changelog and uses semantic-versioned release headings
 for user-facing milestones.
 
+## [1.1.0] - 2026-06-12
+
+### Highlights
+
+- Expanded the Python-facing UMAP surface with categorical supervision,
+  additional dense metrics, dense densMAP/output-density support, sparse CSR
+  parity paths, aligned/parametric wrappers, ecosystem plotting helpers, and
+  ANN diagnostics.
+- Retuned spectral initialization and automatic ANN selection from measured
+  hot spots, then optimized the standard 2D layout path with a contiguous flat
+  embedding loop.
+- Added release-quality diagnostics and reports for feature parity,
+  real-data clustering metrics, small-dataset hot spots, ANN recall, and
+  synthetic runtime scaling against `umap-learn`.
+- Current local release benchmarks show `umapers` faster than `umap-learn` on
+  29 / 30 synthetic scaling datasets under a release build, while real-data
+  clustering metrics remain comparable.
+
 ## [1.0.0] - 2026-05-26
 
 ### Highlights

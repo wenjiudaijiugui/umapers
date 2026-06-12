@@ -7,6 +7,7 @@ use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fmt::{Display, Formatter};
+use std::time::Instant;
 
 pub mod aligned;
 pub use aligned::{AlignedUmapError, AlignedUmapModel, AlignedUmapParams, AlignmentRelation};
@@ -22,16 +23,57 @@ const INIT_MAX_COORD: f32 = 10.0;
 const INIT_NOISE: f32 = 1e-4;
 const AUTO_EXACT_LOW_DIM_MAX_FEATURES: usize = 16;
 const AUTO_EXACT_LOW_DIM_SAMPLE_MULTIPLIER: usize = 4;
-const SPECTRAL_ITERATIVE_CONNECTED_THRESHOLD: usize = 512;
+const AUTO_EXACT_GENERAL_SAMPLE_MULTIPLIER: usize = 4;
+// Try the sparse iterative spectral path for every non-trivial connected graph.
+// Dense full eigendecomposition remains the fallback inside `spectral_embedding_from_edges`.
+const SPECTRAL_ITERATIVE_CONNECTED_THRESHOLD: usize = 0;
 const SPECTRAL_ITERATIVE_COMPONENT_THRESHOLD: usize = 128;
 const SPECTRAL_ITERATIVE_MAX_ITERS: usize = 32;
 const SPECTRAL_ORTHO_EPS: f64 = 1e-12;
+const DENSITY_GRADIENT_SCALE: f32 = 0.1;
 
 type KnnRows = (Vec<Vec<usize>>, Vec<Vec<f32>>);
 type EmbeddingRows = Vec<Vec<f32>>;
-type FitArtifacts = (EmbeddingRows, Vec<f32>, Vec<f32>);
+type FitArtifacts = (
+    EmbeddingRows,
+    Vec<f32>,
+    Vec<f32>,
+    Option<Vec<f32>>,
+    Option<Vec<f32>>,
+);
 type WeightedUndirectedEdge = (usize, usize, f64);
 type SymmetrizedUndirectedGraph = (Vec<WeightedUndirectedEdge>, Vec<f64>);
+
+#[derive(Debug, Clone, Default)]
+pub struct FitTimingBreakdown {
+    pub validation_sec: f64,
+    pub knn_sec: f64,
+    pub curve_params_sec: f64,
+    pub knn_validate_trim_sec: f64,
+    pub smooth_knn_sec: f64,
+    pub density_original_sec: f64,
+    pub membership_sec: f64,
+    pub symmetrize_sec: f64,
+    pub target_intersection_sec: f64,
+    pub prune_sec: f64,
+    pub init_sec: f64,
+    pub optimize_sec: f64,
+    pub density_embedding_sec: f64,
+    pub output_copy_sec: f64,
+    pub store_state_sec: f64,
+    pub total_sec: f64,
+}
+
+#[derive(Debug, Clone)]
+pub struct ProfiledFit {
+    pub embedding: DenseMatrix,
+    pub timings: FitTimingBreakdown,
+    pub used_approximate_knn: bool,
+    pub n_samples: usize,
+    pub n_features: usize,
+    pub n_epochs: usize,
+    pub n_edges: usize,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum InitMethod {
@@ -40,12 +82,43 @@ pub enum InitMethod {
     Spectral,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub enum Metric {
     #[default]
     Euclidean,
     Manhattan,
     Cosine,
+    Chebyshev,
+    Minkowski {
+        p: f32,
+    },
+    Correlation,
+    Canberra,
+    BrayCurtis,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TargetMetric {
+    Categorical,
+}
+
+#[derive(Debug, Clone)]
+pub struct SupervisedTarget {
+    pub labels: Vec<i64>,
+    pub metric: TargetMetric,
+    pub weight: f32,
+    pub n_neighbors: Option<usize>,
+}
+
+impl SupervisedTarget {
+    pub fn categorical(labels: Vec<i64>, weight: f32, n_neighbors: Option<usize>) -> Self {
+        Self {
+            labels,
+            metric: TargetMetric::Categorical,
+            weight,
+            n_neighbors,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -67,6 +140,26 @@ pub struct UmapParams {
     pub approx_knn_candidates: usize,
     pub approx_knn_iters: usize,
     pub approx_knn_threshold: usize,
+    pub densmap: bool,
+    pub dens_lambda: f32,
+    pub dens_frac: f32,
+    pub dens_var_shift: f32,
+    pub output_dens: bool,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct KnnRecallDiagnostics {
+    pub n_samples: usize,
+    pub n_features: usize,
+    pub n_neighbors: usize,
+    pub metric: Metric,
+    pub candidate_pool: usize,
+    pub n_iters: usize,
+    pub seed: u64,
+    pub mean_recall: f32,
+    pub min_recall: f32,
+    pub worst_decile_recall: f32,
+    pub per_row_recall: Vec<f32>,
 }
 
 impl Default for UmapParams {
@@ -86,9 +179,14 @@ impl Default for UmapParams {
             random_seed: 42,
             init: InitMethod::default(),
             use_approximate_knn: true,
-            approx_knn_candidates: 30,
-            approx_knn_iters: 10,
+            approx_knn_candidates: 50,
+            approx_knn_iters: 14,
             approx_knn_threshold: 4096,
+            densmap: false,
+            dens_lambda: 2.0,
+            dens_frac: 0.3,
+            dens_var_shift: 0.1,
+            output_dens: false,
         }
     }
 }
@@ -142,7 +240,7 @@ impl Display for UmapError {
 
 impl Error for UmapError {}
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 struct Edge {
     head: usize,
     tail: usize,
@@ -476,6 +574,8 @@ pub struct UmapModel {
     n_features: Option<usize>,
     fit_sigmas: Option<Vec<f32>>,
     fit_rhos: Option<Vec<f32>>,
+    fit_radii_original: Option<Vec<f32>>,
+    fit_radii_embedding: Option<Vec<f32>>,
 }
 
 impl UmapModel {
@@ -490,6 +590,8 @@ impl UmapModel {
             n_features: None,
             fit_sigmas: None,
             fit_rhos: None,
+            fit_radii_original: None,
+            fit_radii_embedding: None,
         }
     }
 
@@ -513,11 +615,37 @@ impl UmapModel {
         self.n_features
     }
 
+    pub fn radii_original(&self) -> Option<&[f32]> {
+        self.fit_radii_original.as_deref()
+    }
+
+    pub fn radii_embedding(&self) -> Option<&[f32]> {
+        self.fit_radii_embedding.as_deref()
+    }
+
     pub fn fit(&mut self, data: &[Vec<f32>]) -> Result<(), UmapError> {
         let (n_samples, n_features) = validate_data(data)?;
         validate_params(&self.params, n_samples, n_features)?;
         let (knn_indices, knn_dists) = build_fit_knn(&self.params, data, n_samples, n_features);
         self.fit_with_knn_prevalidated(data, n_features, &knn_indices, &knn_dists)
+    }
+
+    pub fn fit_supervised(
+        &mut self,
+        data: &[Vec<f32>],
+        target: &SupervisedTarget,
+    ) -> Result<(), UmapError> {
+        let (n_samples, n_features) = validate_data(data)?;
+        validate_params(&self.params, n_samples, n_features)?;
+        validate_supervised_target(target, n_samples)?;
+        let (knn_indices, knn_dists) = build_fit_knn(&self.params, data, n_samples, n_features);
+        self.fit_with_knn_supervised_prevalidated(
+            data,
+            n_features,
+            &knn_indices,
+            &knn_dists,
+            target,
+        )
     }
 
     pub fn fit_transform(&mut self, data: &[Vec<f32>]) -> Result<Vec<Vec<f32>>, UmapError> {
@@ -527,6 +655,26 @@ impl UmapModel {
         let (knn_indices, knn_dists) = build_fit_knn(&self.params, data, n_samples, n_features);
 
         self.fit_transform_with_knn_prevalidated(data, n_features, &knn_indices, &knn_dists)
+    }
+
+    pub fn fit_transform_supervised(
+        &mut self,
+        data: &[Vec<f32>],
+        target: &SupervisedTarget,
+    ) -> Result<Vec<Vec<f32>>, UmapError> {
+        let (n_samples, n_features) = validate_data(data)?;
+        validate_params(&self.params, n_samples, n_features)?;
+        validate_supervised_target(target, n_samples)?;
+
+        let (knn_indices, knn_dists) = build_fit_knn(&self.params, data, n_samples, n_features);
+
+        self.fit_transform_with_knn_supervised_prevalidated(
+            data,
+            n_features,
+            &knn_indices,
+            &knn_dists,
+            target,
+        )
     }
 
     pub fn fit_owned(&mut self, data: Vec<Vec<f32>>) -> Result<(), UmapError> {
@@ -556,10 +704,51 @@ impl UmapModel {
         validate_params(&self.params, n_samples, n_features)?;
         let (knn_indices, knn_dists) =
             build_fit_knn(&self.params, &data_view, n_samples, n_features);
-        let (embedding, sigmas, rhos) =
+        let (embedding, sigmas, rhos, radii_original, radii_embedding) =
             self.build_dense_fit_artifacts(&data_view, &knn_indices, &knn_dists)?;
         let training_data = DenseMatrix::from_flat_validated(data, n_rows, n_cols);
-        self.store_dense_fit_state(embedding, training_data, n_features, sigmas, rhos);
+        self.store_dense_fit_state(
+            embedding,
+            training_data,
+            n_features,
+            sigmas,
+            rhos,
+            radii_original,
+            radii_embedding,
+        );
+        Ok(())
+    }
+
+    pub fn fit_dense_supervised(
+        &mut self,
+        data: &[f32],
+        n_rows: usize,
+        n_cols: usize,
+        target: &SupervisedTarget,
+    ) -> Result<(), UmapError> {
+        let data_view = DenseMatrixView::new(data, n_rows, n_cols)?;
+        let (n_samples, n_features) = validate_data(&data_view)?;
+        validate_params(&self.params, n_samples, n_features)?;
+        validate_supervised_target(target, n_samples)?;
+        let (knn_indices, knn_dists) =
+            build_fit_knn(&self.params, &data_view, n_samples, n_features);
+        let (embedding, sigmas, rhos, radii_original, radii_embedding) = self
+            .build_dense_fit_artifacts_with_target(
+                &data_view,
+                &knn_indices,
+                &knn_dists,
+                Some(target),
+            )?;
+        let training_data = DenseMatrix::from_flat_validated(data, n_rows, n_cols);
+        self.store_dense_fit_state(
+            embedding,
+            training_data,
+            n_features,
+            sigmas,
+            rhos,
+            radii_original,
+            radii_embedding,
+        );
         Ok(())
     }
 
@@ -574,11 +763,223 @@ impl UmapModel {
         validate_params(&self.params, n_samples, n_features)?;
         let (knn_indices, knn_dists) =
             build_fit_knn(&self.params, &data_view, n_samples, n_features);
-        let (embedding, sigmas, rhos) =
+        let (embedding, sigmas, rhos, radii_original, radii_embedding) =
             self.build_dense_fit_artifacts(&data_view, &knn_indices, &knn_dists)?;
         let out = dense_matrix_from_output_rows(embedding.clone(), self.params.n_components)?;
         let training_data = DenseMatrix::from_flat_validated(data, n_rows, n_cols);
-        self.store_dense_fit_state(embedding, training_data, n_features, sigmas, rhos);
+        self.store_dense_fit_state(
+            embedding,
+            training_data,
+            n_features,
+            sigmas,
+            rhos,
+            radii_original,
+            radii_embedding,
+        );
+        Ok(out)
+    }
+
+    pub fn profile_fit_transform_dense(
+        &mut self,
+        data: &[f32],
+        n_rows: usize,
+        n_cols: usize,
+    ) -> Result<ProfiledFit, UmapError> {
+        let total_start = Instant::now();
+        let mut timings = FitTimingBreakdown::default();
+
+        let stage = Instant::now();
+        let data_view = DenseMatrixView::new(data, n_rows, n_cols)?;
+        let (n_samples, n_features) = validate_data(&data_view)?;
+        validate_params(&self.params, n_samples, n_features)?;
+        timings.validation_sec = stage.elapsed().as_secs_f64();
+
+        let used_approximate_knn = should_use_approximate_knn(&self.params, n_samples, n_features);
+        let stage = Instant::now();
+        let (knn_indices, knn_dists) = if used_approximate_knn {
+            approximate_nearest_neighbors(
+                &data_view,
+                self.params.n_neighbors,
+                self.params.metric,
+                self.params.approx_knn_candidates,
+                self.params.approx_knn_iters,
+                self.params.random_seed ^ 0xC0FE_FEED_1234_ABCD,
+            )
+        } else {
+            exact_nearest_neighbors(&data_view, self.params.n_neighbors, self.params.metric)
+        };
+        timings.knn_sec = stage.elapsed().as_secs_f64();
+
+        let n_epochs = self
+            .params
+            .n_epochs
+            .unwrap_or(if n_samples <= 10_000 { 500 } else { 200 });
+
+        let stage = Instant::now();
+        let (a, b) = find_ab_params(self.params.spread, self.params.min_dist);
+        self.a = a;
+        self.b = b;
+        timings.curve_params_sec = stage.elapsed().as_secs_f64();
+
+        let stage = Instant::now();
+        let (knn_indices_trimmed, knn_dists_trimmed) = validate_and_trim_precomputed_knn(
+            &knn_indices,
+            &knn_dists,
+            n_samples,
+            self.params.n_neighbors,
+        )?;
+        timings.knn_validate_trim_sec = stage.elapsed().as_secs_f64();
+
+        let stage = Instant::now();
+        let (sigmas, rhos) = smooth_knn_dist(
+            &knn_dists_trimmed,
+            self.params.n_neighbors as f32,
+            self.params.local_connectivity,
+            DEFAULT_BANDWIDTH,
+            knn_rows_include_self(&knn_indices_trimmed, &knn_dists_trimmed),
+        );
+        timings.smooth_knn_sec = stage.elapsed().as_secs_f64();
+
+        let compute_density_outputs = self.params.densmap || self.params.output_dens;
+        let stage = Instant::now();
+        let radii_original = if compute_density_outputs {
+            Some(local_radii_from_knn(
+                &knn_indices_trimmed,
+                &knn_dists_trimmed,
+                self.params.dens_var_shift,
+            ))
+        } else {
+            None
+        };
+        let density_state = if self.params.densmap && self.params.dens_lambda > 0.0 {
+            Some(DensityState {
+                original_radii: radii_original
+                    .clone()
+                    .expect("densmap should compute original radii"),
+                start_epoch: density_start_epoch(n_epochs, self.params.dens_frac),
+                lambda: self.params.dens_lambda,
+                var_shift: self.params.dens_var_shift,
+            })
+        } else {
+            None
+        };
+        timings.density_original_sec = stage.elapsed().as_secs_f64();
+
+        let stage = Instant::now();
+        let directed =
+            compute_membership_strengths(&knn_indices_trimmed, &knn_dists_trimmed, &sigmas, &rhos);
+        timings.membership_sec = stage.elapsed().as_secs_f64();
+
+        let stage = Instant::now();
+        let mut edges = symmetrize_fuzzy_graph(&directed, self.params.set_op_mix_ratio);
+        timings.symmetrize_sec = stage.elapsed().as_secs_f64();
+
+        // Dense unsupervised profiling has no target graph; keep a zero-valued
+        // stage so reports stay schema-compatible with supervised profiling.
+        timings.target_intersection_sec = 0.0;
+
+        let stage = Instant::now();
+        prune_edges(&mut edges, n_epochs);
+        let n_edges = edges.len();
+        timings.prune_sec = stage.elapsed().as_secs_f64();
+
+        let stage = Instant::now();
+        let mut embedding = initialize_embedding(
+            &data_view,
+            self.params.n_components,
+            &edges,
+            self.params.init,
+            self.params.random_seed,
+        );
+        timings.init_sec = stage.elapsed().as_secs_f64();
+
+        let stage = Instant::now();
+        optimize_layout_training(
+            &mut embedding,
+            &edges,
+            n_epochs,
+            a,
+            b,
+            self.params.learning_rate,
+            self.params.negative_sample_rate,
+            self.params.repulsion_strength,
+            self.params.random_seed ^ 0x9E37_79B9_7F4A_7C15,
+            density_state.as_ref(),
+        );
+        timings.optimize_sec = stage.elapsed().as_secs_f64();
+
+        let stage = Instant::now();
+        let radii_embedding = if compute_density_outputs {
+            Some(embedding_radii_from_knn(
+                &embedding,
+                &knn_indices_trimmed,
+                self.params.dens_var_shift,
+            ))
+        } else {
+            None
+        };
+        timings.density_embedding_sec = stage.elapsed().as_secs_f64();
+
+        let stage = Instant::now();
+        let out = dense_matrix_from_output_rows(embedding.clone(), self.params.n_components)?;
+        timings.output_copy_sec = stage.elapsed().as_secs_f64();
+
+        let stage = Instant::now();
+        let training_data = DenseMatrix::from_flat_validated(data, n_rows, n_cols);
+        self.store_dense_fit_state(
+            embedding,
+            training_data,
+            n_features,
+            sigmas,
+            rhos,
+            radii_original,
+            radii_embedding,
+        );
+        timings.store_state_sec = stage.elapsed().as_secs_f64();
+        timings.total_sec = total_start.elapsed().as_secs_f64();
+
+        Ok(ProfiledFit {
+            embedding: out,
+            timings,
+            used_approximate_knn,
+            n_samples,
+            n_features,
+            n_epochs,
+            n_edges,
+        })
+    }
+
+    pub fn fit_transform_dense_supervised(
+        &mut self,
+        data: &[f32],
+        n_rows: usize,
+        n_cols: usize,
+        target: &SupervisedTarget,
+    ) -> Result<DenseMatrix, UmapError> {
+        let data_view = DenseMatrixView::new(data, n_rows, n_cols)?;
+        let (n_samples, n_features) = validate_data(&data_view)?;
+        validate_params(&self.params, n_samples, n_features)?;
+        validate_supervised_target(target, n_samples)?;
+        let (knn_indices, knn_dists) =
+            build_fit_knn(&self.params, &data_view, n_samples, n_features);
+        let (embedding, sigmas, rhos, radii_original, radii_embedding) = self
+            .build_dense_fit_artifacts_with_target(
+                &data_view,
+                &knn_indices,
+                &knn_dists,
+                Some(target),
+            )?;
+        let out = dense_matrix_from_output_rows(embedding.clone(), self.params.n_components)?;
+        let training_data = DenseMatrix::from_flat_validated(data, n_rows, n_cols);
+        self.store_dense_fit_state(
+            embedding,
+            training_data,
+            n_features,
+            sigmas,
+            rhos,
+            radii_original,
+            radii_embedding,
+        );
         Ok(out)
     }
 
@@ -593,6 +994,8 @@ impl UmapModel {
         }
 
         validate_params(&self.params, n_samples, n_features)?;
+        validate_sparse_metric(self.params.metric)?;
+        validate_sparse_density_params(&self.params)?;
         let (knn_indices, knn_dists) =
             sparse::exact_nearest_neighbors(&data, self.params.n_neighbors, self.params.metric);
         self.fit_sparse_csr_prevalidated(data, &knn_indices, &knn_dists)
@@ -612,6 +1015,8 @@ impl UmapModel {
         }
 
         validate_params(&self.params, n_samples, n_features)?;
+        validate_sparse_metric(self.params.metric)?;
+        validate_sparse_density_params(&self.params)?;
         let (knn_indices, knn_dists) =
             sparse::exact_nearest_neighbors(&data, self.params.n_neighbors, self.params.metric);
         self.fit_transform_with_knn_sparse_prevalidated(data, &knn_indices, &knn_dists)
@@ -682,11 +1087,19 @@ impl UmapModel {
         let (n_samples, n_features) = validate_data(&data_view)?;
         validate_params(&self.params, n_samples, n_features)?;
 
-        let (embedding, sigmas, rhos) =
+        let (embedding, sigmas, rhos, radii_original, radii_embedding) =
             self.build_dense_fit_artifacts(&data_view, knn_indices, knn_dists)?;
         let out = dense_matrix_from_output_rows(embedding.clone(), self.params.n_components)?;
         let training_data = DenseMatrix::from_flat_validated(data, n_rows, n_cols);
-        self.store_dense_fit_state(embedding, training_data, n_features, sigmas, rhos);
+        self.store_dense_fit_state(
+            embedding,
+            training_data,
+            n_features,
+            sigmas,
+            rhos,
+            radii_original,
+            radii_embedding,
+        );
         Ok(out)
     }
 
@@ -714,11 +1127,19 @@ impl UmapModel {
         let (n_samples, n_features) = validate_data(&data_view)?;
         validate_params(&self.params, n_samples, n_features)?;
 
-        let (embedding, sigmas, rhos) =
+        let (embedding, sigmas, rhos, radii_original, radii_embedding) =
             self.build_dense_fit_artifacts(&data_view, &knn_index_view, &knn_dist_view)?;
         let out = dense_matrix_from_output_rows(embedding.clone(), self.params.n_components)?;
         let training_data = DenseMatrix::from_flat_validated(data, n_rows, n_cols);
-        self.store_dense_fit_state(embedding, training_data, n_features, sigmas, rhos);
+        self.store_dense_fit_state(
+            embedding,
+            training_data,
+            n_features,
+            sigmas,
+            rhos,
+            radii_original,
+            radii_embedding,
+        );
         Ok(out)
     }
 
@@ -762,11 +1183,19 @@ impl UmapModel {
         let knn_idx_rows =
             precomputed_knn_indices_from_i64_flat(knn_indices, knn_indices_rows, knn_indices_cols)?;
         let knn_dist_view = FlatF32MatrixView::new(knn_dists, knn_dists_rows, knn_dists_cols)?;
-        let (embedding, sigmas, rhos) =
+        let (embedding, sigmas, rhos, radii_original, radii_embedding) =
             self.build_dense_fit_artifacts(&data_view, &knn_idx_rows, &knn_dist_view)?;
         let out = dense_matrix_from_output_rows(embedding.clone(), self.params.n_components)?;
         let training_data = DenseMatrix::from_flat_validated(data, n_rows, n_cols);
-        self.store_dense_fit_state(embedding, training_data, n_features, sigmas, rhos);
+        self.store_dense_fit_state(
+            embedding,
+            training_data,
+            n_features,
+            sigmas,
+            rhos,
+            radii_original,
+            radii_embedding,
+        );
         Ok(out)
     }
 
@@ -777,11 +1206,43 @@ impl UmapModel {
         knn_indices: &[Vec<usize>],
         knn_dists: &[Vec<f32>],
     ) -> Result<Vec<Vec<f32>>, UmapError> {
-        let (embedding, sigmas, rhos) =
+        let (embedding, sigmas, rhos, radii_original, radii_embedding) =
             self.build_dense_fit_artifacts(data, knn_indices, knn_dists)?;
         let training_data = DenseMatrix::from_rows_validated(data, data.len(), n_features);
 
-        self.store_dense_fit_state(embedding.clone(), training_data, n_features, sigmas, rhos);
+        self.store_dense_fit_state(
+            embedding.clone(),
+            training_data,
+            n_features,
+            sigmas,
+            rhos,
+            radii_original,
+            radii_embedding,
+        );
+        Ok(embedding)
+    }
+
+    fn fit_transform_with_knn_supervised_prevalidated(
+        &mut self,
+        data: &[Vec<f32>],
+        n_features: usize,
+        knn_indices: &[Vec<usize>],
+        knn_dists: &[Vec<f32>],
+        target: &SupervisedTarget,
+    ) -> Result<Vec<Vec<f32>>, UmapError> {
+        let (embedding, sigmas, rhos, radii_original, radii_embedding) =
+            self.build_dense_fit_artifacts_with_target(data, knn_indices, knn_dists, Some(target))?;
+        let training_data = DenseMatrix::from_rows_validated(data, data.len(), n_features);
+
+        self.store_dense_fit_state(
+            embedding.clone(),
+            training_data,
+            n_features,
+            sigmas,
+            rhos,
+            radii_original,
+            radii_embedding,
+        );
         Ok(embedding)
     }
 
@@ -792,10 +1253,41 @@ impl UmapModel {
         knn_indices: &[Vec<usize>],
         knn_dists: &[Vec<f32>],
     ) -> Result<(), UmapError> {
-        let (embedding, sigmas, rhos) =
+        let (embedding, sigmas, rhos, radii_original, radii_embedding) =
             self.build_dense_fit_artifacts(data, knn_indices, knn_dists)?;
         let training_data = DenseMatrix::from_rows_validated(data, data.len(), n_features);
-        self.store_dense_fit_state(embedding, training_data, n_features, sigmas, rhos);
+        self.store_dense_fit_state(
+            embedding,
+            training_data,
+            n_features,
+            sigmas,
+            rhos,
+            radii_original,
+            radii_embedding,
+        );
+        Ok(())
+    }
+
+    fn fit_with_knn_supervised_prevalidated(
+        &mut self,
+        data: &[Vec<f32>],
+        n_features: usize,
+        knn_indices: &[Vec<usize>],
+        knn_dists: &[Vec<f32>],
+        target: &SupervisedTarget,
+    ) -> Result<(), UmapError> {
+        let (embedding, sigmas, rhos, radii_original, radii_embedding) =
+            self.build_dense_fit_artifacts_with_target(data, knn_indices, knn_dists, Some(target))?;
+        let training_data = DenseMatrix::from_rows_validated(data, data.len(), n_features);
+        self.store_dense_fit_state(
+            embedding,
+            training_data,
+            n_features,
+            sigmas,
+            rhos,
+            radii_original,
+            radii_embedding,
+        );
         Ok(())
     }
 
@@ -806,11 +1298,19 @@ impl UmapModel {
         knn_indices: &[Vec<usize>],
         knn_dists: &[Vec<f32>],
     ) -> Result<(), UmapError> {
-        let (embedding, sigmas, rhos) =
+        let (embedding, sigmas, rhos, radii_original, radii_embedding) =
             self.build_dense_fit_artifacts(&data, knn_indices, knn_dists)?;
         let n_rows = data.len();
         let training_data = DenseMatrix::from_row_vectors_validated(data, n_rows, n_features);
-        self.store_dense_fit_state(embedding, training_data, n_features, sigmas, rhos);
+        self.store_dense_fit_state(
+            embedding,
+            training_data,
+            n_features,
+            sigmas,
+            rhos,
+            radii_original,
+            radii_embedding,
+        );
         Ok(())
     }
 
@@ -821,12 +1321,20 @@ impl UmapModel {
         knn_indices: &[Vec<usize>],
         knn_dists: &[Vec<f32>],
     ) -> Result<Vec<Vec<f32>>, UmapError> {
-        let (embedding, sigmas, rhos) =
+        let (embedding, sigmas, rhos, radii_original, radii_embedding) =
             self.build_dense_fit_artifacts(&data, knn_indices, knn_dists)?;
         let n_rows = data.len();
         let training_data = DenseMatrix::from_row_vectors_validated(data, n_rows, n_features);
         let out = embedding.clone();
-        self.store_dense_fit_state(embedding, training_data, n_features, sigmas, rhos);
+        self.store_dense_fit_state(
+            embedding,
+            training_data,
+            n_features,
+            sigmas,
+            rhos,
+            radii_original,
+            radii_embedding,
+        );
         Ok(out)
     }
 
@@ -835,6 +1343,21 @@ impl UmapModel {
         data: &M,
         knn_indices: &I,
         knn_dists: &D,
+    ) -> Result<FitArtifacts, UmapError>
+    where
+        M: RowMatrix + ?Sized,
+        I: IndexRowMatrix + ?Sized,
+        D: RowMatrix + ?Sized,
+    {
+        self.build_dense_fit_artifacts_with_target(data, knn_indices, knn_dists, None)
+    }
+
+    fn build_dense_fit_artifacts_with_target<M, I, D>(
+        &mut self,
+        data: &M,
+        knn_indices: &I,
+        knn_dists: &D,
+        target: Option<&SupervisedTarget>,
     ) -> Result<FitArtifacts, UmapError>
     where
         M: RowMatrix + ?Sized,
@@ -865,10 +1388,37 @@ impl UmapModel {
             DEFAULT_BANDWIDTH,
             knn_rows_include_self(&knn_indices_trimmed, &knn_dists_trimmed),
         );
+        let compute_density_outputs = self.params.densmap || self.params.output_dens;
+        let radii_original = if compute_density_outputs {
+            Some(local_radii_from_knn(
+                &knn_indices_trimmed,
+                &knn_dists_trimmed,
+                self.params.dens_var_shift,
+            ))
+        } else {
+            None
+        };
+        let density_state = if self.params.densmap && self.params.dens_lambda > 0.0 {
+            Some(DensityState {
+                original_radii: radii_original
+                    .clone()
+                    .expect("densmap should compute original radii"),
+                start_epoch: density_start_epoch(n_epochs, self.params.dens_frac),
+                lambda: self.params.dens_lambda,
+                var_shift: self.params.dens_var_shift,
+            })
+        } else {
+            None
+        };
 
         let directed =
             compute_membership_strengths(&knn_indices_trimmed, &knn_dists_trimmed, &sigmas, &rhos);
         let mut edges = symmetrize_fuzzy_graph(&directed, self.params.set_op_mix_ratio);
+        if let Some(target) = target
+            && target.weight > 0.0
+        {
+            edges = apply_categorical_target_intersection(&edges, target);
+        }
         prune_edges(&mut edges, n_epochs);
 
         let mut embedding = initialize_embedding(
@@ -889,8 +1439,18 @@ impl UmapModel {
             self.params.negative_sample_rate,
             self.params.repulsion_strength,
             self.params.random_seed ^ 0x9E37_79B9_7F4A_7C15,
+            density_state.as_ref(),
         );
-        Ok((embedding, sigmas, rhos))
+        let radii_embedding = if compute_density_outputs {
+            Some(embedding_radii_from_knn(
+                &embedding,
+                &knn_indices_trimmed,
+                self.params.dens_var_shift,
+            ))
+        } else {
+            None
+        };
+        Ok((embedding, sigmas, rhos, radii_original, radii_embedding))
     }
 
     fn fit_transform_with_knn_sparse_prevalidated(
@@ -900,7 +1460,7 @@ impl UmapModel {
         knn_dists: &[Vec<f32>],
     ) -> Result<Vec<Vec<f32>>, UmapError> {
         let n_features = data.n_cols();
-        let (embedding, sigmas, rhos) =
+        let (embedding, sigmas, rhos, _, _) =
             self.build_sparse_fit_artifacts(&data, knn_indices, knn_dists)?;
         self.store_sparse_fit_state(embedding.clone(), data, n_features, sigmas, rhos);
         Ok(embedding)
@@ -913,7 +1473,7 @@ impl UmapModel {
         knn_dists: &[Vec<f32>],
     ) -> Result<(), UmapError> {
         let n_features = data.n_cols();
-        let (embedding, sigmas, rhos) =
+        let (embedding, sigmas, rhos, _, _) =
             self.build_sparse_fit_artifacts(&data, knn_indices, knn_dists)?;
         self.store_sparse_fit_state(embedding, data, n_features, sigmas, rhos);
         Ok(())
@@ -973,11 +1533,13 @@ impl UmapModel {
             self.params.negative_sample_rate,
             self.params.repulsion_strength,
             self.params.random_seed ^ 0x9E37_79B9_7F4A_7C15,
+            None,
         );
 
-        Ok((embedding, sigmas, rhos))
+        Ok((embedding, sigmas, rhos, None, None))
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn store_dense_fit_state(
         &mut self,
         embedding: Vec<Vec<f32>>,
@@ -985,6 +1547,8 @@ impl UmapModel {
         n_features: usize,
         sigmas: Vec<f32>,
         rhos: Vec<f32>,
+        radii_original: Option<Vec<f32>>,
+        radii_embedding: Option<Vec<f32>>,
     ) {
         self.embedding = Some(embedding);
         self.training_data_dense = Some(training_data);
@@ -992,6 +1556,8 @@ impl UmapModel {
         self.n_features = Some(n_features);
         self.fit_sigmas = Some(sigmas);
         self.fit_rhos = Some(rhos);
+        self.fit_radii_original = radii_original;
+        self.fit_radii_embedding = radii_embedding;
     }
 
     fn store_sparse_fit_state(
@@ -1008,6 +1574,8 @@ impl UmapModel {
         self.n_features = Some(n_features);
         self.fit_sigmas = Some(sigmas);
         self.fit_rhos = Some(rhos);
+        self.fit_radii_original = None;
+        self.fit_radii_embedding = None;
     }
 
     pub fn transform(&self, query: &[Vec<f32>]) -> Result<Vec<Vec<f32>>, UmapError> {
@@ -1079,7 +1647,7 @@ impl UmapModel {
                     30
                 }
             }
-            Some(e) => (e / 3).max(1),
+            Some(e) => e.max(1),
         };
 
         let (indices, dists) = if let Some(train_data) = train_data_dense {
@@ -1098,6 +1666,76 @@ impl UmapModel {
             return Err(UmapError::NotFitted);
         };
 
+        Ok(self.transform_from_knn(
+            query.n_rows(),
+            train_embedding,
+            indices,
+            dists,
+            n_neighbors,
+            n_epochs,
+        ))
+    }
+
+    pub fn transform_sparse_csr(&self, query: SparseCsrMatrix) -> Result<Vec<Vec<f32>>, UmapError> {
+        let train_embedding = self.embedding.as_ref().ok_or(UmapError::NotFitted)?;
+        let expected_features = self.n_features.ok_or(UmapError::NotFitted)?;
+        if query.n_cols() != expected_features {
+            return Err(UmapError::FeatureMismatch {
+                expected: expected_features,
+                got: query.n_cols(),
+            });
+        }
+        let train_data = self.training_data_sparse.as_ref().ok_or_else(|| {
+            if self.training_data_dense.is_some() {
+                UmapError::InvalidParameter(
+                    "sparse query transform is supported only for sparse-fitted models".to_string(),
+                )
+            } else {
+                UmapError::NotFitted
+            }
+        })?;
+
+        if query.n_rows() == 0 {
+            return Ok(Vec::new());
+        }
+
+        let n_neighbors = self.params.n_neighbors.min(train_data.n_rows());
+        let n_epochs = match self.params.n_epochs {
+            None => {
+                if query.n_rows() <= 10_000 {
+                    100
+                } else {
+                    30
+                }
+            }
+            Some(e) => e.max(1),
+        };
+        let (indices, dists) = sparse::exact_nearest_neighbors_sparse_query(
+            &query,
+            train_data,
+            n_neighbors,
+            self.params.metric,
+        )?;
+
+        Ok(self.transform_from_knn(
+            query.n_rows(),
+            train_embedding,
+            indices,
+            dists,
+            n_neighbors,
+            n_epochs,
+        ))
+    }
+
+    fn transform_from_knn(
+        &self,
+        query_n_rows: usize,
+        train_embedding: &[Vec<f32>],
+        indices: Vec<Vec<usize>>,
+        dists: Vec<Vec<f32>>,
+        n_neighbors: usize,
+        n_epochs: usize,
+    ) -> Vec<Vec<f32>> {
         let adjusted_local_connectivity = (self.params.local_connectivity - 1.0).max(0.0);
         let (sigmas, rhos) = smooth_knn_dist(
             &dists,
@@ -1111,7 +1749,7 @@ impl UmapModel {
         prune_edges(&mut edges, n_epochs);
 
         let mut embedding = init_graph_transform(
-            query.n_rows(),
+            query_n_rows,
             self.params.n_components,
             &edges,
             train_embedding,
@@ -1130,7 +1768,7 @@ impl UmapModel {
             self.params.random_seed ^ 0xA24B_AED4_0B53_C117,
         );
 
-        Ok(embedding)
+        embedding
     }
 
     pub fn inverse_transform(
@@ -1274,7 +1912,8 @@ pub fn fit_transform(data: &[Vec<f32>], params: UmapParams) -> Result<Vec<Vec<f3
     let (n_samples, n_features) = validate_data(data)?;
     validate_params(&model.params, n_samples, n_features)?;
     let (knn_indices, knn_dists) = build_fit_knn(&model.params, data, n_samples, n_features);
-    let (embedding, _, _) = model.build_dense_fit_artifacts(data, &knn_indices, &knn_dists)?;
+    let (embedding, _, _, _, _) =
+        model.build_dense_fit_artifacts(data, &knn_indices, &knn_dists)?;
     Ok(embedding)
 }
 
@@ -1289,7 +1928,7 @@ pub fn fit_transform_dense(
     let (n_samples, n_features) = validate_data(&data_view)?;
     validate_params(&model.params, n_samples, n_features)?;
     let (knn_indices, knn_dists) = build_fit_knn(&model.params, &data_view, n_samples, n_features);
-    let (embedding, _, _) =
+    let (embedding, _, _, _, _) =
         model.build_dense_fit_artifacts(&data_view, &knn_indices, &knn_dists)?;
     dense_matrix_from_output_rows(embedding, model.params.n_components)
 }
@@ -1309,9 +1948,12 @@ pub fn fit_transform_sparse_csr(
     }
 
     validate_params(&model.params, n_samples, n_features)?;
+    validate_sparse_metric(model.params.metric)?;
+    validate_sparse_density_params(&model.params)?;
     let (knn_indices, knn_dists) =
         sparse::exact_nearest_neighbors(&data, model.params.n_neighbors, model.params.metric);
-    let (embedding, _, _) = model.build_sparse_fit_artifacts(&data, &knn_indices, &knn_dists)?;
+    let (embedding, _, _, _, _) =
+        model.build_sparse_fit_artifacts(&data, &knn_indices, &knn_dists)?;
     Ok(embedding)
 }
 
@@ -1492,6 +2134,7 @@ fn validate_params(
     n_samples: usize,
     _n_features: usize,
 ) -> Result<(), UmapError> {
+    validate_metric(params.metric)?;
     if params.n_neighbors < 2 {
         return Err(UmapError::InvalidParameter(
             "n_neighbors must be >= 2".to_string(),
@@ -1558,6 +2201,76 @@ fn validate_params(
             "approx_knn_iters must be >= 1".to_string(),
         ));
     }
+    if !params.dens_lambda.is_finite() || params.dens_lambda < 0.0 {
+        return Err(UmapError::InvalidParameter(
+            "dens_lambda must be finite and >= 0".to_string(),
+        ));
+    }
+    if !params.dens_frac.is_finite() || !(0.0..=1.0).contains(&params.dens_frac) {
+        return Err(UmapError::InvalidParameter(
+            "dens_frac must be finite and in [0, 1]".to_string(),
+        ));
+    }
+    if !params.dens_var_shift.is_finite() || params.dens_var_shift <= 0.0 {
+        return Err(UmapError::InvalidParameter(
+            "dens_var_shift must be finite and > 0".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+fn validate_metric(metric: Metric) -> Result<(), UmapError> {
+    if let Metric::Minkowski { p } = metric
+        && (!p.is_finite() || p <= 0.0)
+    {
+        return Err(UmapError::InvalidParameter(
+            "minkowski metric requires finite p > 0".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+fn validate_sparse_metric(metric: Metric) -> Result<(), UmapError> {
+    validate_metric(metric)?;
+    if matches!(metric, Metric::Canberra | Metric::BrayCurtis) {
+        return Err(UmapError::InvalidParameter(format!(
+            "{metric:?} metric is currently supported for dense input only"
+        )));
+    }
+    Ok(())
+}
+
+fn validate_sparse_density_params(params: &UmapParams) -> Result<(), UmapError> {
+    if params.densmap || params.output_dens {
+        return Err(UmapError::InvalidParameter(
+            "densmap and output_dens are currently supported for dense input only".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+fn validate_supervised_target(
+    target: &SupervisedTarget,
+    n_samples: usize,
+) -> Result<(), UmapError> {
+    if target.labels.len() != n_samples {
+        return Err(UmapError::InvalidParameter(format!(
+            "target label length ({}) must match number of samples ({n_samples})",
+            target.labels.len()
+        )));
+    }
+    if !target.weight.is_finite() || !(0.0..=1.0).contains(&target.weight) {
+        return Err(UmapError::InvalidParameter(
+            "target_weight must be finite and in [0, 1]".to_string(),
+        ));
+    }
+    if let Some(n_neighbors) = target.n_neighbors
+        && n_neighbors == 0
+    {
+        return Err(UmapError::InvalidParameter(
+            "target_n_neighbors must be >= 1 when provided".to_string(),
+        ));
+    }
     Ok(())
 }
 
@@ -1566,17 +2279,24 @@ fn should_use_approximate_knn(params: &UmapParams, n_samples: usize, n_features:
         return false;
     }
 
-    // Low-dimensional datasets often stay faster and more stable on the exact
-    // path until the sample count is meaningfully larger than the default
-    // crossover threshold.
-    if params.approx_knn_threshold > 0
-        && n_features <= AUTO_EXACT_LOW_DIM_MAX_FEATURES
-        && n_samples
-            <= params
+    // The in-crate ANN implementation is a lightweight NN-descent variant. It
+    // is now parallel, but still lacks PyNNDescent's RP-forest initialization
+    // and full candidate-update machinery. Auto mode therefore waits past the
+    // public threshold before switching; low-dimensional data gets a larger
+    // exact window because the exact rayon path remains competitive longer.
+    if params.approx_knn_threshold > 0 {
+        let exact_limit = if n_features <= AUTO_EXACT_LOW_DIM_MAX_FEATURES {
+            params
                 .approx_knn_threshold
                 .saturating_mul(AUTO_EXACT_LOW_DIM_SAMPLE_MULTIPLIER)
-    {
-        return false;
+        } else {
+            params
+                .approx_knn_threshold
+                .saturating_mul(AUTO_EXACT_GENERAL_SAMPLE_MULTIPLIER)
+        };
+        if n_samples <= exact_limit {
+            return false;
+        }
     }
 
     true
@@ -1600,6 +2320,112 @@ fn build_fit_knn<M: RowMatrix + Sync + ?Sized>(
     } else {
         exact_nearest_neighbors(data, params.n_neighbors, params.metric)
     }
+}
+
+fn row_knn_recall_excluding_self(row_idx: usize, exact_row: &[usize], approx_row: &[usize]) -> f32 {
+    let exact_set = exact_row
+        .iter()
+        .copied()
+        .filter(|&idx| idx != row_idx)
+        .collect::<HashSet<usize>>();
+    if exact_set.is_empty() {
+        return 1.0;
+    }
+
+    let matched = approx_row
+        .iter()
+        .copied()
+        .filter(|&idx| idx != row_idx && exact_set.contains(&idx))
+        .count();
+    matched as f32 / exact_set.len() as f32
+}
+
+fn summarize_knn_recall(
+    exact_indices: &[Vec<usize>],
+    approx_indices: &[Vec<usize>],
+) -> (f32, f32, f32, Vec<f32>) {
+    debug_assert_eq!(exact_indices.len(), approx_indices.len());
+    let per_row_recall = exact_indices
+        .iter()
+        .zip(approx_indices.iter())
+        .enumerate()
+        .map(|(row_idx, (exact_row, approx_row))| {
+            row_knn_recall_excluding_self(row_idx, exact_row, approx_row)
+        })
+        .collect::<Vec<f32>>();
+
+    if per_row_recall.is_empty() {
+        return (1.0, 1.0, 1.0, per_row_recall);
+    }
+
+    let mean_recall = per_row_recall.iter().sum::<f32>() / per_row_recall.len() as f32;
+    let min_recall = per_row_recall.iter().copied().fold(f32::INFINITY, f32::min);
+    let mut sorted = per_row_recall.clone();
+    sorted.sort_by(|lhs, rhs| lhs.total_cmp(rhs));
+    let worst_count = sorted.len().div_ceil(10).max(1);
+    let worst_decile_recall = sorted[..worst_count].iter().sum::<f32>() / worst_count as f32;
+
+    (mean_recall, min_recall, worst_decile_recall, per_row_recall)
+}
+
+fn approximate_knn_recall_diagnostics_rows<M: RowMatrix + Sync + ?Sized>(
+    data: &M,
+    n_samples: usize,
+    n_features: usize,
+    params: &UmapParams,
+) -> Result<KnnRecallDiagnostics, UmapError> {
+    validate_params(params, n_samples, n_features)?;
+    let n_neighbors = params.n_neighbors.min(n_samples);
+    let candidate_pool = params
+        .approx_knn_candidates
+        .max(n_neighbors)
+        .min(n_samples - 1);
+    let seed = params.random_seed ^ 0xC0FE_FEED_1234_ABCD;
+
+    let (exact_indices, _) = exact_nearest_neighbors(data, n_neighbors, params.metric);
+    let (approx_indices, _) = approximate_nearest_neighbors(
+        data,
+        n_neighbors,
+        params.metric,
+        params.approx_knn_candidates,
+        params.approx_knn_iters,
+        seed,
+    );
+    let (mean_recall, min_recall, worst_decile_recall, per_row_recall) =
+        summarize_knn_recall(&exact_indices, &approx_indices);
+
+    Ok(KnnRecallDiagnostics {
+        n_samples,
+        n_features,
+        n_neighbors,
+        metric: params.metric,
+        candidate_pool,
+        n_iters: params.approx_knn_iters,
+        seed,
+        mean_recall,
+        min_recall,
+        worst_decile_recall,
+        per_row_recall,
+    })
+}
+
+pub fn approximate_knn_recall_diagnostics(
+    data: &[Vec<f32>],
+    params: UmapParams,
+) -> Result<KnnRecallDiagnostics, UmapError> {
+    let (n_samples, n_features) = validate_data(data)?;
+    approximate_knn_recall_diagnostics_rows(data, n_samples, n_features, &params)
+}
+
+pub fn approximate_knn_recall_diagnostics_dense(
+    data: &[f32],
+    n_rows: usize,
+    n_cols: usize,
+    params: UmapParams,
+) -> Result<KnnRecallDiagnostics, UmapError> {
+    let data_view = DenseMatrixView::new(data, n_rows, n_cols)?;
+    let (n_samples, n_features) = validate_data(&data_view)?;
+    approximate_knn_recall_diagnostics_rows(&data_view, n_samples, n_features, &params)
 }
 
 #[inline(always)]
@@ -1707,6 +2533,59 @@ unsafe fn manhattan_distance_avx2(x: &[f32], y: &[f32]) -> f32 {
     sum
 }
 
+#[inline]
+fn chebyshev_distance(x: &[f32], y: &[f32]) -> f32 {
+    let mut max_diff = 0.0_f32;
+    let mut idx = 0;
+    while idx < x.len() {
+        max_diff = max_diff.max((x[idx] - y[idx]).abs());
+        idx += 1;
+    }
+    max_diff
+}
+
+#[inline]
+fn minkowski_distance(x: &[f32], y: &[f32], p: f32) -> f32 {
+    let mut acc = 0.0_f32;
+    let mut idx = 0;
+    while idx < x.len() {
+        acc += (x[idx] - y[idx]).abs().powf(p);
+        idx += 1;
+    }
+    acc.powf(1.0 / p)
+}
+
+#[inline]
+fn canberra_distance(x: &[f32], y: &[f32]) -> f32 {
+    let mut acc = 0.0_f32;
+    let mut idx = 0;
+    while idx < x.len() {
+        let denom = x[idx].abs() + y[idx].abs();
+        if denom > 0.0 {
+            acc += (x[idx] - y[idx]).abs() / denom;
+        }
+        idx += 1;
+    }
+    acc
+}
+
+#[inline]
+fn bray_curtis_distance(x: &[f32], y: &[f32]) -> f32 {
+    let mut numerator = 0.0_f32;
+    let mut denominator = 0.0_f32;
+    let mut idx = 0;
+    while idx < x.len() {
+        numerator += (x[idx] - y[idx]).abs();
+        denominator += (x[idx] + y[idx]).abs();
+        idx += 1;
+    }
+    if denominator == 0.0 {
+        0.0
+    } else {
+        numerator / denominator
+    }
+}
+
 #[allow(dead_code)]
 #[inline]
 fn cosine_distance(x: &[f32], y: &[f32]) -> f32 {
@@ -1774,6 +2653,55 @@ fn dot_product_scalar(x: &[f32], y: &[f32]) -> f32 {
         idx += 1;
     }
     dot
+}
+
+#[inline]
+fn correlation_distance(x: &[f32], y: &[f32]) -> f32 {
+    let mut sum_x = 0.0_f32;
+    let mut sum_y = 0.0_f32;
+    let mut sq_x = 0.0_f32;
+    let mut sq_y = 0.0_f32;
+    let mut dot = 0.0_f32;
+
+    let mut idx = 0;
+    while idx < x.len() {
+        let xv = x[idx];
+        let yv = y[idx];
+        sum_x += xv;
+        sum_y += yv;
+        sq_x += xv * xv;
+        sq_y += yv * yv;
+        dot += xv * yv;
+        idx += 1;
+    }
+
+    correlation_distance_from_summaries(x.len(), sum_x, sq_x, sum_y, sq_y, dot)
+}
+
+#[inline]
+pub(crate) fn correlation_distance_from_summaries(
+    n_features: usize,
+    sum_x: f32,
+    sq_x: f32,
+    sum_y: f32,
+    sq_y: f32,
+    dot: f32,
+) -> f32 {
+    let n = n_features as f32;
+    let centered_dot = dot - (sum_x * sum_y / n);
+    let x_var = (sq_x - (sum_x * sum_x / n)).max(0.0);
+    let y_var = (sq_y - (sum_y * sum_y / n)).max(0.0);
+    let x_norm = x_var.sqrt();
+    let y_norm = y_var.sqrt();
+
+    if x_norm == 0.0 && y_norm == 0.0 {
+        0.0
+    } else if x_norm == 0.0 || y_norm == 0.0 {
+        1.0
+    } else {
+        let corr = (centered_dot / (x_norm * y_norm)).clamp(-1.0, 1.0);
+        1.0 - corr
+    }
 }
 
 #[cfg(target_arch = "x86_64")]
@@ -1981,6 +2909,13 @@ fn exact_nearest_neighbors<M: RowMatrix + Sync + ?Sized>(
         Metric::Euclidean => exact_nearest_neighbors_euclidean(data, n_neighbors),
         Metric::Manhattan => exact_nearest_neighbors_by(data, n_neighbors, manhattan_distance),
         Metric::Cosine => exact_nearest_neighbors_cosine(data, n_neighbors),
+        Metric::Chebyshev => exact_nearest_neighbors_by(data, n_neighbors, chebyshev_distance),
+        Metric::Minkowski { p } => {
+            exact_nearest_neighbors_by(data, n_neighbors, move |x, y| minkowski_distance(x, y, p))
+        }
+        Metric::Correlation => exact_nearest_neighbors_by(data, n_neighbors, correlation_distance),
+        Metric::Canberra => exact_nearest_neighbors_by(data, n_neighbors, canberra_distance),
+        Metric::BrayCurtis => exact_nearest_neighbors_by(data, n_neighbors, bray_curtis_distance),
     }
 }
 
@@ -2010,6 +2945,23 @@ impl FlatNeighbors {
         }
     }
 
+    fn from_rows(rows: Vec<Vec<(usize, f32)>>, row_len: usize) -> Self {
+        let mut out = Self::new(rows.len(), row_len);
+        for (row_idx, row) in rows.iter().enumerate() {
+            out.set_row(row_idx, row);
+        }
+        out
+    }
+
+    fn from_updates(rows: Vec<(Vec<(usize, f32)>, bool)>, row_len: usize) -> (Self, bool) {
+        let changed = rows.iter().any(|(_, row_changed)| *row_changed);
+        let mut out = Self::new(rows.len(), row_len);
+        for (row_idx, (row, _)) in rows.iter().enumerate() {
+            out.set_row(row_idx, row);
+        }
+        (out, changed)
+    }
+
     #[inline]
     fn row_range(&self, row_idx: usize) -> std::ops::Range<usize> {
         let start = row_idx * self.row_len;
@@ -2029,12 +2981,6 @@ impl FlatNeighbors {
             self.indices[pos] = idx;
             self.dists[pos] = dist;
         }
-    }
-
-    fn copy_row_from(&mut self, other: &Self, row_idx: usize) {
-        let range = self.row_range(row_idx);
-        self.indices[range.clone()].copy_from_slice(&other.indices[range.clone()]);
-        self.dists[range.clone()].copy_from_slice(&other.dists[range]);
     }
 
     fn row_eq(&self, row_idx: usize, row: &[(usize, f32)]) -> bool {
@@ -2060,36 +3006,21 @@ impl FlatNeighbors {
     }
 }
 
-// Reusable timestamp marker for unique candidate collection without allocating a
-// fresh HashSet for every approximate-kNN row and iteration.
-struct CandidateMarker {
-    marks: Vec<usize>,
-    current: usize,
+fn mix_approx_seed(seed: u64, row_idx: usize, iteration: usize) -> u64 {
+    let mut value = seed
+        ^ (row_idx as u64).wrapping_mul(0x9E37_79B9_7F4A_7C15)
+        ^ (iteration as u64).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+    value = (value ^ (value >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+    value = (value ^ (value >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+    value ^ (value >> 31)
 }
 
-impl CandidateMarker {
-    fn new(n_items: usize) -> Self {
-        Self {
-            marks: vec![0; n_items],
-            current: 1,
-        }
-    }
-
-    fn clear(&mut self) {
-        self.current = self.current.wrapping_add(1);
-        if self.current == 0 {
-            self.marks.fill(0);
-            self.current = 1;
-        }
-    }
-
-    fn insert(&mut self, idx: usize) -> bool {
-        if self.marks[idx] == self.current {
-            false
-        } else {
-            self.marks[idx] = self.current;
-            true
-        }
+fn push_unique_candidate(out: &mut Vec<usize>, idx: usize) -> bool {
+    if out.contains(&idx) {
+        false
+    } else {
+        out.push(idx);
+        true
     }
 }
 
@@ -2098,18 +3029,13 @@ fn sample_unique_candidates<R: Rng + ?Sized>(
     n_samples: usize,
     row_idx: usize,
     target_len: usize,
-    marker: &mut CandidateMarker,
     out: &mut Vec<usize>,
 ) {
-    marker.clear();
     out.clear();
-    marker.insert(row_idx);
     out.push(row_idx);
     while out.len() < target_len {
         let idx = rng.gen_range(0..n_samples);
-        if marker.insert(idx) {
-            out.push(idx);
-        }
+        push_unique_candidate(out, idx);
     }
 }
 
@@ -2121,32 +3047,22 @@ fn collect_approx_candidate_indices<R: Rng + ?Sized>(
     n_neighbors: usize,
     max_candidates: usize,
     rng: &mut R,
-    marker: &mut CandidateMarker,
     out: &mut Vec<usize>,
 ) {
-    marker.clear();
     out.clear();
 
     for &idx in neighbors.row_indices(row_idx) {
-        if marker.insert(idx) {
-            out.push(idx);
-        }
+        push_unique_candidate(out, idx);
         for &idx2 in neighbors.row_indices(idx) {
-            if marker.insert(idx2) {
-                out.push(idx2);
-            }
+            push_unique_candidate(out, idx2);
         }
     }
-    if marker.insert(row_idx) {
-        out.push(row_idx);
-    }
+    push_unique_candidate(out, row_idx);
 
     let exploration = (n_neighbors / 2).max(4).min(max_candidates);
     for _ in 0..exploration {
         let idx = rng.gen_range(0..n_samples);
-        if marker.insert(idx) {
-            out.push(idx);
-        }
+        push_unique_candidate(out, idx);
     }
 
     out.sort_unstable();
@@ -2159,7 +3075,74 @@ fn collect_approx_candidate_indices<R: Rng + ?Sized>(
     }
 }
 
-fn approximate_nearest_neighbors_euclidean<M: RowMatrix + ?Sized>(
+fn approximate_nearest_neighbors_with_distance<F>(
+    n_samples: usize,
+    n_neighbors: usize,
+    candidate_pool: usize,
+    n_iters: usize,
+    seed: u64,
+    distance_fn: F,
+) -> (Vec<Vec<usize>>, Vec<Vec<f32>>)
+where
+    F: Fn(usize, usize) -> f32 + Copy + Sync + Send,
+{
+    let pool = candidate_pool.max(n_neighbors).min(n_samples - 1);
+    let max_candidates = candidate_pool.max(n_neighbors) * 4 + 1;
+
+    let initial_rows = (0..n_samples)
+        .into_par_iter()
+        .map(|i| {
+            let mut rng = SmallRng::seed_from_u64(mix_approx_seed(seed, i, 0));
+            let mut candidate_indices = Vec::with_capacity(max_candidates.max(pool + 1));
+            sample_unique_candidates(&mut rng, n_samples, i, pool + 1, &mut candidate_indices);
+
+            let candidates = candidate_indices
+                .iter()
+                .map(|&j| (j, distance_fn(i, j)))
+                .collect::<Vec<(usize, f32)>>();
+            sorted_unique_neighbors(candidates, n_neighbors)
+        })
+        .collect::<Vec<Vec<(usize, f32)>>>();
+
+    let mut neighbors = FlatNeighbors::from_rows(initial_rows, n_neighbors);
+
+    for iteration in 0..n_iters {
+        let updates = (0..n_samples)
+            .into_par_iter()
+            .map(|i| {
+                let mut rng = SmallRng::seed_from_u64(mix_approx_seed(seed, i, iteration + 1));
+                let mut candidate_indices = Vec::with_capacity(max_candidates.max(pool + 1));
+                collect_approx_candidate_indices(
+                    &neighbors,
+                    i,
+                    n_samples,
+                    n_neighbors,
+                    max_candidates,
+                    &mut rng,
+                    &mut candidate_indices,
+                );
+
+                let candidate_pairs = candidate_indices
+                    .iter()
+                    .map(|&j| (j, distance_fn(i, j)))
+                    .collect::<Vec<(usize, f32)>>();
+                let updated = sorted_unique_neighbors(candidate_pairs, n_neighbors);
+                let changed = !neighbors.row_eq(i, &updated);
+                (updated, changed)
+            })
+            .collect::<Vec<(Vec<(usize, f32)>, bool)>>();
+
+        let (next_neighbors, changed) = FlatNeighbors::from_updates(updates, n_neighbors);
+        neighbors = next_neighbors;
+        if !changed {
+            break;
+        }
+    }
+
+    neighbors.into_knn_rows(n_samples)
+}
+
+fn approximate_nearest_neighbors_euclidean<M: RowMatrix + Sync + ?Sized>(
     data: &M,
     n_neighbors: usize,
     candidate_pool: usize,
@@ -2167,71 +3150,14 @@ fn approximate_nearest_neighbors_euclidean<M: RowMatrix + ?Sized>(
     seed: u64,
 ) -> (Vec<Vec<usize>>, Vec<Vec<f32>>) {
     let n_samples = data.n_rows();
-    let pool = candidate_pool.max(n_neighbors).min(n_samples - 1);
-    let max_candidates = candidate_pool.max(n_neighbors) * 4 + 1;
-    let mut rng = SmallRng::seed_from_u64(seed);
-    let mut candidate_marker = CandidateMarker::new(n_samples);
-    let mut candidate_indices = Vec::with_capacity(max_candidates.max(pool + 1));
-
-    let mut neighbors = FlatNeighbors::new(n_samples, n_neighbors);
-    for i in 0..n_samples {
-        sample_unique_candidates(
-            &mut rng,
-            n_samples,
-            i,
-            pool + 1,
-            &mut candidate_marker,
-            &mut candidate_indices,
-        );
-
-        let candidates = candidate_indices
-            .iter()
-            .map(|&j| (j, euclidean_distance(data.row(i), data.row(j))))
-            .collect::<Vec<(usize, f32)>>();
-
-        let row = sorted_unique_neighbors(candidates, n_neighbors);
-        neighbors.set_row(i, &row);
-    }
-
-    let mut buf_neighbors = neighbors.clone();
-
-    for _ in 0..n_iters {
-        let mut changed = false;
-
-        for i in 0..n_samples {
-            collect_approx_candidate_indices(
-                &neighbors,
-                i,
-                n_samples,
-                n_neighbors,
-                max_candidates,
-                &mut rng,
-                &mut candidate_marker,
-                &mut candidate_indices,
-            );
-
-            let candidate_pairs = candidate_indices
-                .iter()
-                .map(|&j| (j, euclidean_distance(data.row(i), data.row(j))))
-                .collect::<Vec<(usize, f32)>>();
-
-            let updated = sorted_unique_neighbors(candidate_pairs, n_neighbors);
-
-            if neighbors.row_eq(i, &updated) {
-                buf_neighbors.copy_row_from(&neighbors, i);
-            } else {
-                changed = true;
-                buf_neighbors.set_row(i, &updated);
-            }
-        }
-
-        std::mem::swap(&mut neighbors, &mut buf_neighbors);
-        if !changed {
-            break;
-        }
-    }
-
-    neighbors.into_knn_rows(n_samples)
+    approximate_nearest_neighbors_with_distance(
+        n_samples,
+        n_neighbors,
+        candidate_pool,
+        n_iters,
+        seed,
+        |i, j| euclidean_distance(data.row(i), data.row(j)),
+    )
 }
 
 fn approximate_nearest_neighbors_by<M, F>(
@@ -2243,78 +3169,21 @@ fn approximate_nearest_neighbors_by<M, F>(
     distance_fn: F,
 ) -> (Vec<Vec<usize>>, Vec<Vec<f32>>)
 where
-    M: RowMatrix + ?Sized,
-    F: Fn(&[f32], &[f32]) -> f32 + Copy,
+    M: RowMatrix + Sync + ?Sized,
+    F: Fn(&[f32], &[f32]) -> f32 + Copy + Sync + Send,
 {
     let n_samples = data.n_rows();
-    let pool = candidate_pool.max(n_neighbors).min(n_samples - 1);
-    let max_candidates = candidate_pool.max(n_neighbors) * 4 + 1;
-    let mut rng = SmallRng::seed_from_u64(seed);
-    let mut candidate_marker = CandidateMarker::new(n_samples);
-    let mut candidate_indices = Vec::with_capacity(max_candidates.max(pool + 1));
-
-    let mut neighbors = FlatNeighbors::new(n_samples, n_neighbors);
-    for i in 0..n_samples {
-        sample_unique_candidates(
-            &mut rng,
-            n_samples,
-            i,
-            pool + 1,
-            &mut candidate_marker,
-            &mut candidate_indices,
-        );
-
-        let candidates = candidate_indices
-            .iter()
-            .map(|&j| (j, distance_fn(data.row(i), data.row(j))))
-            .collect::<Vec<(usize, f32)>>();
-
-        let row = sorted_unique_neighbors(candidates, n_neighbors);
-        neighbors.set_row(i, &row);
-    }
-
-    let mut buf_neighbors = neighbors.clone();
-
-    for _ in 0..n_iters {
-        let mut changed = false;
-
-        for i in 0..n_samples {
-            collect_approx_candidate_indices(
-                &neighbors,
-                i,
-                n_samples,
-                n_neighbors,
-                max_candidates,
-                &mut rng,
-                &mut candidate_marker,
-                &mut candidate_indices,
-            );
-
-            let candidate_pairs = candidate_indices
-                .iter()
-                .map(|&j| (j, distance_fn(data.row(i), data.row(j))))
-                .collect::<Vec<(usize, f32)>>();
-
-            let updated = sorted_unique_neighbors(candidate_pairs, n_neighbors);
-
-            if neighbors.row_eq(i, &updated) {
-                buf_neighbors.copy_row_from(&neighbors, i);
-            } else {
-                changed = true;
-                buf_neighbors.set_row(i, &updated);
-            }
-        }
-
-        std::mem::swap(&mut neighbors, &mut buf_neighbors);
-        if !changed {
-            break;
-        }
-    }
-
-    neighbors.into_knn_rows(n_samples)
+    approximate_nearest_neighbors_with_distance(
+        n_samples,
+        n_neighbors,
+        candidate_pool,
+        n_iters,
+        seed,
+        |i, j| distance_fn(data.row(i), data.row(j)),
+    )
 }
 
-fn approximate_nearest_neighbors_cosine<M: RowMatrix + ?Sized>(
+fn approximate_nearest_neighbors_cosine<M: RowMatrix + Sync + ?Sized>(
     data: &M,
     n_neighbors: usize,
     candidate_pool: usize,
@@ -2322,85 +3191,18 @@ fn approximate_nearest_neighbors_cosine<M: RowMatrix + ?Sized>(
     seed: u64,
 ) -> (Vec<Vec<usize>>, Vec<Vec<f32>>) {
     let n_samples = data.n_rows();
-    let pool = candidate_pool.max(n_neighbors).min(n_samples - 1);
-    let max_candidates = candidate_pool.max(n_neighbors) * 4 + 1;
-    let mut rng = SmallRng::seed_from_u64(seed);
     let norms = compute_l2_norms(data);
-    let mut candidate_marker = CandidateMarker::new(n_samples);
-    let mut candidate_indices = Vec::with_capacity(max_candidates.max(pool + 1));
-
-    let mut neighbors = FlatNeighbors::new(n_samples, n_neighbors);
-    for i in 0..n_samples {
-        sample_unique_candidates(
-            &mut rng,
-            n_samples,
-            i,
-            pool + 1,
-            &mut candidate_marker,
-            &mut candidate_indices,
-        );
-
-        let candidates = candidate_indices
-            .iter()
-            .map(|&j| {
-                (
-                    j,
-                    cosine_distance_with_norms(data.row(i), data.row(j), norms[i], norms[j]),
-                )
-            })
-            .collect::<Vec<(usize, f32)>>();
-
-        let row = sorted_unique_neighbors(candidates, n_neighbors);
-        neighbors.set_row(i, &row);
-    }
-
-    let mut buf_neighbors = neighbors.clone();
-
-    for _ in 0..n_iters {
-        let mut changed = false;
-
-        for i in 0..n_samples {
-            collect_approx_candidate_indices(
-                &neighbors,
-                i,
-                n_samples,
-                n_neighbors,
-                max_candidates,
-                &mut rng,
-                &mut candidate_marker,
-                &mut candidate_indices,
-            );
-
-            let candidate_pairs = candidate_indices
-                .iter()
-                .map(|&j| {
-                    (
-                        j,
-                        cosine_distance_with_norms(data.row(i), data.row(j), norms[i], norms[j]),
-                    )
-                })
-                .collect::<Vec<(usize, f32)>>();
-
-            let updated = sorted_unique_neighbors(candidate_pairs, n_neighbors);
-
-            if neighbors.row_eq(i, &updated) {
-                buf_neighbors.copy_row_from(&neighbors, i);
-            } else {
-                changed = true;
-                buf_neighbors.set_row(i, &updated);
-            }
-        }
-
-        std::mem::swap(&mut neighbors, &mut buf_neighbors);
-        if !changed {
-            break;
-        }
-    }
-
-    neighbors.into_knn_rows(n_samples)
+    approximate_nearest_neighbors_with_distance(
+        n_samples,
+        n_neighbors,
+        candidate_pool,
+        n_iters,
+        seed,
+        |i, j| cosine_distance_with_norms(data.row(i), data.row(j), norms[i], norms[j]),
+    )
 }
 
-fn approximate_nearest_neighbors<M: RowMatrix + ?Sized>(
+fn approximate_nearest_neighbors<M: RowMatrix + Sync + ?Sized>(
     data: &M,
     n_neighbors: usize,
     metric: Metric,
@@ -2427,6 +3229,46 @@ fn approximate_nearest_neighbors<M: RowMatrix + ?Sized>(
         Metric::Cosine => {
             approximate_nearest_neighbors_cosine(data, n_neighbors, candidate_pool, n_iters, seed)
         }
+        Metric::Chebyshev => approximate_nearest_neighbors_by(
+            data,
+            n_neighbors,
+            candidate_pool,
+            n_iters,
+            seed,
+            chebyshev_distance,
+        ),
+        Metric::Minkowski { p } => approximate_nearest_neighbors_by(
+            data,
+            n_neighbors,
+            candidate_pool,
+            n_iters,
+            seed,
+            move |x, y| minkowski_distance(x, y, p),
+        ),
+        Metric::Correlation => approximate_nearest_neighbors_by(
+            data,
+            n_neighbors,
+            candidate_pool,
+            n_iters,
+            seed,
+            correlation_distance,
+        ),
+        Metric::Canberra => approximate_nearest_neighbors_by(
+            data,
+            n_neighbors,
+            candidate_pool,
+            n_iters,
+            seed,
+            canberra_distance,
+        ),
+        Metric::BrayCurtis => approximate_nearest_neighbors_by(
+            data,
+            n_neighbors,
+            candidate_pool,
+            n_iters,
+            seed,
+            bray_curtis_distance,
+        ),
     }
 }
 
@@ -2516,6 +3358,35 @@ where
         Metric::Cosine => {
             exact_nearest_neighbors_to_reference_cosine(query, reference, n_neighbors)
         }
+        Metric::Chebyshev => exact_nearest_neighbors_to_reference_by(
+            query,
+            reference,
+            n_neighbors,
+            chebyshev_distance,
+        ),
+        Metric::Minkowski { p } => {
+            exact_nearest_neighbors_to_reference_by(query, reference, n_neighbors, move |x, y| {
+                minkowski_distance(x, y, p)
+            })
+        }
+        Metric::Correlation => exact_nearest_neighbors_to_reference_by(
+            query,
+            reference,
+            n_neighbors,
+            correlation_distance,
+        ),
+        Metric::Canberra => exact_nearest_neighbors_to_reference_by(
+            query,
+            reference,
+            n_neighbors,
+            canberra_distance,
+        ),
+        Metric::BrayCurtis => exact_nearest_neighbors_to_reference_by(
+            query,
+            reference,
+            n_neighbors,
+            bray_curtis_distance,
+        ),
     }
 }
 
@@ -2765,6 +3636,159 @@ fn symmetrize_fuzzy_graph(directed: &[Edge], set_op_mix_ratio: f32) -> Vec<Edge>
         }
     }
 
+    edges.sort_by_key(|e| (e.head, e.tail));
+    edges
+}
+
+#[cfg(test)]
+fn build_categorical_target_membership_strengths(
+    target: &SupervisedTarget,
+    n_samples: usize,
+    default_n_neighbors: usize,
+) -> Vec<Edge> {
+    match target.metric {
+        TargetMetric::Categorical => {}
+    }
+
+    let mut by_label = HashMap::<i64, Vec<usize>>::new();
+    for (idx, &label) in target.labels.iter().enumerate().take(n_samples) {
+        if label == -1 {
+            continue;
+        }
+        by_label.entry(label).or_default().push(idx);
+    }
+
+    let target_n_neighbors = target.n_neighbors.unwrap_or(default_n_neighbors);
+    let mut edges = Vec::new();
+    for group in by_label.values() {
+        if group.len() < 2 {
+            continue;
+        }
+        let row_neighbors = target_n_neighbors.min(group.len() - 1);
+        for (pos, &head) in group.iter().enumerate() {
+            for offset in 1..=row_neighbors {
+                let tail = group[(pos + offset) % group.len()];
+                if head != tail {
+                    edges.push(Edge {
+                        head,
+                        tail,
+                        weight: 1.0,
+                    });
+                }
+            }
+        }
+    }
+
+    edges.sort_by_key(|edge| (edge.head, edge.tail));
+    edges
+}
+
+fn apply_categorical_target_intersection(
+    data_edges: &[Edge],
+    target: &SupervisedTarget,
+) -> Vec<Edge> {
+    if target.weight <= 0.0 || data_edges.is_empty() {
+        return data_edges.to_vec();
+    }
+
+    let far_dist = if target.weight < 1.0 {
+        2.5 / (1.0 - target.weight)
+    } else {
+        1.0e12
+    };
+    let unknown_scale = (-1.0_f32).exp();
+    let far_scale = (-far_dist).exp();
+
+    let mut scaled = Vec::with_capacity(data_edges.len());
+    for edge in data_edges {
+        let lhs = target.labels[edge.head];
+        let rhs = target.labels[edge.tail];
+        let scale = if lhs == -1 || rhs == -1 {
+            unknown_scale
+        } else if lhs != rhs {
+            far_scale
+        } else {
+            1.0
+        };
+        let weight = edge.weight * scale;
+        if weight > 0.0 && weight.is_finite() {
+            scaled.push(Edge {
+                head: edge.head,
+                tail: edge.tail,
+                weight,
+            });
+        }
+    }
+
+    reset_local_connectivity_edges(&scaled, target.labels.len())
+}
+
+fn reset_local_connectivity_edges(edges: &[Edge], n_vertices: usize) -> Vec<Edge> {
+    if edges.is_empty() {
+        return Vec::new();
+    }
+
+    let mut row_max = vec![0.0_f32; n_vertices];
+    for edge in edges {
+        row_max[edge.head] = row_max[edge.head].max(edge.weight);
+    }
+
+    let directed = edges
+        .iter()
+        .filter_map(|edge| {
+            let max_weight = row_max[edge.head];
+            if max_weight <= 0.0 || !max_weight.is_finite() {
+                return None;
+            }
+            Some(Edge {
+                head: edge.head,
+                tail: edge.tail,
+                weight: edge.weight / max_weight,
+            })
+        })
+        .collect::<Vec<Edge>>();
+
+    symmetrize_fuzzy_graph(&directed, 1.0)
+}
+
+#[cfg(test)]
+fn combine_fuzzy_graphs(
+    data_edges: &[Edge],
+    target_edges: &[Edge],
+    target_weight: f32,
+) -> Vec<Edge> {
+    if target_weight <= 0.0 || target_edges.is_empty() {
+        return data_edges.to_vec();
+    }
+
+    let mut by_pair = HashMap::<(usize, usize), (f32, f32)>::with_capacity(
+        data_edges.len().saturating_add(target_edges.len()),
+    );
+    for edge in data_edges {
+        by_pair
+            .entry((edge.head, edge.tail))
+            .and_modify(|weights| weights.0 = weights.0.max(edge.weight))
+            .or_insert((edge.weight, 0.0));
+    }
+    for edge in target_edges {
+        by_pair
+            .entry((edge.head, edge.tail))
+            .and_modify(|weights| weights.1 = weights.1.max(edge.weight))
+            .or_insert((0.0, edge.weight));
+    }
+
+    let data_weight = 1.0 - target_weight;
+    let mut edges = by_pair
+        .into_iter()
+        .filter_map(|((head, tail), (data, target))| {
+            let weight = data_weight * data + target_weight * target;
+            if weight > 0.0 && weight.is_finite() {
+                Some(Edge { head, tail, weight })
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<Edge>>();
     edges.sort_by_key(|e| (e.head, e.tail));
     edges
 }
@@ -3905,6 +4929,34 @@ fn clip(value: f32) -> f32 {
     value.clamp(-4.0, 4.0)
 }
 
+fn flatten_embedding_rows(embedding: &[Vec<f32>], dim: usize) -> Vec<f32> {
+    let mut flat = Vec::with_capacity(embedding.len().saturating_mul(dim));
+    for row in embedding {
+        debug_assert_eq!(row.len(), dim);
+        flat.extend_from_slice(row);
+    }
+    flat
+}
+
+fn copy_flat_embedding_to_rows(flat: &[f32], embedding: &mut [Vec<f32>], dim: usize) {
+    for (row_idx, row) in embedding.iter_mut().enumerate() {
+        let start = row_idx * dim;
+        row.copy_from_slice(&flat[start..start + dim]);
+    }
+}
+
+#[inline]
+fn flat_squared_distance(flat: &[f32], left: usize, right: usize, dim: usize) -> f32 {
+    let mut sq = 0.0_f32;
+    let left_start = left * dim;
+    let right_start = right * dim;
+    for d in 0..dim {
+        let diff = flat[left_start + d] - flat[right_start + d];
+        sq += diff * diff;
+    }
+    sq
+}
+
 fn two_rows_mut<T>(rows: &mut [Vec<T>], i: usize, j: usize) -> (&mut Vec<T>, &mut Vec<T>) {
     assert!(i != j, "indices must be different");
     if i < j {
@@ -3936,6 +4988,284 @@ fn euclidean_distance_with_grad(x: &[f32], y: &[f32]) -> (f32, Vec<f32>) {
     (dist, grad)
 }
 
+struct DensityState {
+    original_radii: Vec<f32>,
+    start_epoch: usize,
+    lambda: f32,
+    var_shift: f32,
+}
+
+fn density_start_epoch(n_epochs: usize, dens_frac: f32) -> usize {
+    let active = ((n_epochs as f32) * dens_frac).ceil() as usize;
+    n_epochs.saturating_sub(active.max(1))
+}
+
+fn local_radii_from_knn<I, D>(knn_indices: &I, knn_dists: &D, var_shift: f32) -> Vec<f32>
+where
+    I: IndexRowMatrix + ?Sized,
+    D: RowMatrix + ?Sized,
+{
+    (0..knn_dists.n_rows())
+        .map(|row_idx| {
+            let idx_row = knn_indices.row(row_idx);
+            let dist_row = knn_dists.row(row_idx);
+            let mut sum = 0.0_f32;
+            let mut count = 0usize;
+            for (&neighbor, &dist) in idx_row.iter().zip(dist_row.iter()) {
+                if neighbor == row_idx && dist.abs() <= SMOOTH_K_TOLERANCE {
+                    continue;
+                }
+                sum += (dist.max(0.0) + var_shift).ln();
+                count += 1;
+            }
+            if count == 0 {
+                var_shift.ln()
+            } else {
+                sum / count as f32
+            }
+        })
+        .collect()
+}
+
+fn embedding_radii_from_knn<I>(embedding: &[Vec<f32>], knn_indices: &I, var_shift: f32) -> Vec<f32>
+where
+    I: IndexRowMatrix + ?Sized,
+{
+    (0..embedding.len())
+        .map(|row_idx| {
+            let idx_row = knn_indices.row(row_idx);
+            let mut sum = 0.0_f32;
+            let mut count = 0usize;
+            for &neighbor in idx_row {
+                if neighbor == row_idx {
+                    continue;
+                }
+                let dist = euclidean_distance(&embedding[row_idx], &embedding[neighbor]);
+                sum += (dist.max(0.0) + var_shift).ln();
+                count += 1;
+            }
+            if count == 0 {
+                var_shift.ln()
+            } else {
+                sum / count as f32
+            }
+        })
+        .collect()
+}
+
+fn apply_density_gradient(
+    embedding: &mut [Vec<f32>],
+    head: usize,
+    tail: usize,
+    alpha: f32,
+    density: &DensityState,
+) {
+    if head == tail {
+        return;
+    }
+
+    let current_dist = euclidean_distance(&embedding[head], &embedding[tail]);
+    let target_radius = ((density.original_radii[head] + density.original_radii[tail]) * 0.5)
+        .exp()
+        .max(1e-6);
+    let coeff = DENSITY_GRADIENT_SCALE * density.lambda * (current_dist - target_radius)
+        / (current_dist + density.var_shift);
+    let (current, other) = two_rows_mut(embedding, head, tail);
+    for d in 0..current.len() {
+        let direction = (current[d] - other[d]) / (current_dist + 1e-6);
+        let grad = clip(coeff * direction);
+        current[d] -= grad * alpha;
+        other[d] += grad * alpha;
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn optimize_layout_training_flat(
+    embedding: &mut [Vec<f32>],
+    edges: &[Edge],
+    n_epochs: usize,
+    a: f32,
+    b: f32,
+    initial_alpha: f32,
+    negative_sample_rate: usize,
+    repulsion_strength: f32,
+    seed: u64,
+) {
+    if edges.is_empty() || embedding.is_empty() || n_epochs == 0 {
+        return;
+    }
+
+    let dim = embedding[0].len();
+    let n_vertices = embedding.len();
+    let mut flat = flatten_embedding_rows(embedding, dim);
+
+    let heads = edges.iter().map(|edge| edge.head).collect::<Vec<usize>>();
+    let tails = edges.iter().map(|edge| edge.tail).collect::<Vec<usize>>();
+    let weights = edges.iter().map(|edge| edge.weight).collect::<Vec<f32>>();
+    let epochs_per_sample = make_epochs_per_sample(&weights, n_epochs);
+    let mut epoch_of_next_sample = epochs_per_sample.clone();
+
+    let epochs_per_negative_sample = epochs_per_sample
+        .iter()
+        .map(|eps| *eps / negative_sample_rate as f32)
+        .collect::<Vec<f32>>();
+    let mut epoch_of_next_negative_sample = epochs_per_negative_sample.clone();
+
+    let mut rng = SmallRng::seed_from_u64(seed);
+    let repulsion_factor = 2.0 * repulsion_strength * b;
+    let attraction_factor = -2.0 * a * b;
+
+    if dim == 2 {
+        for epoch in 0..n_epochs {
+            let alpha = initial_alpha * (1.0 - epoch as f32 / n_epochs as f32);
+            let epoch_f = epoch as f32;
+
+            for edge_idx in 0..edges.len() {
+                if epoch_of_next_sample[edge_idx] > epoch_f {
+                    continue;
+                }
+
+                let head = heads[edge_idx];
+                let tail = tails[edge_idx];
+
+                if head != tail {
+                    let head_start = head * 2;
+                    let tail_start = tail * 2;
+                    let dx = flat[head_start] - flat[tail_start];
+                    let dy = flat[head_start + 1] - flat[tail_start + 1];
+                    let dist_squared = dx * dx + dy * dy;
+                    if dist_squared > 0.0 {
+                        let dist_pow_b = dist_squared.powf(b);
+                        let grad_coeff = attraction_factor * (dist_pow_b / dist_squared)
+                            / (a * dist_pow_b + 1.0);
+                        let grad_x = clip(grad_coeff * dx);
+                        let grad_y = clip(grad_coeff * dy);
+                        flat[head_start] += grad_x * alpha;
+                        flat[head_start + 1] += grad_y * alpha;
+                        flat[tail_start] -= grad_x * alpha;
+                        flat[tail_start + 1] -= grad_y * alpha;
+                    }
+                }
+
+                epoch_of_next_sample[edge_idx] += epochs_per_sample[edge_idx];
+
+                let eps_neg = epochs_per_negative_sample[edge_idx];
+                if !eps_neg.is_finite() || eps_neg <= 0.0 {
+                    continue;
+                }
+
+                let n_neg_samples = ((epoch_f - epoch_of_next_negative_sample[edge_idx]) / eps_neg)
+                    .floor()
+                    .max(0.0) as usize;
+
+                for _ in 0..n_neg_samples {
+                    let neg_idx = rng.gen_range(0..n_vertices);
+                    if neg_idx == head {
+                        continue;
+                    }
+
+                    let head_start = head * 2;
+                    let neg_start = neg_idx * 2;
+                    let dx = flat[head_start] - flat[neg_start];
+                    let dy = flat[head_start + 1] - flat[neg_start + 1];
+                    let dist_squared = dx * dx + dy * dy;
+                    if dist_squared > 0.0 {
+                        let dist_pow_b = dist_squared.powf(b);
+                        let grad_coeff =
+                            repulsion_factor / ((0.001 + dist_squared) * (a * dist_pow_b + 1.0));
+                        if grad_coeff > 0.0 {
+                            let grad_x = clip(grad_coeff * dx);
+                            let grad_y = clip(grad_coeff * dy);
+                            flat[head_start] += grad_x * alpha;
+                            flat[head_start + 1] += grad_y * alpha;
+                        }
+                    }
+                }
+
+                epoch_of_next_negative_sample[edge_idx] += n_neg_samples as f32 * eps_neg;
+            }
+        }
+
+        copy_flat_embedding_to_rows(&flat, embedding, dim);
+        return;
+    }
+
+    for epoch in 0..n_epochs {
+        let alpha = initial_alpha * (1.0 - epoch as f32 / n_epochs as f32);
+        let epoch_f = epoch as f32;
+
+        for edge_idx in 0..edges.len() {
+            if epoch_of_next_sample[edge_idx] > epoch_f {
+                continue;
+            }
+
+            let head = heads[edge_idx];
+            let tail = tails[edge_idx];
+
+            if head != tail {
+                let dist_squared = flat_squared_distance(&flat, head, tail, dim);
+                if dist_squared > 0.0 {
+                    let dist_pow_b = dist_squared.powf(b);
+                    let grad_coeff =
+                        attraction_factor * (dist_pow_b / dist_squared) / (a * dist_pow_b + 1.0);
+                    let head_start = head * dim;
+                    let tail_start = tail * dim;
+                    for d in 0..dim {
+                        let head_pos = head_start + d;
+                        let tail_pos = tail_start + d;
+                        let head_value = flat[head_pos];
+                        let tail_value = flat[tail_pos];
+                        let grad = clip(grad_coeff * (head_value - tail_value));
+                        flat[head_pos] = head_value + grad * alpha;
+                        flat[tail_pos] = tail_value - grad * alpha;
+                    }
+                }
+            }
+
+            epoch_of_next_sample[edge_idx] += epochs_per_sample[edge_idx];
+
+            let eps_neg = epochs_per_negative_sample[edge_idx];
+            if !eps_neg.is_finite() || eps_neg <= 0.0 {
+                continue;
+            }
+
+            let n_neg_samples = ((epoch_f - epoch_of_next_negative_sample[edge_idx]) / eps_neg)
+                .floor()
+                .max(0.0) as usize;
+
+            for _ in 0..n_neg_samples {
+                let neg_idx = rng.gen_range(0..n_vertices);
+                if neg_idx == head {
+                    continue;
+                }
+
+                let dist_squared = flat_squared_distance(&flat, head, neg_idx, dim);
+                if dist_squared > 0.0 {
+                    let dist_pow_b = dist_squared.powf(b);
+                    let grad_coeff =
+                        repulsion_factor / ((0.001 + dist_squared) * (a * dist_pow_b + 1.0));
+                    if grad_coeff > 0.0 {
+                        let head_start = head * dim;
+                        let neg_start = neg_idx * dim;
+                        for d in 0..dim {
+                            let head_pos = head_start + d;
+                            let neg_pos = neg_start + d;
+                            let head_value = flat[head_pos];
+                            let neg_value = flat[neg_pos];
+                            let grad = clip(grad_coeff * (head_value - neg_value));
+                            flat[head_pos] = head_value + grad * alpha;
+                        }
+                    }
+                }
+            }
+
+            epoch_of_next_negative_sample[edge_idx] += n_neg_samples as f32 * eps_neg;
+        }
+    }
+
+    copy_flat_embedding_to_rows(&flat, embedding, dim);
+}
+
 #[allow(clippy::too_many_arguments)]
 fn optimize_layout_training(
     embedding: &mut Vec<Vec<f32>>,
@@ -3947,8 +5277,24 @@ fn optimize_layout_training(
     negative_sample_rate: usize,
     repulsion_strength: f32,
     seed: u64,
+    density: Option<&DensityState>,
 ) {
     if edges.is_empty() || embedding.is_empty() || n_epochs == 0 {
+        return;
+    }
+
+    if density.is_none() {
+        optimize_layout_training_flat(
+            embedding.as_mut_slice(),
+            edges,
+            n_epochs,
+            a,
+            b,
+            initial_alpha,
+            negative_sample_rate,
+            repulsion_strength,
+            seed,
+        );
         return;
     }
 
@@ -3993,6 +5339,11 @@ fn optimize_layout_training(
                     current[d] += grad * alpha;
                     other[d] -= grad * alpha;
                 }
+            }
+            if let Some(density) = density
+                && epoch >= density.start_epoch
+            {
+                apply_density_gradient(embedding.as_mut_slice(), head, tail, alpha, density);
             }
 
             epoch_of_next_sample[edge_idx] += epochs_per_sample[edge_idx];
@@ -4352,6 +5703,41 @@ mod tests {
         data
     }
 
+    #[test]
+    fn default_approximate_knn_params_use_quality_tuned_recall_budget() {
+        let params = UmapParams::default();
+        assert!(params.use_approximate_knn);
+        assert_eq!(params.approx_knn_candidates, 50);
+        assert_eq!(params.approx_knn_iters, 14);
+    }
+
+    #[test]
+    fn auto_approximate_knn_delays_crossover_beyond_public_threshold() {
+        let params = UmapParams {
+            use_approximate_knn: true,
+            approx_knn_threshold: 4096,
+            ..UmapParams::default()
+        };
+
+        assert!(!should_use_approximate_knn(&params, 4200, 96));
+        assert!(!should_use_approximate_knn(&params, 16_384, 160));
+        assert!(should_use_approximate_knn(&params, 16_385, 160));
+        assert!(!should_use_approximate_knn(&params, 16_384, 16));
+        assert!(should_use_approximate_knn(&params, 16_385, 16));
+
+        let forced = UmapParams {
+            approx_knn_threshold: 0,
+            ..params.clone()
+        };
+        assert!(should_use_approximate_knn(&forced, 4200, 96));
+
+        let exact = UmapParams {
+            use_approximate_knn: false,
+            ..params
+        };
+        assert!(!should_use_approximate_knn(&exact, 100_000, 160));
+    }
+
     fn dense_to_csr(data: &[Vec<f32>]) -> SparseCsrMatrix {
         let n_rows = data.len();
         let n_cols = data[0].len();
@@ -4528,6 +5914,157 @@ mod tests {
         assert_eq!(embedding.len(), 80);
         assert_eq!(embedding[0].len(), 2);
         assert_all_finite(&embedding);
+    }
+
+    #[test]
+    fn expanded_dense_metric_distances_match_reference_values() {
+        let x = vec![1.0_f32, -2.0, 0.0, 4.0];
+        let y = vec![-1.0_f32, 2.0, 0.0, 1.0];
+
+        assert!((chebyshev_distance(&x, &y) - 4.0).abs() <= 1e-6);
+        assert!((minkowski_distance(&x, &y, 3.0) - 99.0_f32.powf(1.0 / 3.0)).abs() <= 1e-6);
+        assert!((canberra_distance(&x, &y) - 2.6).abs() <= 1e-6);
+        assert!((bray_curtis_distance(&x, &y) - 1.8).abs() <= 1e-6);
+
+        let corr_x = vec![1.0_f32, 2.0, 3.0];
+        let corr_y = vec![1.0_f32, 5.0, 7.0];
+        let expected_corr_distance = 1.0 - 6.0 / (2.0_f32.sqrt() * (168.0_f32 / 9.0).sqrt());
+        assert!((correlation_distance(&corr_x, &corr_y) - expected_corr_distance).abs() <= 1e-6);
+
+        let constant = vec![2.0_f32, 2.0, 2.0];
+        assert_eq!(correlation_distance(&constant, &constant), 0.0);
+        assert_eq!(correlation_distance(&constant, &corr_y), 1.0);
+    }
+
+    #[test]
+    fn expanded_dense_metrics_fit_and_transform() {
+        let data = synthetic_data(72, 7);
+        let query = data.iter().take(8).cloned().collect::<Vec<_>>();
+
+        for metric in [
+            Metric::Chebyshev,
+            Metric::Minkowski { p: 3.0 },
+            Metric::Correlation,
+            Metric::Canberra,
+            Metric::BrayCurtis,
+        ] {
+            let params = UmapParams {
+                n_neighbors: 8,
+                n_components: 2,
+                n_epochs: Some(30),
+                metric,
+                init: InitMethod::Random,
+                random_seed: 113,
+                use_approximate_knn: false,
+                ..UmapParams::default()
+            };
+            let mut model = UmapModel::new(params);
+            let embedding = model
+                .fit_transform(&data)
+                .expect("expanded metric fit should succeed");
+            let transformed = model
+                .transform(&query)
+                .expect("expanded metric transform should succeed");
+
+            assert_eq!(embedding.len(), data.len());
+            assert_eq!(transformed.len(), query.len());
+            assert_all_finite(&embedding);
+            assert_all_finite(&transformed);
+        }
+    }
+
+    #[test]
+    fn densmap_lambda_zero_matches_standard_umap() {
+        let data = synthetic_data(72, 7);
+        let params = UmapParams {
+            n_neighbors: 8,
+            n_components: 2,
+            n_epochs: Some(30),
+            init: InitMethod::Random,
+            random_seed: 141,
+            use_approximate_knn: false,
+            ..UmapParams::default()
+        };
+        let dens_params = UmapParams {
+            densmap: true,
+            dens_lambda: 0.0,
+            ..params.clone()
+        };
+
+        let mut standard = UmapModel::new(params);
+        let standard_embedding = standard
+            .fit_transform(&data)
+            .expect("standard fit should succeed");
+
+        let mut dens = UmapModel::new(dens_params);
+        let dens_embedding = dens
+            .fit_transform(&data)
+            .expect("zero-lambda densmap fit should succeed");
+
+        assert_eq!(dens_embedding, standard_embedding);
+    }
+
+    #[test]
+    fn output_dens_returns_finite_radii() {
+        let data = synthetic_data(64, 6);
+        let params = UmapParams {
+            n_neighbors: 8,
+            n_components: 2,
+            n_epochs: Some(30),
+            init: InitMethod::Random,
+            random_seed: 143,
+            use_approximate_knn: false,
+            output_dens: true,
+            ..UmapParams::default()
+        };
+
+        let mut model = UmapModel::new(params);
+        let embedding = model
+            .fit_transform(&data)
+            .expect("output_dens fit should succeed");
+        let radii_original = model
+            .radii_original()
+            .expect("original radii should be stored");
+        let radii_embedding = model
+            .radii_embedding()
+            .expect("embedding radii should be stored");
+
+        assert_eq!(embedding.len(), data.len());
+        assert_eq!(radii_original.len(), data.len());
+        assert_eq!(radii_embedding.len(), data.len());
+        assert!(radii_original.iter().all(|v| v.is_finite()));
+        assert!(radii_embedding.iter().all(|v| v.is_finite()));
+    }
+
+    #[test]
+    fn densmap_rejects_invalid_density_params() {
+        let data = synthetic_data(32, 5);
+        for params in [
+            UmapParams {
+                dens_lambda: -1.0,
+                ..UmapParams::default()
+            },
+            UmapParams {
+                dens_frac: 1.5,
+                ..UmapParams::default()
+            },
+            UmapParams {
+                dens_var_shift: 0.0,
+                ..UmapParams::default()
+            },
+        ] {
+            let mut model = UmapModel::new(UmapParams {
+                n_neighbors: 6,
+                n_epochs: Some(20),
+                init: InitMethod::Random,
+                use_approximate_knn: false,
+                ..params
+            });
+            let err = model
+                .fit_transform(&data)
+                .expect_err("invalid density params should fail");
+            assert!(matches!(err, UmapError::InvalidParameter(_)));
+        }
     }
 
     #[test]
@@ -4742,6 +6279,51 @@ mod tests {
     }
 
     #[test]
+    fn sparse_csr_query_transform_matches_dense_query_transform() {
+        let data = sparse_like_data(72, 80);
+        let query = data.iter().skip(4).take(10).cloned().collect::<Vec<_>>();
+        let csr = dense_to_csr(&data);
+        let query_csr = dense_to_csr(&query);
+
+        let params = UmapParams {
+            n_neighbors: 10,
+            n_components: 2,
+            n_epochs: Some(50),
+            metric: Metric::Cosine,
+            init: InitMethod::Random,
+            random_seed: 2027,
+            use_approximate_knn: false,
+            ..UmapParams::default()
+        };
+
+        let mut model = UmapModel::new(params);
+        model
+            .fit_transform_sparse_csr(csr)
+            .expect("sparse fit should succeed");
+
+        let dense_query_embedding = model
+            .transform(&query)
+            .expect("dense query transform should succeed");
+        let sparse_query_embedding = model
+            .transform_sparse_csr(query_csr)
+            .expect("sparse query transform should succeed");
+
+        assert_eq!(dense_query_embedding.len(), sparse_query_embedding.len());
+        for (dense_row, sparse_row) in dense_query_embedding
+            .iter()
+            .zip(sparse_query_embedding.iter())
+        {
+            assert_eq!(dense_row.len(), sparse_row.len());
+            for (&dense_value, &sparse_value) in dense_row.iter().zip(sparse_row.iter()) {
+                assert!(
+                    (dense_value - sparse_value).abs() <= 1e-6,
+                    "dense query transform {dense_value} != sparse query transform {sparse_value}"
+                );
+            }
+        }
+    }
+
+    #[test]
     fn sparse_csr_fit_transform_supports_manhattan_metric() {
         let data = sparse_like_data(68, 90);
         let csr = dense_to_csr(&data);
@@ -4795,6 +6377,107 @@ mod tests {
         assert_eq!(transformed.len(), query.len());
         assert_eq!(transformed[0].len(), 2);
         assert_all_finite(&transformed);
+    }
+
+    #[test]
+    fn sparse_csr_fit_transform_supports_expanded_sparse_metrics() {
+        let data = sparse_like_data(64, 16);
+        let query = data.iter().take(8).cloned().collect::<Vec<Vec<f32>>>();
+
+        for metric in [
+            Metric::Chebyshev,
+            Metric::Minkowski { p: 3.0 },
+            Metric::Correlation,
+        ] {
+            let csr = dense_to_csr(&data);
+            let params = UmapParams {
+                n_neighbors: 8,
+                n_components: 2,
+                n_epochs: Some(35),
+                metric,
+                init: InitMethod::Random,
+                random_seed: 131,
+                use_approximate_knn: false,
+                ..UmapParams::default()
+            };
+
+            let mut model = UmapModel::new(params);
+            let embedding = model
+                .fit_transform_sparse_csr(csr)
+                .expect("expanded sparse metric fit should succeed");
+            let transformed = model
+                .transform(&query)
+                .expect("expanded sparse metric transform should succeed");
+
+            assert_eq!(embedding.len(), data.len());
+            assert_eq!(embedding[0].len(), 2);
+            assert_eq!(transformed.len(), query.len());
+            assert_all_finite(&embedding);
+            assert_all_finite(&transformed);
+        }
+    }
+
+    #[test]
+    fn sparse_csr_rejects_dense_only_metrics() {
+        let data = sparse_like_data(32, 12);
+
+        for metric in [Metric::Canberra, Metric::BrayCurtis] {
+            let csr = dense_to_csr(&data);
+            let params = UmapParams {
+                n_neighbors: 6,
+                n_components: 2,
+                n_epochs: Some(20),
+                metric,
+                init: InitMethod::Random,
+                random_seed: 137,
+                use_approximate_knn: false,
+                ..UmapParams::default()
+            };
+
+            let mut model = UmapModel::new(params);
+            let err = model
+                .fit_transform_sparse_csr(csr)
+                .expect_err("dense-only metric should fail for sparse input");
+
+            assert!(
+                err.to_string().contains("dense input only"),
+                "unexpected error message: {err}"
+            );
+        }
+    }
+
+    #[test]
+    fn sparse_csr_rejects_densmap_and_output_dens() {
+        let data = sparse_like_data(32, 12);
+
+        for params in [
+            UmapParams {
+                densmap: true,
+                ..UmapParams::default()
+            },
+            UmapParams {
+                output_dens: true,
+                ..UmapParams::default()
+            },
+        ] {
+            let csr = dense_to_csr(&data);
+            let mut model = UmapModel::new(UmapParams {
+                n_neighbors: 6,
+                n_components: 2,
+                n_epochs: Some(20),
+                init: InitMethod::Random,
+                random_seed: 139,
+                use_approximate_knn: false,
+                ..params
+            });
+            let err = model
+                .fit_transform_sparse_csr(csr)
+                .expect_err("sparse densmap/output_dens should fail");
+            assert!(
+                err.to_string().contains("dense input only"),
+                "unexpected error message: {err}"
+            );
+        }
     }
 
     #[test]
@@ -4930,6 +6613,37 @@ mod tests {
         assert!(
             recall >= 0.65,
             "cosine ann recall is too low: got {recall:.4}"
+        );
+    }
+
+    #[test]
+    fn approximate_knn_recall_diagnostics_report_tail_quality() {
+        let data = synthetic_data(180, 8);
+        let params = UmapParams {
+            n_neighbors: 10,
+            metric: Metric::Euclidean,
+            random_seed: 123,
+            approx_knn_candidates: 28,
+            approx_knn_iters: 8,
+            ..UmapParams::default()
+        };
+
+        let diagnostics =
+            approximate_knn_recall_diagnostics(&data, params).expect("diagnostics should compute");
+
+        assert_eq!(diagnostics.n_samples, data.len());
+        assert_eq!(diagnostics.n_features, data[0].len());
+        assert_eq!(diagnostics.n_neighbors, 10);
+        assert_eq!(diagnostics.metric, Metric::Euclidean);
+        assert_eq!(diagnostics.per_row_recall.len(), data.len());
+        assert!(diagnostics.mean_recall >= diagnostics.worst_decile_recall);
+        assert!(diagnostics.worst_decile_recall >= diagnostics.min_recall);
+        assert!(diagnostics.mean_recall >= 0.65);
+        assert!(
+            diagnostics
+                .per_row_recall
+                .iter()
+                .all(|&recall| (0.0..=1.0).contains(&recall))
         );
     }
 
@@ -5293,6 +7007,303 @@ mod tests {
             err.to_string().contains("precomputed knn metric"),
             "unexpected error message: {err}"
         );
+    }
+
+    #[test]
+    fn categorical_target_graph_uses_same_label_edges_and_skips_unlabeled() {
+        let target = SupervisedTarget::categorical(vec![0, 0, -1, 1, 1], 0.5, Some(1));
+
+        let directed = build_categorical_target_membership_strengths(&target, 5, 3);
+
+        assert_eq!(
+            directed,
+            vec![
+                Edge {
+                    head: 0,
+                    tail: 1,
+                    weight: 1.0,
+                },
+                Edge {
+                    head: 1,
+                    tail: 0,
+                    weight: 1.0,
+                },
+                Edge {
+                    head: 3,
+                    tail: 4,
+                    weight: 1.0,
+                },
+                Edge {
+                    head: 4,
+                    tail: 3,
+                    weight: 1.0,
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn combine_fuzzy_graphs_blends_data_and_target_edges() {
+        let data_edges = vec![
+            Edge {
+                head: 0,
+                tail: 1,
+                weight: 0.25,
+            },
+            Edge {
+                head: 1,
+                tail: 2,
+                weight: 0.5,
+            },
+        ];
+        let target_edges = vec![
+            Edge {
+                head: 0,
+                tail: 1,
+                weight: 1.0,
+            },
+            Edge {
+                head: 2,
+                tail: 3,
+                weight: 1.0,
+            },
+        ];
+
+        let combined = combine_fuzzy_graphs(&data_edges, &target_edges, 0.4);
+
+        let expected = [
+            Edge {
+                head: 0,
+                tail: 1,
+                weight: 0.55,
+            },
+            Edge {
+                head: 1,
+                tail: 2,
+                weight: 0.3,
+            },
+            Edge {
+                head: 2,
+                tail: 3,
+                weight: 0.4,
+            },
+        ];
+        assert_eq!(combined.len(), expected.len());
+        for (actual, expected) in combined.iter().zip(expected.iter()) {
+            assert_eq!((actual.head, actual.tail), (expected.head, expected.tail));
+            assert!(
+                (actual.weight - expected.weight).abs() <= 1e-6,
+                "weight mismatch for edge {} -> {}: {} vs {}",
+                actual.head,
+                actual.tail,
+                actual.weight,
+                expected.weight
+            );
+        }
+        assert_eq!(
+            combine_fuzzy_graphs(&data_edges, &target_edges, 0.0),
+            data_edges
+        );
+    }
+
+    #[test]
+    fn categorical_target_intersection_modulates_existing_feature_edges() {
+        let data_edges = vec![
+            Edge {
+                head: 0,
+                tail: 1,
+                weight: 0.8,
+            },
+            Edge {
+                head: 1,
+                tail: 0,
+                weight: 0.8,
+            },
+            Edge {
+                head: 0,
+                tail: 2,
+                weight: 0.7,
+            },
+            Edge {
+                head: 2,
+                tail: 0,
+                weight: 0.7,
+            },
+            Edge {
+                head: 1,
+                tail: 2,
+                weight: 0.4,
+            },
+            Edge {
+                head: 2,
+                tail: 1,
+                weight: 0.4,
+            },
+            Edge {
+                head: 2,
+                tail: 3,
+                weight: 0.8,
+            },
+            Edge {
+                head: 3,
+                tail: 2,
+                weight: 0.8,
+            },
+            Edge {
+                head: 0,
+                tail: 3,
+                weight: 0.6,
+            },
+            Edge {
+                head: 3,
+                tail: 0,
+                weight: 0.6,
+            },
+        ];
+        let target = SupervisedTarget::categorical(vec![0, 0, 1, 1], 0.6, None);
+
+        let intersected = apply_categorical_target_intersection(&data_edges, &target);
+        let existing_pairs = data_edges
+            .iter()
+            .map(|edge| (edge.head, edge.tail))
+            .collect::<HashSet<_>>();
+        assert!(
+            intersected
+                .iter()
+                .all(|edge| existing_pairs.contains(&(edge.head, edge.tail)))
+        );
+
+        let weight = |head, tail| {
+            intersected
+                .iter()
+                .find(|edge| edge.head == head && edge.tail == tail)
+                .map(|edge| edge.weight)
+                .unwrap_or(0.0)
+        };
+        assert!(weight(0, 1) > weight(0, 2));
+        assert!(weight(1, 0) > weight(1, 2));
+        assert!(weight(2, 3) > weight(2, 0));
+        assert!(weight(3, 2) > weight(3, 0));
+    }
+
+    #[test]
+    fn categorical_target_weight_zero_matches_unsupervised_embedding() {
+        let data = synthetic_data(80, 8);
+        let labels = (0..data.len())
+            .map(|idx| if idx < data.len() / 2 { 0 } else { 1 })
+            .collect::<Vec<i64>>();
+        let params = UmapParams {
+            n_neighbors: 10,
+            n_components: 2,
+            n_epochs: Some(40),
+            init: InitMethod::Random,
+            random_seed: 101,
+            use_approximate_knn: false,
+            ..UmapParams::default()
+        };
+
+        let mut unsupervised = UmapModel::new(params.clone());
+        let base = unsupervised
+            .fit_transform(&data)
+            .expect("unsupervised fit should succeed");
+
+        let mut supervised = UmapModel::new(params);
+        let target = SupervisedTarget::categorical(labels, 0.0, None);
+        let with_zero_weight = supervised
+            .fit_transform_supervised(&data, &target)
+            .expect("zero-weight supervised fit should succeed");
+
+        assert_eq!(base, with_zero_weight);
+    }
+
+    #[test]
+    fn categorical_supervision_changes_embedding_when_weight_positive() {
+        let data = synthetic_data(80, 8);
+        let labels = (0..data.len())
+            .map(|idx| if idx < data.len() / 2 { 0 } else { 1 })
+            .collect::<Vec<i64>>();
+        let params = UmapParams {
+            n_neighbors: 10,
+            n_components: 2,
+            n_epochs: Some(40),
+            init: InitMethod::Random,
+            random_seed: 103,
+            use_approximate_knn: false,
+            ..UmapParams::default()
+        };
+
+        let mut unsupervised = UmapModel::new(params.clone());
+        let base = unsupervised
+            .fit_transform(&data)
+            .expect("unsupervised fit should succeed");
+
+        let mut supervised = UmapModel::new(params);
+        let target = SupervisedTarget::categorical(labels, 0.7, None);
+        let supervised_embedding = supervised
+            .fit_transform_supervised(&data, &target)
+            .expect("categorical supervised fit should succeed");
+
+        assert_ne!(base, supervised_embedding);
+        assert_all_finite(&supervised_embedding);
+    }
+
+    #[test]
+    fn categorical_supervision_rejects_label_length_mismatch() {
+        let data = synthetic_data(32, 6);
+        let params = UmapParams {
+            n_neighbors: 6,
+            n_components: 2,
+            n_epochs: Some(20),
+            init: InitMethod::Random,
+            random_seed: 107,
+            use_approximate_knn: false,
+            ..UmapParams::default()
+        };
+        let target = SupervisedTarget::categorical(vec![0; data.len() - 1], 0.5, None);
+
+        let mut model = UmapModel::new(params);
+        let err = model
+            .fit_transform_supervised(&data, &target)
+            .expect_err("mismatched y length should fail");
+
+        assert!(
+            err.to_string().contains("target label length"),
+            "unexpected error message: {err}"
+        );
+    }
+
+    #[test]
+    fn categorical_supervision_accepts_unlabeled_minus_one() {
+        let data = synthetic_data(48, 6);
+        let labels = (0..data.len())
+            .map(|idx| {
+                if idx % 5 == 0 {
+                    -1
+                } else if idx < data.len() / 2 {
+                    0
+                } else {
+                    1
+                }
+            })
+            .collect::<Vec<i64>>();
+        let params = UmapParams {
+            n_neighbors: 8,
+            n_components: 2,
+            n_epochs: Some(30),
+            init: InitMethod::Random,
+            random_seed: 109,
+            use_approximate_knn: false,
+            ..UmapParams::default()
+        };
+        let target = SupervisedTarget::categorical(labels, 0.5, None);
+
+        let mut model = UmapModel::new(params);
+        let embedding = model
+            .fit_transform_supervised(&data, &target)
+            .expect("-1 labels should be treated as unlabeled");
+
+        assert_eq!(embedding.len(), data.len());
+        assert_all_finite(&embedding);
     }
 
     #[test]

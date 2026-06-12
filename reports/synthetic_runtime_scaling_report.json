@@ -1,0 +1,1881 @@
+{
+  "datasets": [
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.032970523985568434,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.03736615797970444,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "blobs",
+      "matrix_size": 480,
+      "n_classes": 3,
+      "n_features": 4,
+      "n_samples": 120,
+      "name": "syn_001_blobs_120x4",
+      "rs_over_learn": 1.1333201133248603,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.032970523985568434
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.03736615797970444
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.6382913395798698,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.5895345253978274,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.043616551032755524,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.6540882463619361,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.6046841538515861,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.0355850100168027,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "classification",
+      "matrix_size": 900,
+      "n_classes": 3,
+      "n_features": 6,
+      "n_samples": 150,
+      "name": "syn_002_class_150x6",
+      "rs_over_learn": 0.8158602451183903,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 0.6382913395798698,
+              "normalized_mutual_info": 0.5895345253978274
+            },
+            "time_sec": 0.043616551032755524
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 0.6540882463619361,
+              "normalized_mutual_info": 0.6046841538515861
+            },
+            "time_sec": 0.0355850100168027
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.05246404797071591,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.03695072798291221,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "blobs",
+      "matrix_size": 1440,
+      "n_classes": 4,
+      "n_features": 8,
+      "n_samples": 180,
+      "name": "syn_003_blobs_180x8",
+      "rs_over_learn": 0.7043056990862994,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.05246404797071591
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.03695072798291221
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.40323896275936794,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.468121917352328,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.06420115701621398,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.3696784349518303,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.4256599419666637,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.043045020021963865,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "classification",
+      "matrix_size": 2200,
+      "n_classes": 4,
+      "n_features": 10,
+      "n_samples": 220,
+      "name": "syn_004_class_220x10",
+      "rs_over_learn": 0.6704710946423108,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 0.40323896275936794,
+              "normalized_mutual_info": 0.468121917352328
+            },
+            "time_sec": 0.06420115701621398
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 0.3696784349518303,
+              "normalized_mutual_info": 0.4256599419666637
+            },
+            "time_sec": 0.043045020021963865
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.16445727704558522,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.05428109900094569,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "blobs",
+      "matrix_size": 3120,
+      "n_classes": 5,
+      "n_features": 12,
+      "n_samples": 260,
+      "name": "syn_005_blobs_260x12",
+      "rs_over_learn": 0.33006200744707537,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.16445727704558522
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.05428109900094569
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.13320999301504344,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.07171482499688864,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "blobs",
+      "matrix_size": 3200,
+      "n_classes": 4,
+      "n_features": 8,
+      "n_samples": 400,
+      "name": "syn_007_blobs_400x8",
+      "rs_over_learn": 0.5383591979378745,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.13320999301504344
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.07171482499688864
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.36286261164123174,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.4560658367312319,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.09997661900706589,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.4147472510891609,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.5012192954580342,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.06256026099435985,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "classification",
+      "matrix_size": 5120,
+      "n_classes": 5,
+      "n_features": 16,
+      "n_samples": 320,
+      "name": "syn_006_class_320x16",
+      "rs_over_learn": 0.625748916253493,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 0.36286261164123174,
+              "normalized_mutual_info": 0.4560658367312319
+            },
+            "time_sec": 0.09997661900706589
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 0.4147472510891609,
+              "normalized_mutual_info": 0.5012192954580342
+            },
+            "time_sec": 0.06256026099435985
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.2250750840175897,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.10170338494936004,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "blobs",
+      "matrix_size": 6720,
+      "n_classes": 6,
+      "n_features": 12,
+      "n_samples": 560,
+      "name": "syn_009_blobs_560x12",
+      "rs_over_learn": 0.4518642540700413,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.2250750840175897
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.10170338494936004
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.37294026936709584,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.44720804921524754,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.1768954680301249,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.36482626519667594,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.4115453542229966,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.08545785601017997,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "classification",
+      "matrix_size": 9600,
+      "n_classes": 5,
+      "n_features": 20,
+      "n_samples": 480,
+      "name": "syn_008_class_480x20",
+      "rs_over_learn": 0.4830980519841621,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 0.37294026936709584,
+              "normalized_mutual_info": 0.44720804921524754
+            },
+            "time_sec": 0.1768954680301249
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 0.36482626519667594,
+              "normalized_mutual_info": 0.4115453542229966
+            },
+            "time_sec": 0.08545785601017997
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.33395920001203194,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.12304846302140504,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "blobs",
+      "matrix_size": 12000,
+      "n_classes": 6,
+      "n_features": 16,
+      "n_samples": 750,
+      "name": "syn_011_blobs_750x16",
+      "rs_over_learn": 0.36845358060796596,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.33395920001203194
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.12304846302140504
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.2842187473885493,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.35958110525388315,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.27457988099195063,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.3250026258216807,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.3694698841993347,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.11628808901878074,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "classification",
+      "matrix_size": 15600,
+      "n_classes": 6,
+      "n_features": 24,
+      "n_samples": 650,
+      "name": "syn_010_class_650x24",
+      "rs_over_learn": 0.4235127810481852,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 0.2842187473885493,
+              "normalized_mutual_info": 0.35958110525388315
+            },
+            "time_sec": 0.27457988099195063
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 0.3250026258216807,
+              "normalized_mutual_info": 0.3694698841993347
+            },
+            "time_sec": 0.11628808901878074
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.4979444450000301,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.14983808202669024,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "blobs",
+      "matrix_size": 19000,
+      "n_classes": 7,
+      "n_features": 20,
+      "n_samples": 950,
+      "name": "syn_013_blobs_950x20",
+      "rs_over_learn": 0.3009132515308634,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.4979444450000301
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.14983808202669024
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.23182075024008605,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.32586673089618734,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.40699248301098123,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.23137077502739856,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.3214492010016516,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.14610992500092834,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "classification",
+      "matrix_size": 27200,
+      "n_classes": 6,
+      "n_features": 32,
+      "n_samples": 850,
+      "name": "syn_012_class_850x32",
+      "rs_over_learn": 0.35899907516716,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 0.23182075024008605,
+              "normalized_mutual_info": 0.32586673089618734
+            },
+            "time_sec": 0.40699248301098123
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 0.23137077502739856,
+              "normalized_mutual_info": 0.3214492010016516
+            },
+            "time_sec": 0.14610992500092834
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.7616517090355046,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.18798415502533317,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "blobs",
+      "matrix_size": 30000,
+      "n_classes": 7,
+      "n_features": 24,
+      "n_samples": 1250,
+      "name": "syn_015_blobs_1250x24",
+      "rs_over_learn": 0.24681117733377295,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.7616517090355046
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.18798415502533317
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.21448213408382005,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.29435406797864905,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.6231555999838747,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.25469455849734207,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.3219097145459975,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.18841161002637818,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "classification",
+      "matrix_size": 35200,
+      "n_classes": 7,
+      "n_features": 32,
+      "n_samples": 1100,
+      "name": "syn_014_class_1100x32",
+      "rs_over_learn": 0.3023508254298825,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 0.21448213408382005,
+              "normalized_mutual_info": 0.29435406797864905
+            },
+            "time_sec": 0.6231555999838747
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 0.25469455849734207,
+              "normalized_mutual_info": 0.3219097145459975
+            },
+            "time_sec": 0.18841161002637818
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 1.1704324430320412,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.23908352304715663,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "blobs",
+      "matrix_size": 51200,
+      "n_classes": 8,
+      "n_features": 32,
+      "n_samples": 1600,
+      "name": "syn_017_blobs_1600x32",
+      "rs_over_learn": 0.20426939160008536,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 1.1704324430320412
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.23908352304715663
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.20499906647658186,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.29556749811300775,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.961679655010812,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.20324158316959845,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.29829086899272383,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.2564447690383531,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "classification",
+      "matrix_size": 56000,
+      "n_classes": 7,
+      "n_features": 40,
+      "n_samples": 1400,
+      "name": "syn_016_class_1400x40",
+      "rs_over_learn": 0.26666340262285154,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 0.20499906647658186,
+              "normalized_mutual_info": 0.29556749811300775
+            },
+            "time_sec": 0.961679655010812
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 0.20324158316959845,
+              "normalized_mutual_info": 0.29829086899272383
+            },
+            "time_sec": 0.2564447690383531
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 1.7269762210198678,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.30348315997980535,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "blobs",
+      "matrix_size": 80000,
+      "n_classes": 8,
+      "n_features": 40,
+      "n_samples": 2000,
+      "name": "syn_019_blobs_2000x40",
+      "rs_over_learn": 0.17573094307030065,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 1.7269762210198678
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.30348315997980535
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.17101586497620938,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.2434424427444812,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 1.4850941220065579,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.17391289893754583,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.24777743049361306,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.33108183403965086,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "classification",
+      "matrix_size": 86400,
+      "n_classes": 8,
+      "n_features": 48,
+      "n_samples": 1800,
+      "name": "syn_018_class_1800x48",
+      "rs_over_learn": 0.22293659986500766,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 0.17101586497620938,
+              "normalized_mutual_info": 0.2434424427444812
+            },
+            "time_sec": 1.4850941220065579
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 0.17391289893754583,
+              "normalized_mutual_info": 0.24777743049361306
+            },
+            "time_sec": 0.33108183403965086
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 2.4496441110386513,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.35723209800198674,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "blobs",
+      "matrix_size": 115200,
+      "n_classes": 8,
+      "n_features": 48,
+      "n_samples": 2400,
+      "name": "syn_021_blobs_2400x48",
+      "rs_over_learn": 0.14583020300468055,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 2.4496441110386513
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.35723209800198674
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.15185021716433822,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.2326605259616589,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 2.1037751520052552,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.1638811932703039,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.2469080608871681,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.39710408996324986,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "classification",
+      "matrix_size": 123200,
+      "n_classes": 8,
+      "n_features": 56,
+      "n_samples": 2200,
+      "name": "syn_020_class_2200x56",
+      "rs_over_learn": 0.18875785731414413,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 0.15185021716433822,
+              "normalized_mutual_info": 0.2326605259616589
+            },
+            "time_sec": 2.1037751520052552
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 0.1638811932703039,
+              "normalized_mutual_info": 0.2469080608871681
+            },
+            "time_sec": 0.39710408996324986
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 3.266830047010444,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.4262936669983901,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "blobs",
+      "matrix_size": 156800,
+      "n_classes": 9,
+      "n_features": 56,
+      "n_samples": 2800,
+      "name": "syn_023_blobs_2800x56",
+      "rs_over_learn": 0.13049153487139678,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 3.266830047010444
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.4262936669983901
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.08983808707434081,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.1562867104314035,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 2.8849559359950945,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.10290627010059668,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.16760939553230667,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.4803442800184712,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "classification",
+      "matrix_size": 166400,
+      "n_classes": 8,
+      "n_features": 64,
+      "n_samples": 2600,
+      "name": "syn_022_class_2600x64",
+      "rs_over_learn": 0.1664996938169138,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 0.08983808707434081,
+              "normalized_mutual_info": 0.1562867104314035
+            },
+            "time_sec": 2.8849559359950945
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 0.10290627010059668,
+              "normalized_mutual_info": 0.16760939553230667
+            },
+            "time_sec": 0.4803442800184712
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 4.2226952009950764,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.48065675201360136,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "blobs",
+      "matrix_size": 204800,
+      "n_classes": 9,
+      "n_features": 64,
+      "n_samples": 3200,
+      "name": "syn_025_blobs_3200x64",
+      "rs_over_learn": 0.11382700600799574,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 4.2226952009950764
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.48065675201360136
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.13423882790186042,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.20414253610673616,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 3.796678936050739,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.1232786230424136,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.20157993536089264,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.5249506550026126,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "classification",
+      "matrix_size": 216000,
+      "n_classes": 9,
+      "n_features": 72,
+      "n_samples": 3000,
+      "name": "syn_024_class_3000x72",
+      "rs_over_learn": 0.13826574852512025,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 0.13423882790186042,
+              "normalized_mutual_info": 0.20414253610673616
+            },
+            "time_sec": 3.796678936050739
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 0.1232786230424136,
+              "normalized_mutual_info": 0.20157993536089264
+            },
+            "time_sec": 0.5249506550026126
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 5.335389139945619,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.5235033530043438,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "blobs",
+      "matrix_size": 259200,
+      "n_classes": 10,
+      "n_features": 72,
+      "n_samples": 3600,
+      "name": "syn_027_blobs_3600x72",
+      "rs_over_learn": 0.09811905734952252,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 5.335389139945619
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.5235033530043438
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.11559236507367143,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.17642252996313273,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 4.820890741015319,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.12102616425354677,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.18482755915736956,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.5662860189913772,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "classification",
+      "matrix_size": 272000,
+      "n_classes": 9,
+      "n_features": 80,
+      "n_samples": 3400,
+      "name": "syn_026_class_3400x80",
+      "rs_over_learn": 0.11746501827421892,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 0.11559236507367143,
+              "normalized_mutual_info": 0.17642252996313273
+            },
+            "time_sec": 4.820890741015319
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 0.12102616425354677,
+              "normalized_mutual_info": 0.18482755915736956
+            },
+            "time_sec": 0.5662860189913772
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 6.3971525430097245,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 1.0,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.5846046790247783,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "blobs",
+      "matrix_size": 320000,
+      "n_classes": 10,
+      "n_features": 80,
+      "n_samples": 4000,
+      "name": "syn_029_blobs_4000x80",
+      "rs_over_learn": 0.0913851397312052,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 6.3971525430097245
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 1.0,
+              "normalized_mutual_info": 1.0
+            },
+            "time_sec": 0.5846046790247783
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.0833050882418308,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.15810116764241272,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 6.03560246701818,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.08234490921988842,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.15605183010446433,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.6450184530112892,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "classification",
+      "matrix_size": 334400,
+      "n_classes": 10,
+      "n_features": 88,
+      "n_samples": 3800,
+      "name": "syn_028_class_3800x88",
+      "rs_over_learn": 0.10686894250176705,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 0.0833050882418308,
+              "normalized_mutual_info": 0.15810116764241272
+            },
+            "time_sec": 6.03560246701818
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 0.08234490921988842,
+              "normalized_mutual_info": 0.15605183010446433
+            },
+            "time_sec": 0.6450184530112892
+          }
+        }
+      ]
+    },
+    {
+      "aggregate": {
+        "umap_learn": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.07391208535650383,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.12908457114756017,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 1.0574043809901923,
+            "std": 0.0
+          }
+        },
+        "umap_rs": {
+          "scores": {
+            "adjusted_rand": {
+              "mean": 0.06447870671042456,
+              "std": 0.0
+            },
+            "normalized_mutual_info": {
+              "mean": 0.11683915086082552,
+              "std": 0.0
+            }
+          },
+          "time_sec": {
+            "mean": 0.7022745299618691,
+            "std": 0.0
+          }
+        }
+      },
+      "kind": "classification",
+      "matrix_size": 403200,
+      "n_classes": 10,
+      "n_features": 96,
+      "n_samples": 4200,
+      "name": "syn_030_class_4200x96",
+      "rs_over_learn": 0.6641494423393948,
+      "runs": [
+        {
+          "seed": 13,
+          "umap_learn": {
+            "scores": {
+              "adjusted_rand": 0.07391208535650383,
+              "normalized_mutual_info": 0.12908457114756017
+            },
+            "time_sec": 1.0574043809901923
+          },
+          "umap_rs": {
+            "scores": {
+              "adjusted_rand": 0.06447870671042456,
+              "normalized_mutual_info": 0.11683915086082552
+            },
+            "time_sec": 0.7022745299618691
+          }
+        }
+      ]
+    }
+  ],
+  "environment": {
+    "python": "3.13.9",
+    "umap_learn": "0.5.12",
+    "umapers": "1.1.0"
+  },
+  "generated_at": "2026-06-12T18:47:40+0800",
+  "settings": {
+    "build_profile": "release",
+    "init": "spectral",
+    "n_epochs": 150,
+    "n_neighbors": 15,
+    "seeds": [
+      13
+    ],
+    "warmup": true,
+    "warmup_note": "small path plus discarded >4096-sample large path"
+  }
+}

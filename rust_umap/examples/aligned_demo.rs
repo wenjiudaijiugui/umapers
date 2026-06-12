@@ -80,6 +80,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             approx_knn_candidates: 30,
             approx_knn_iters: 10,
             approx_knn_threshold: 4096,
+            ..UmapParams::default()
         },
         alignment_regularization: 0.1,
         alignment_learning_rate: 0.2,

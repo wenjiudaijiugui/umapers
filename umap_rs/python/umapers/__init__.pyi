@@ -1,4 +1,4 @@
-from ._api import Umap, UmapKwargs, fit_transform
+from ._api import AlignedUmap, ParametricUmap, Umap, UmapKwargs, fit_transform
 
 __version__: str
 

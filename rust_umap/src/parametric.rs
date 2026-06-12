@@ -88,6 +88,10 @@ impl ParametricUmapModel {
         self.teacher_embedding.as_deref()
     }
 
+    pub fn n_features(&self) -> Option<usize> {
+        self.n_features
+    }
+
     pub fn fit(&mut self, data: &[Vec<f32>]) -> Result<(), UmapError> {
         self.fit_transform(data).map(|_| ())
     }

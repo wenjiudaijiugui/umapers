@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="720" viewBox="0 0 1120 720">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="96" y="34" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700" fill="#18181b">UMAP Runtime vs Dataset Size</text>
+<text x="96" y="58" font-family="Inter, Arial, sans-serif" font-size="13" fill="#71717a">x-axis is matrix size: samples x features. Runtime includes 2D UMAP plus KMeans, mean over three seeds.</text>
+<line x1="96" y1="624.00" x2="1072" y2="624.00" stroke="#d4d4d8" stroke-width="1"/>
+<text x="84" y="628.00" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">0s</text>
+<line x1="96" y1="514.85" x2="1072" y2="514.85" stroke="#d4d4d8" stroke-width="1"/>
+<text x="84" y="518.85" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">1s</text>
+<line x1="96" y1="405.69" x2="1072" y2="405.69" stroke="#d4d4d8" stroke-width="1"/>
+<text x="84" y="409.69" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">2s</text>
+<line x1="96" y1="296.54" x2="1072" y2="296.54" stroke="#d4d4d8" stroke-width="1"/>
+<text x="84" y="300.54" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">3s</text>
+<line x1="96" y1="187.39" x2="1072" y2="187.39" stroke="#d4d4d8" stroke-width="1"/>
+<text x="84" y="191.39" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">4s</text>
+<line x1="96.00" y1="82" x2="96.00" y2="624" stroke="#f4f4f5" stroke-width="1"/>
+<text x="96.00" y="652" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="12" fill="#18181b">iris (150x4)</text>
+<text x="96.00" y="670" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#71717a">600 values</text>
+<line x1="346.66" y1="82" x2="346.66" y2="624" stroke="#f4f4f5" stroke-width="1"/>
+<text x="346.66" y="652" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="12" fill="#18181b">wine (178x13)</text>
+<text x="346.66" y="670" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#71717a">2,314 values</text>
+<line x1="717.75" y1="82" x2="717.75" y2="624" stroke="#f4f4f5" stroke-width="1"/>
+<text x="717.75" y="652" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="12" fill="#18181b">breast_cancer (569x30)</text>
+<text x="717.75" y="670" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#71717a">17,070 values</text>
+<line x1="1072.00" y1="82" x2="1072.00" y2="624" stroke="#f4f4f5" stroke-width="1"/>
+<text x="1072.00" y="652" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="12" fill="#18181b">digits (1797x64)</text>
+<text x="1072.00" y="670" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#71717a">115,008 values</text>
+<line x1="96" y1="82" x2="96" y2="624" stroke="#18181b" stroke-width="1.2"/>
+<line x1="96" y1="624" x2="1072" y2="624" stroke="#18181b" stroke-width="1.2"/>
+<text x="28" y="353.00" transform="rotate(-90 28 353.00)" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="13" fill="#18181b">runtime seconds</text>
+<text x="584.00" y="696" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="13" fill="#18181b">dataset matrix size, log scale</text>
+<polyline fill="none" stroke="#2563eb" stroke-width="3" points="96.00,619.34 346.66,618.25 717.75,609.26 1072.00,579.17"/>
+<polyline fill="none" stroke="#dc2626" stroke-width="3" points="96.00,618.02 346.66,616.62 717.75,594.20 1072.00,140.07"/>
+<circle cx="96.00" cy="619.34" r="5" fill="#2563eb"/>
+<circle cx="96.00" cy="618.02" r="5" fill="#dc2626"/>
+<text x="96.00" y="607.34" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#2563eb">0.043s</text>
+<text x="96.00" y="638.02" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#dc2626">0.055s</text>
+<circle cx="346.66" cy="618.25" r="5" fill="#2563eb"/>
+<circle cx="346.66" cy="616.62" r="5" fill="#dc2626"/>
+<text x="346.66" y="606.25" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#2563eb">0.053s</text>
+<text x="346.66" y="636.62" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#dc2626">0.068s</text>
+<circle cx="717.75" cy="609.26" r="5" fill="#2563eb"/>
+<circle cx="717.75" cy="594.20" r="5" fill="#dc2626"/>
+<text x="717.75" y="597.26" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#2563eb">0.135s</text>
+<text x="717.75" y="614.20" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#dc2626">0.273s</text>
+<circle cx="1072.00" cy="579.17" r="5" fill="#2563eb"/>
+<circle cx="1072.00" cy="140.07" r="5" fill="#dc2626"/>
+<text x="1072.00" y="567.17" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#2563eb">0.411s</text>
+<text x="1072.00" y="160.07" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#dc2626">4.433s</text>
+<rect x="852" y="94" width="190" height="64" rx="6" fill="#ffffff" stroke="#d4d4d8"/>
+<line x1="868" y1="116" x2="902" y2="116" stroke="#2563eb" stroke-width="3"/>
+<circle cx="885" cy="116" r="5" fill="#2563eb"/>
+<text x="914" y="120" font-family="Inter, Arial, sans-serif" font-size="13" fill="#18181b">umap-rs</text>
+<line x1="868" y1="140" x2="902" y2="140" stroke="#dc2626" stroke-width="3"/>
+<circle cx="885" cy="140" r="5" fill="#dc2626"/>
+<text x="914" y="144" font-family="Inter, Arial, sans-serif" font-size="13" fill="#18181b">umap-learn</text>
+</svg>
