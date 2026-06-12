@@ -5,6 +5,21 @@ All notable changes to this repository are documented in this file.
 The format follows Keep a Changelog and uses semantic-versioned release headings
 for user-facing milestones.
 
+## [1.1.2] - 2026-06-12
+
+### Fixed
+
+- Restored exact spectral initialization for low-dimensional connected
+  manifolds up to 2048 samples, while keeping the oversampled iterative path
+  for larger graphs. This fixes the Swiss Roll quality regression where
+  silhouette was markedly below `umap-learn`.
+- Exposed densMAP/output-density radii using the `umap-learn`-compatible
+  `rad_orig_` and `rad_emb_` fitted attributes, while retaining
+  `radii_original_` and `radii_embedding_`.
+- Fixed top-level Python stub re-exports so pyright resolves
+  `from umapers import Umap, UmapKwargs, fit_transform` from a virtual
+  environment, and added a pyright usage probe for density-output typing.
+
 ## [1.1.1] - 2026-06-12
 
 ### Highlights

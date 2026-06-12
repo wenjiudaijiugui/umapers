@@ -529,12 +529,14 @@ class Umap(_BaseEstimator, _TransformerMixin):
         radii_original = self._core.radii_original
         radii_embedding = self._core.radii_embedding
         if radii_original is None or radii_embedding is None:
-            for fitted_attr in ("radii_original_", "radii_embedding_"):
+            for fitted_attr in ("radii_original_", "radii_embedding_", "rad_orig_", "rad_emb_"):
                 if hasattr(self, fitted_attr):
                     delattr(self, fitted_attr)
             return
         self.radii_original_ = radii_original
         self.radii_embedding_ = radii_embedding
+        self.rad_orig_ = radii_original
+        self.rad_emb_ = radii_embedding
 
     def fit(self, data: Any, y: Any | None = None) -> "Umap":
         """Fit the model on dense or CSR input and return `self`.

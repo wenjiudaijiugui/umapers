@@ -1,9 +1,26 @@
-# umapers 1.1.1
+# umapers 1.1.2
 
-`umapers 1.1.1` is the cleaned 1.1 release for the current Python package name
-and release tag convention. It turns the previous compatibility work into a
-broader, measured Python/Rust surface and fixes the benchmark interpretation
-issues that previously made large-data runtime look worse than it was.
+`umapers 1.1.2` is a patch release for three user-facing gaps found after the
+1.1.1 cleanup release.
+
+## Fixes
+
+- Improves Swiss Roll and similar low-dimensional nonlinear manifolds by using
+  exact spectral initialization for connected datasets up to `2048 x 8`, while
+  retaining the oversampled iterative spectral path for larger graphs.
+- Exposes densMAP/output-density fitted radii as `rad_orig_` and `rad_emb_`,
+  matching the attribute names users expect from `umap-learn`. The existing
+  `radii_original_` and `radii_embedding_` aliases remain available.
+- Fixes top-level Python type stub re-exports so pyright resolves
+  `Umap`, `UmapKwargs`, and `fit_transform` from installed virtual
+  environments. The top-level `fit_transform(..., output_dens=True)` overload
+  now resolves to the density-output tuple.
+
+## 1.1 Release Context
+
+The 1.1 line turns the previous compatibility work into a broader, measured
+Python/Rust surface and fixes the benchmark interpretation issues that
+previously made large-data runtime look worse than it was.
 
 ## Highlights
 
@@ -15,8 +32,9 @@ issues that previously made large-data runtime look worse than it was.
   - aligned and parametric convenience wrappers
   - optional plotting and trustworthiness helpers
 - Performance and quality:
-  - spectral initialization now prefers the iterative path over fixed-cost full
-    eigendecomposition for small connected graphs
+  - spectral initialization now uses exact eigendecomposition for low-dimensional
+    manifolds where it protects layout quality, and an oversampled iterative path
+    where dense eigendecomposition would dominate runtime
   - auto ANN selection is delayed until the measured crossover point instead of
     switching at the public threshold too early
   - standard 2D layout optimization now uses a contiguous flat embedding path

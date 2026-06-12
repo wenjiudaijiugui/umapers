@@ -1,0 +1,55 @@
+from __future__ import annotations
+
+import numpy as np
+import numpy.typing as npt
+
+from umapers import Umap, UmapKwargs, fit_transform
+
+
+rng = np.random.default_rng(42)
+x: npt.NDArray[np.float32] = rng.normal(size=(64, 8)).astype(np.float32)
+
+kwargs: UmapKwargs = {
+    "n_neighbors": 8,
+    "n_components": 2,
+    "init": "spectral",
+    "output_dens": False,
+}
+
+embedding: npt.NDArray[np.float32] = fit_transform(
+    x,
+    n_neighbors=8,
+    n_components=2,
+    init="spectral",
+    output_dens=False,
+)
+
+dense_model = Umap(**kwargs)
+dense_embedding = dense_model.fit_transform(x)
+if isinstance(dense_embedding, tuple):
+    raise TypeError("output_dens=False should return an embedding array")
+
+density_embedding, rad_orig, rad_emb = fit_transform(
+    x,
+    n_neighbors=8,
+    n_components=2,
+    output_dens=True,
+)
+
+density_model = Umap(n_neighbors=8, n_components=2, output_dens=True)
+density_output = density_model.fit_transform(x)
+if not isinstance(density_output, tuple):
+    raise TypeError("output_dens=True should return density output")
+
+model_embedding, model_rad_orig, model_rad_emb = density_output
+
+_: tuple[int, ...] = embedding.shape
+_: tuple[int, ...] = dense_embedding.shape
+_: tuple[int, ...] = density_embedding.shape
+_: tuple[int, ...] = rad_orig.shape
+_: tuple[int, ...] = rad_emb.shape
+_: tuple[int, ...] = model_embedding.shape
+_: tuple[int, ...] = model_rad_orig.shape
+_: tuple[int, ...] = model_rad_emb.shape
+_: tuple[int, ...] = density_model.rad_orig_.shape
+_: tuple[int, ...] = density_model.rad_emb_.shape

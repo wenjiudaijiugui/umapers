@@ -169,6 +169,8 @@ class Umap:
     embedding_: Float32Array
     n_features_in_: int
     n_samples_fit_: int
+    rad_orig_: Float32Array
+    rad_emb_: Float32Array
     radii_original_: Float32Array
     radii_embedding_: Float32Array
     knn_diagnostics_: dict[str, Any]
@@ -273,7 +275,7 @@ class Umap:
         """
 
     @overload
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self, **kwargs: Unpack[UmapKwargs]) -> None:
         """Create a UMAP model from keyword parameters.
 
         Parameters
@@ -525,6 +527,17 @@ def fit_transform(
     data: MatrixInput,
     y: LabelInput | None = ...,
     *,
+    output_dens: Literal[True],
+    **kwargs: Any,
+) -> DensOutput:
+    """Embed a dataset and return ``(embedding, rad_orig, rad_emb)``."""
+
+
+@overload
+def fit_transform(
+    data: MatrixInput,
+    y: LabelInput | None = ...,
+    *,
     n_neighbors: int = ...,
     n_components: int = ...,
     n_epochs: int | None = ...,
@@ -562,11 +575,11 @@ def fit_transform(
     dens_lambda: float = ...,
     dens_frac: float = ...,
     dens_var_shift: float = ...,
-    output_dens: bool = ...,
+    output_dens: Literal[False] = ...,
     target_metric: Literal["categorical"] | None = ...,
     target_weight: float = ...,
     target_n_neighbors: int | None = ...,
-) -> Float32Array | DensOutput:
+) -> Float32Array:
     """Embed a dataset in one call.
 
     Parameters
@@ -603,7 +616,11 @@ def fit_transform(
 
 
 @overload
-def fit_transform(data: MatrixInput, y: LabelInput | None = ..., **kwargs: Any) -> Float32Array | DensOutput:
+def fit_transform(
+    data: MatrixInput,
+    y: LabelInput | None = ...,
+    **kwargs: Unpack[UmapKwargs],
+) -> Float32Array | DensOutput:
     """Embed a dataset in one call.
 
     Parameters

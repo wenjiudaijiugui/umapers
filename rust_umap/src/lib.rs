@@ -24,11 +24,12 @@ const INIT_NOISE: f32 = 1e-4;
 const AUTO_EXACT_LOW_DIM_MAX_FEATURES: usize = 16;
 const AUTO_EXACT_LOW_DIM_SAMPLE_MULTIPLIER: usize = 4;
 const AUTO_EXACT_GENERAL_SAMPLE_MULTIPLIER: usize = 4;
-// Try the sparse iterative spectral path for every non-trivial connected graph.
-// Dense full eigendecomposition remains the fallback inside `spectral_embedding_from_edges`.
 const SPECTRAL_ITERATIVE_CONNECTED_THRESHOLD: usize = 0;
+const SPECTRAL_EXACT_LOW_DIMENSIONAL_MAX_FEATURES: usize = 8;
+const SPECTRAL_EXACT_LOW_DIMENSIONAL_MAX_SAMPLES: usize = 2048;
 const SPECTRAL_ITERATIVE_COMPONENT_THRESHOLD: usize = 128;
-const SPECTRAL_ITERATIVE_MAX_ITERS: usize = 32;
+const SPECTRAL_ITERATIVE_MAX_ITERS: usize = 64;
+const SPECTRAL_ITERATIVE_OVERSAMPLING: usize = 3;
 const SPECTRAL_ORTHO_EPS: f64 = 1e-12;
 const DENSITY_GRADIENT_SCALE: f32 = 0.1;
 
@@ -3876,7 +3877,7 @@ fn spectral_init<M: RowMatrix + ?Sized>(
         return multi_component_spectral_init(data, n_components, edges, &components, seed);
     }
 
-    spectral_init_connected(n_samples, n_components, edges, seed)
+    spectral_init_connected(n_samples, data.n_cols(), n_components, edges, seed)
 }
 
 fn spectral_init_sparse(
@@ -3895,7 +3896,15 @@ fn spectral_init_sparse(
         return multi_component_spectral_init_sparse(data, n_components, edges, &components, seed);
     }
 
-    spectral_init_connected(n_samples, n_components, edges, seed)
+    spectral_init_connected(n_samples, data.n_cols(), n_components, edges, seed)
+}
+
+fn spectral_iterative_connected_threshold(n_features: usize) -> usize {
+    if n_features <= SPECTRAL_EXACT_LOW_DIMENSIONAL_MAX_FEATURES {
+        SPECTRAL_EXACT_LOW_DIMENSIONAL_MAX_SAMPLES.saturating_add(1)
+    } else {
+        SPECTRAL_ITERATIVE_CONNECTED_THRESHOLD
+    }
 }
 
 fn spectral_embedding_from_laplacian(
@@ -4213,7 +4222,9 @@ fn spectral_embedding_from_edges_iterative(
     edges: &[Edge],
     seed: u64,
 ) -> Option<Vec<Vec<f32>>> {
-    let subspace_dim = embedding_dim + 1;
+    let subspace_dim = (embedding_dim + 1)
+        .saturating_mul(SPECTRAL_ITERATIVE_OVERSAMPLING)
+        .max(embedding_dim + 1);
     if n_samples <= subspace_dim || edges.is_empty() {
         return None;
     }
@@ -4326,6 +4337,7 @@ fn spectral_embedding_from_edges(
 
 fn spectral_init_connected(
     n_samples: usize,
+    n_features: usize,
     n_components: usize,
     edges: &[Edge],
     seed: u64,
@@ -4335,7 +4347,7 @@ fn spectral_init_connected(
         n_components,
         edges,
         seed,
-        SPECTRAL_ITERATIVE_CONNECTED_THRESHOLD,
+        spectral_iterative_connected_threshold(n_features),
     )?;
     noisy_scale_coords(&mut coords, seed ^ 0x5DEECE66D, INIT_MAX_COORD, INIT_NOISE);
 
@@ -7464,6 +7476,18 @@ mod tests {
 
         assert_eq!(coords_a, coords_b);
         assert_all_finite(&coords_a);
+    }
+
+    #[test]
+    fn spectral_connected_threshold_keeps_low_dimensional_manifolds_exact() {
+        assert_eq!(
+            spectral_iterative_connected_threshold(SPECTRAL_EXACT_LOW_DIMENSIONAL_MAX_FEATURES),
+            SPECTRAL_EXACT_LOW_DIMENSIONAL_MAX_SAMPLES + 1
+        );
+        assert_eq!(
+            spectral_iterative_connected_threshold(SPECTRAL_EXACT_LOW_DIMENSIONAL_MAX_FEATURES + 1),
+            SPECTRAL_ITERATIVE_CONNECTED_THRESHOLD
+        );
     }
 
     #[test]

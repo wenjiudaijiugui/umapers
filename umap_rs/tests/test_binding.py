@@ -728,10 +728,56 @@ def test_output_dens_returns_embedding_and_radii() -> None:
     assert radii_original.shape == (x.shape[0],)
     assert radii_embedding.shape == (x.shape[0],)
     assert model.embedding_ is embedding
+    assert np.array_equal(model.rad_orig_, radii_original)
+    assert np.array_equal(model.rad_emb_, radii_embedding)
     assert np.array_equal(model.radii_original_, radii_original)
     assert np.array_equal(model.radii_embedding_, radii_embedding)
     assert np.all(np.isfinite(radii_original))
     assert np.all(np.isfinite(radii_embedding))
+
+
+def test_swiss_roll_spectral_quality_tracks_umap_learn() -> None:
+    datasets = pytest.importorskip("sklearn.datasets")
+    metrics = pytest.importorskip("sklearn.metrics")
+    manifold = pytest.importorskip("sklearn.manifold")
+    preprocessing = pytest.importorskip("sklearn.preprocessing")
+    umap_module = pytest.importorskip("umap")
+
+    x, manifold_position = datasets.make_swiss_roll(
+        n_samples=1500,
+        noise=0.05,
+        random_state=11,
+    )
+    x = preprocessing.StandardScaler().fit_transform(x).astype(np.float32)
+    labels = np.digitize(
+        manifold_position,
+        np.quantile(manifold_position, np.linspace(0.0, 1.0, 7)[1:-1]),
+    )
+
+    kwargs = dict(
+        n_neighbors=15,
+        n_components=2,
+        init="spectral",
+        random_seed=0,
+        use_approximate_knn=False,
+    )
+    rust_embedding = Umap(**kwargs).fit_transform(x)
+    learn_embedding = umap_module.UMAP(
+        n_neighbors=15,
+        n_components=2,
+        init="spectral",
+        random_state=0,
+        n_jobs=1,
+    ).fit_transform(x)
+
+    rust_silhouette = float(metrics.silhouette_score(rust_embedding, labels))
+    learn_silhouette = float(metrics.silhouette_score(learn_embedding, labels))
+    rust_trust = float(manifold.trustworthiness(x, rust_embedding, n_neighbors=15))
+    learn_trust = float(manifold.trustworthiness(x, learn_embedding, n_neighbors=15))
+
+    assert rust_silhouette >= 0.30
+    assert rust_silhouette >= learn_silhouette - 0.08
+    assert rust_trust >= learn_trust - 0.002
 
 
 def test_densmap_lambda_zero_matches_standard_umap() -> None:
