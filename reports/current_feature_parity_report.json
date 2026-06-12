@@ -4,9 +4,9 @@
     "python": "3.13.9 (main, Oct 31 2025, 23:02:44) [Clang 21.1.4 ]",
     "umap_learn_import_error": "",
     "umap_learn_version": "0.5.12",
-    "umapers_version": "1.1.0"
+    "umapers_version": "1.1.1"
   },
-  "generated_at": "2026-06-12T19:37:57+0800",
+  "generated_at": "2026-06-12T19:46:33+0800",
   "scenarios": [
     {
       "comparability": "direct",
@@ -21,7 +21,7 @@
           420,
           2
         ],
-        "time_sec": 0.08893451897893101,
+        "time_sec": 0.08780747395940125,
         "trustworthiness": 0.9474317539386032
       },
       "umap_rs": {
@@ -32,7 +32,7 @@
           420,
           2
         ],
-        "time_sec": 0.05073652800638229,
+        "time_sec": 0.05177908594487235,
         "top_level_shape": [
           120,
           2
@@ -54,7 +54,7 @@
           90,
           2
         ],
-        "time_sec": 2.2171809529536404
+        "time_sec": 2.142952101014089
       },
       "umap_rs": {
         "embedding_knn_accuracy": 0.9222222222222223,
@@ -66,7 +66,7 @@
           90,
           2
         ],
-        "time_sec": 0.0319603230454959,
+        "time_sec": 0.03258887701667845,
         "transform_out_identity": true
       }
     },
@@ -83,7 +83,7 @@
           178,
           2
         ],
-        "time_sec": 0.16121836699312553,
+        "time_sec": 0.16550322796683758,
         "trustworthiness": 0.915149166989539
       },
       "umap_rs": {
@@ -94,7 +94,7 @@
           178,
           2
         ],
-        "time_sec": 0.025144301005639136,
+        "time_sec": 0.026134938991162926,
         "trustworthiness": 0.9175530978126871
       }
     },
@@ -177,7 +177,7 @@
           "trustworthiness": 0.8999466548121805
         },
         "ok": true,
-        "time_sec": 0.579637004993856
+        "time_sec": 0.5703746329527348
       },
       "umap_rs": {
         "braycurtis": {
@@ -253,7 +253,7 @@
           "trustworthiness": 0.9062058235163369
         },
         "ok": true,
-        "time_sec": 0.163507861958351
+        "time_sec": 0.16506463900441304
       }
     },
     {
@@ -277,7 +277,7 @@
           260,
           2
         ],
-        "time_sec": 8.542071419011336,
+        "time_sec": 8.304364203009754,
         "trustworthiness": 0.8878444019748367
       },
       "umap_rs": {
@@ -296,7 +296,7 @@
           260,
           2
         ],
-        "time_sec": 0.02467544301180169,
+        "time_sec": 0.025985846994444728,
         "trustworthiness": 0.8882067208154165
       }
     },
@@ -323,7 +323,7 @@
           2
         ],
         "sparsity": 0.3286458333333333,
-        "time_sec": 0.05797141999937594,
+        "time_sec": 0.057289054966531694,
         "trustworthiness": 0.9550725689404934
       },
       "umap_rs": {
@@ -344,7 +344,7 @@
           2
         ],
         "sparsity": 0.3286458333333333,
-        "time_sec": 0.05860441399272531,
+        "time_sec": 0.05590212199604139,
         "trustworthiness": 0.958952588292211
       }
     },
@@ -361,7 +361,7 @@
           178,
           2
         ],
-        "time_sec": 0.4508299679728225,
+        "time_sec": 0.44706807599868625,
         "trustworthiness": 0.9378412172871685
       },
       "umap_rs": {
@@ -372,7 +372,7 @@
           178,
           2
         ],
-        "time_sec": 0.01930347504094243,
+        "time_sec": 0.020323381992056966,
         "trustworthiness": 0.9375476970401418
       }
     },
@@ -389,7 +389,7 @@
           500,
           2
         ],
-        "time_sec": 0.12076617899583653,
+        "time_sec": 0.12394206901080906,
         "trustworthiness": 0.9473464866735894
       },
       "umap_rs": {
@@ -402,7 +402,7 @@
           500,
           2
         ],
-        "time_sec": 0.062079028983134776,
+        "time_sec": 0.07342906197300181,
         "trustworthiness": 0.9394517133956386
       }
     },
@@ -415,7 +415,7 @@
         "error": "umap-learn ParametricUMAP unavailable in this environment: ImportError: umap.parametric_umap requires Tensorflow >= 2.0",
         "error_type": "RuntimeError",
         "ok": false,
-        "time_sec": 0.00040876795537769794,
+        "time_sec": 0.00040567200630903244,
         "traceback_tail": [
           "Traceback (most recent call last):",
           "  File \"<repo>/benchmarks/current_feature_parity_report.py\", line 67, in timed",
@@ -435,7 +435,7 @@
           44,
           2
         ],
-        "time_sec": 0.02231318998383358,
+        "time_sec": 0.023827110009733588,
         "train_finite": true,
         "train_shape": [
           176,
@@ -462,7 +462,7 @@
             2
           ]
         ],
-        "time_sec": 5.377325295994524
+        "time_sec": 5.249040132970549
       },
       "umap_rs": {
         "aligned_pair_mean_gap": 0.639227032661438,
@@ -478,7 +478,7 @@
             2
           ]
         ],
-        "time_sec": 0.028666124970186502
+        "time_sec": 0.027023669972550124
       }
     },
     {
@@ -494,7 +494,7 @@
           "error_type": "ImportError",
           "ok": false
         },
-        "time_sec": 0.000336622993927449
+        "time_sec": 0.00027089897776022553
       },
       "umap_rs": {
         "diagnostics": {
@@ -510,7 +510,7 @@
           "error_type": "ImportError",
           "ok": false
         },
-        "time_sec": 0.0022125900140963495
+        "time_sec": 0.0023381849750876427
       }
     },
     {
@@ -526,7 +526,7 @@
           120,
           2
         ],
-        "time_sec": 0.0061440529534593225
+        "time_sec": 0.0063538660178892314
       },
       "umap_rs": {
         "inverse_error": "invalid parameter: inverse_transform is not supported for sparse-trained models yet",
@@ -536,7 +536,7 @@
           120,
           2
         ],
-        "time_sec": 0.014037966029718518
+        "time_sec": 0.013252679957076907
       }
     }
   ],
@@ -547,7 +547,7 @@
         40,
         2
       ],
-      "time_sec": 4.462254683021456
+      "time_sec": 4.442036184016615
     }
   }
 }

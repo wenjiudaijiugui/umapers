@@ -5,7 +5,7 @@ All notable changes to this repository are documented in this file.
 The format follows Keep a Changelog and uses semantic-versioned release headings
 for user-facing milestones.
 
-## [1.1.0] - 2026-06-12
+## [1.1.1] - 2026-06-12
 
 ### Highlights
 
@@ -22,6 +22,21 @@ for user-facing milestones.
 - Current local release benchmarks show `umapers` faster than `umap-learn` on
   29 / 30 synthetic scaling datasets under a release build, while real-data
   clustering metrics remain comparable.
+
+### Fixed
+
+- Removed remaining pre-1.0 name references from release notes, reports,
+  benchmark scripts, temporary directory prefixes, and source-distribution
+  files.
+- Restricted the Python release workflow to `umapers-v*` tags and made PyPI
+  publishing idempotent when an artifact already exists.
+
+## [1.1.0] - 2026-06-12
+
+### Notes
+
+- Initial 1.1 package publish. Superseded by `1.1.1`, which carries the same
+  feature and performance work with cleaned release naming.
 
 ## [1.0.0] - 2026-05-26
 

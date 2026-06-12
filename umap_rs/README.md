@@ -55,7 +55,7 @@ embedding = Umap(
 
 ## Results
 
-The `1.1.0` release reports compare `umapers` with `umap-learn` on feature coverage, clustering quality, and runtime. On the real datasets tested here, downstream clustering quality is similar. On the synthetic scaling benchmarks, `umapers` is strongest on medium and large matrices; for very small datasets, fixed overhead can make `umap-learn` faster.
+The `1.1.1` release reports compare `umapers` with `umap-learn` on feature coverage, clustering quality, and runtime. On the real datasets tested here, downstream clustering quality is similar. On the synthetic scaling benchmarks, `umapers` is strongest on medium and large matrices; for very small datasets, fixed overhead can make `umap-learn` faster.
 
 - Clustering quality: [current_clustering_analysis_report.md](https://github.com/wenjiudaijiugui/umapers/blob/main/reports/current_clustering_analysis_report.md)
 - Runtime scaling: [synthetic_runtime_scaling_report.md](https://github.com/wenjiudaijiugui/umapers/blob/main/reports/synthetic_runtime_scaling_report.md)

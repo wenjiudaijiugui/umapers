@@ -1,205 +1,205 @@
 {
   "datasets": [
     {
-      "auto_over_exact": 0.9951394960717108,
-      "auto_over_learn": 0.6562804237664756,
+      "auto_over_exact": 1.0376962637685385,
+      "auto_over_learn": 0.6779585177487174,
       "matrix_size": 403200,
       "n_features": 96,
       "n_samples": 4200,
       "name": "class_4200x96",
       "umap_learn": {
-        "time_sec": 0.9669471890083514
+        "time_sec": 0.9383953610085882
       },
       "umapers_approximate": {
-        "knn_sec": 0.064590792,
-        "optimize_sec": 0.606844186,
-        "time_sec": 0.6984134999802336,
+        "knn_sec": 0.064671905,
+        "optimize_sec": 0.607519841,
+        "time_sec": 0.6991689949645661,
         "used_approximate_knn": true
       },
       "umapers_auto": {
-        "knn_sec": 0.02307301,
-        "optimize_sec": 0.583091639,
-        "time_sec": 0.6345885109622031,
+        "knn_sec": 0.025476537,
+        "optimize_sec": 0.576372724,
+        "time_sec": 0.6361931280116551,
         "used_approximate_knn": false
       },
       "umapers_exact": {
-        "knn_sec": 0.013694244,
-        "optimize_sec": 0.59766457,
-        "time_sec": 0.6376879959716462,
+        "knn_sec": 0.013678896,
+        "optimize_sec": 0.573126751,
+        "time_sec": 0.6130822189734317,
         "used_approximate_knn": false
       }
     },
     {
-      "auto_over_exact": 0.9879262327962978,
-      "auto_over_learn": 0.6701138442379903,
+      "auto_over_exact": 1.0165720244970864,
+      "auto_over_learn": 0.6660629856811454,
       "matrix_size": 560000,
       "n_features": 112,
       "n_samples": 5000,
       "name": "class_5000x112",
       "umap_learn": {
-        "time_sec": 1.1297323380131274
+        "time_sec": 1.1297076630289666
       },
       "umapers_approximate": {
-        "knn_sec": 0.076353322,
-        "optimize_sec": 0.735837253,
-        "time_sec": 0.843119656026829,
+        "knn_sec": 0.078071959,
+        "optimize_sec": 0.727385759,
+        "time_sec": 0.8366132120136172,
         "used_approximate_knn": true
       },
       "umapers_auto": {
-        "knn_sec": 0.035009512,
-        "optimize_sec": 0.689705036,
-        "time_sec": 0.7570492799859494,
+        "knn_sec": 0.033344695,
+        "optimize_sec": 0.68263458,
+        "time_sec": 0.7524564589839429,
         "used_approximate_knn": false
       },
       "umapers_exact": {
-        "knn_sec": 0.021207756,
-        "optimize_sec": 0.713078013,
-        "time_sec": 0.7663014249992557,
+        "knn_sec": 0.021213244,
+        "optimize_sec": 0.689179371,
+        "time_sec": 0.7401900119730271,
         "used_approximate_knn": false
       }
     },
     {
-      "auto_over_exact": 1.0215639276347475,
-      "auto_over_learn": 0.6717968178595326,
+      "auto_over_exact": 1.0481045492761694,
+      "auto_over_learn": 0.6888104753869301,
       "matrix_size": 768000,
       "n_features": 128,
       "n_samples": 6000,
       "name": "class_6000x128",
       "umap_learn": {
-        "time_sec": 1.3621916309930384
+        "time_sec": 1.3430303109926172
       },
       "umapers_approximate": {
-        "knn_sec": 0.096611311,
-        "optimize_sec": 0.906411708,
-        "time_sec": 1.039817821001634,
+        "knn_sec": 0.094000051,
+        "optimize_sec": 0.884405831,
+        "time_sec": 1.0163042889907956,
         "used_approximate_knn": true
       },
       "umapers_auto": {
-        "knn_sec": 0.051780947,
-        "optimize_sec": 0.829510653,
-        "time_sec": 0.9151160030160099,
+        "knn_sec": 0.051322774,
+        "optimize_sec": 0.840093754,
+        "time_sec": 0.9250933469738811,
         "used_approximate_knn": false
       },
       "umapers_exact": {
-        "knn_sec": 0.032722358,
-        "optimize_sec": 0.826529333,
-        "time_sec": 0.8957990569761023,
+        "knn_sec": 0.032137586,
+        "optimize_sec": 0.816770548,
+        "time_sec": 0.8826346070272848,
         "used_approximate_knn": false
       }
     },
     {
-      "auto_over_exact": 1.0161378816578608,
-      "auto_over_learn": 0.6848705237182711,
+      "auto_over_exact": 1.0221096657407378,
+      "auto_over_learn": 0.6715154678540095,
       "matrix_size": 1024000,
       "n_features": 128,
       "n_samples": 8000,
       "name": "class_8000x128",
       "umap_learn": {
-        "time_sec": 1.795707957004197
+        "time_sec": 1.817354290978983
       },
       "umapers_approximate": {
-        "knn_sec": 0.12243767,
-        "optimize_sec": 1.181192682,
-        "time_sec": 1.34712035296252,
+        "knn_sec": 0.120466183,
+        "optimize_sec": 1.178700173,
+        "time_sec": 1.3429596470086835,
         "used_approximate_knn": true
       },
       "umapers_auto": {
-        "knn_sec": 0.073944258,
-        "optimize_sec": 1.113597144,
-        "time_sec": 1.229827448958531,
+        "knn_sec": 0.070722023,
+        "optimize_sec": 1.104842752,
+        "time_sec": 1.2203815169632435,
         "used_approximate_knn": false
       },
       "umapers_exact": {
-        "knn_sec": 0.054412577,
-        "optimize_sec": 1.112977399,
-        "time_sec": 1.210295837954618,
+        "knn_sec": 0.050545809,
+        "optimize_sec": 1.101831347,
+        "time_sec": 1.193982952972874,
         "used_approximate_knn": false
       }
     },
     {
-      "auto_over_exact": 0.997592553768039,
-      "auto_over_learn": 0.6582356006342398,
+      "auto_over_exact": 1.032338950485034,
+      "auto_over_learn": 0.6790631958100783,
       "matrix_size": 1600000,
       "n_features": 160,
       "n_samples": 10000,
       "name": "class_10000x160",
       "umap_learn": {
-        "time_sec": 2.363964246993419
+        "time_sec": 2.326960878970567
       },
       "umapers_approximate": {
-        "knn_sec": 0.168246288,
-        "optimize_sec": 1.465931004,
-        "time_sec": 1.6876695930259302,
+        "knn_sec": 0.146010549,
+        "optimize_sec": 1.5162383099999999,
+        "time_sec": 1.7182579740183428,
         "used_approximate_knn": true
       },
       "umapers_auto": {
-        "knn_sec": 0.114643585,
-        "optimize_sec": 1.388191376,
-        "time_sec": 1.5560454259975813,
+        "knn_sec": 0.103441206,
+        "optimize_sec": 1.425394651,
+        "time_sec": 1.5801534909987822,
         "used_approximate_knn": false
       },
       "umapers_exact": {
-        "knn_sec": 0.099043318,
-        "optimize_sec": 1.408397871,
-        "time_sec": 1.5598005619831383,
+        "knn_sec": 0.090418315,
+        "optimize_sec": 1.387158675,
+        "time_sec": 1.5306537550059147,
         "used_approximate_knn": false
       }
     },
     {
-      "auto_over_exact": 1.0056992416400021,
-      "auto_over_learn": 0.6715353198485804,
+      "auto_over_exact": 0.9773591386734556,
+      "auto_over_learn": 0.6682403780623565,
       "matrix_size": 2560000,
       "n_features": 160,
       "n_samples": 16000,
       "name": "class_16000x160",
       "umap_learn": {
-        "time_sec": 3.833809401956387
+        "time_sec": 3.8337139720097184
       },
       "umapers_approximate": {
-        "knn_sec": 0.248039885,
-        "optimize_sec": 2.370521596,
-        "time_sec": 2.704944795987103,
+        "knn_sec": 0.23077518,
+        "optimize_sec": 2.385089051,
+        "time_sec": 2.707099422987085,
         "used_approximate_knn": true
       },
       "umapers_auto": {
-        "knn_sec": 0.248867887,
-        "optimize_sec": 2.240704155,
-        "time_sec": 2.574538422981277,
+        "knn_sec": 0.228332688,
+        "optimize_sec": 2.24791236,
+        "time_sec": 2.5618424740387127,
         "used_approximate_knn": false
       },
       "umapers_exact": {
-        "knn_sec": 0.245818501,
-        "optimize_sec": 2.230068833,
-        "time_sec": 2.5599486569990404,
+        "knn_sec": 0.230890369,
+        "optimize_sec": 2.307105772,
+        "time_sec": 2.621188437973615,
         "used_approximate_knn": false
       }
     },
     {
-      "auto_over_exact": 0.9871428418769945,
-      "auto_over_learn": 0.7019768136478001,
+      "auto_over_exact": 1.0140983536252484,
+      "auto_over_learn": 0.7280864702104123,
       "matrix_size": 3840000,
       "n_features": 192,
       "n_samples": 20000,
       "name": "class_20000x192",
       "umap_learn": {
-        "time_sec": 4.829134792031255
+        "time_sec": 4.65901625395054
       },
       "umapers_approximate": {
-        "knn_sec": 0.320238805,
-        "optimize_sec": 2.99660025,
-        "time_sec": 3.422051472007297,
+        "knn_sec": 0.303071893,
+        "optimize_sec": 2.971756197,
+        "time_sec": 3.381893150974065,
         "used_approximate_knn": true
       },
       "umapers_auto": {
-        "knn_sec": 0.311012738,
-        "optimize_sec": 2.969407368,
-        "time_sec": 3.389940653985832,
+        "knn_sec": 0.298620024,
+        "optimize_sec": 2.981571608,
+        "time_sec": 3.3921666989917867,
         "used_approximate_knn": true
       },
       "umapers_exact": {
-        "knn_sec": 0.449364804,
-        "optimize_sec": 2.882171427,
-        "time_sec": 3.4340933350031264,
+        "knn_sec": 0.415993993,
+        "optimize_sec": 2.824670421,
+        "time_sec": 3.3450075989821926,
         "used_approximate_knn": false
       }
     }
@@ -207,9 +207,9 @@
   "environment": {
     "python": "3.13.9",
     "umap_learn": "0.5.12",
-    "umapers": "1.1.0"
+    "umapers": "1.1.1"
   },
-  "generated_at": "2026-06-12T18:52:19+0800",
+  "generated_at": "2026-06-12T19:49:40+0800",
   "settings": {
     "build_profile": "release",
     "init": "spectral",

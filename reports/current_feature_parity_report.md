@@ -1,8 +1,8 @@
 # Current umapers Feature Parity Report
 
-- generated_at: `2026-06-12T19:37:57+0800`
+- generated_at: `2026-06-12T19:46:33+0800`
 - python: `3.13.9 (main, Oct 31 2025, 23:02:44) [Clang 21.1.4 ]`
-- umapers: `1.1.0`
+- umapers: `1.1.1`
 - umap_learn: `0.5.12`
 
 ## Scenario Summary

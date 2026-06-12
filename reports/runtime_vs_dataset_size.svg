@@ -4,14 +4,14 @@
 <text x="96" y="58" font-family="Inter, Arial, sans-serif" font-size="13" fill="#71717a">x-axis is matrix size: samples x features. Runtime includes 2D UMAP plus KMeans, mean over three seeds.</text>
 <line x1="96" y1="624.00" x2="1072" y2="624.00" stroke="#d4d4d8" stroke-width="1"/>
 <text x="84" y="628.00" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">0s</text>
-<line x1="96" y1="509.91" x2="1072" y2="509.91" stroke="#d4d4d8" stroke-width="1"/>
-<text x="84" y="513.91" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">1s</text>
-<line x1="96" y1="395.81" x2="1072" y2="395.81" stroke="#d4d4d8" stroke-width="1"/>
-<text x="84" y="399.81" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">2s</text>
-<line x1="96" y1="281.72" x2="1072" y2="281.72" stroke="#d4d4d8" stroke-width="1"/>
-<text x="84" y="285.72" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">3s</text>
-<line x1="96" y1="167.62" x2="1072" y2="167.62" stroke="#d4d4d8" stroke-width="1"/>
-<text x="84" y="171.62" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">4s</text>
+<line x1="96" y1="507.56" x2="1072" y2="507.56" stroke="#d4d4d8" stroke-width="1"/>
+<text x="84" y="511.56" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">1s</text>
+<line x1="96" y1="391.12" x2="1072" y2="391.12" stroke="#d4d4d8" stroke-width="1"/>
+<text x="84" y="395.12" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">2s</text>
+<line x1="96" y1="274.68" x2="1072" y2="274.68" stroke="#d4d4d8" stroke-width="1"/>
+<text x="84" y="278.68" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">3s</text>
+<line x1="96" y1="158.23" x2="1072" y2="158.23" stroke="#d4d4d8" stroke-width="1"/>
+<text x="84" y="162.23" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="12" fill="#71717a">4s</text>
 <line x1="96.00" y1="82" x2="96.00" y2="624" stroke="#f4f4f5" stroke-width="1"/>
 <text x="96.00" y="652" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="12" fill="#18181b">iris (150x4)</text>
 <text x="96.00" y="670" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#71717a">600 values</text>
@@ -28,24 +28,24 @@
 <line x1="96" y1="624" x2="1072" y2="624" stroke="#18181b" stroke-width="1.2"/>
 <text x="28" y="353.00" transform="rotate(-90 28 353.00)" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="13" fill="#18181b">runtime seconds</text>
 <text x="584.00" y="696" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="13" fill="#18181b">dataset matrix size, log scale</text>
-<polyline fill="none" stroke="#2563eb" stroke-width="3" points="96.00,619.39 346.66,618.35 717.75,608.96 1072.00,580.37"/>
-<polyline fill="none" stroke="#dc2626" stroke-width="3" points="96.00,617.56 346.66,617.12 717.75,593.34 1072.00,140.07"/>
-<circle cx="96.00" cy="619.39" r="5" fill="#2563eb"/>
-<circle cx="96.00" cy="617.56" r="5" fill="#dc2626"/>
-<text x="96.00" y="607.39" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#2563eb">0.040s</text>
-<text x="96.00" y="637.56" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#dc2626">0.056s</text>
-<circle cx="346.66" cy="618.35" r="5" fill="#2563eb"/>
-<circle cx="346.66" cy="617.12" r="5" fill="#dc2626"/>
-<text x="346.66" y="606.35" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#2563eb">0.050s</text>
-<text x="346.66" y="637.12" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#dc2626">0.060s</text>
-<circle cx="717.75" cy="608.96" r="5" fill="#2563eb"/>
-<circle cx="717.75" cy="593.34" r="5" fill="#dc2626"/>
-<text x="717.75" y="596.96" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#2563eb">0.132s</text>
-<text x="717.75" y="613.34" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#dc2626">0.269s</text>
-<circle cx="1072.00" cy="580.37" r="5" fill="#2563eb"/>
+<polyline fill="none" stroke="#2563eb" stroke-width="3" points="96.00,619.19 346.66,618.08 717.75,609.03 1072.00,579.40"/>
+<polyline fill="none" stroke="#dc2626" stroke-width="3" points="96.00,617.42 346.66,616.94 717.75,593.87 1072.00,140.07"/>
+<circle cx="96.00" cy="619.19" r="5" fill="#2563eb"/>
+<circle cx="96.00" cy="617.42" r="5" fill="#dc2626"/>
+<text x="96.00" y="607.19" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#2563eb">0.041s</text>
+<text x="96.00" y="637.42" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#dc2626">0.057s</text>
+<circle cx="346.66" cy="618.08" r="5" fill="#2563eb"/>
+<circle cx="346.66" cy="616.94" r="5" fill="#dc2626"/>
+<text x="346.66" y="606.08" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#2563eb">0.051s</text>
+<text x="346.66" y="636.94" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#dc2626">0.061s</text>
+<circle cx="717.75" cy="609.03" r="5" fill="#2563eb"/>
+<circle cx="717.75" cy="593.87" r="5" fill="#dc2626"/>
+<text x="717.75" y="597.03" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#2563eb">0.129s</text>
+<text x="717.75" y="613.87" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#dc2626">0.259s</text>
+<circle cx="1072.00" cy="579.40" r="5" fill="#2563eb"/>
 <circle cx="1072.00" cy="140.07" r="5" fill="#dc2626"/>
-<text x="1072.00" y="568.37" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#2563eb">0.382s</text>
-<text x="1072.00" y="160.07" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#dc2626">4.241s</text>
+<text x="1072.00" y="567.40" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#2563eb">0.383s</text>
+<text x="1072.00" y="160.07" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" fill="#dc2626">4.156s</text>
 <rect x="852" y="94" width="190" height="64" rx="6" fill="#ffffff" stroke="#d4d4d8"/>
 <line x1="868" y1="116" x2="902" y2="116" stroke="#2563eb" stroke-width="3"/>
 <circle cx="885" cy="116" r="5" fill="#2563eb"/>

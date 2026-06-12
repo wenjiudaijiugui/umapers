@@ -14,7 +14,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.035030597005970776,
+            "mean": 0.03534102701814845,
             "std": 0.0
           }
         },
@@ -30,7 +30,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.038993598020169884,
+            "mean": 0.039160718966741115,
             "std": 0.0
           }
         }
@@ -41,7 +41,7 @@
       "n_features": 4,
       "n_samples": 120,
       "name": "syn_001_blobs_120x4",
-      "rs_over_learn": 1.113129702400551,
+      "rs_over_learn": 1.108080954937477,
       "runs": [
         {
           "seed": 13,
@@ -50,14 +50,14 @@
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.035030597005970776
+            "time_sec": 0.03534102701814845
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.038993598020169884
+            "time_sec": 0.039160718966741115
           }
         }
       ]
@@ -76,7 +76,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.039088448975235224,
+            "mean": 0.04120691603748128,
             "std": 0.0
           }
         },
@@ -92,7 +92,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.034479013993404806,
+            "mean": 0.03379312698962167,
             "std": 0.0
           }
         }
@@ -103,7 +103,7 @@
       "n_features": 6,
       "n_samples": 150,
       "name": "syn_002_class_150x6",
-      "rs_over_learn": 0.8820768001116964,
+      "rs_over_learn": 0.8200838655065542,
       "runs": [
         {
           "seed": 13,
@@ -112,14 +112,14 @@
               "adjusted_rand": 0.6382913395798698,
               "normalized_mutual_info": 0.5895345253978274
             },
-            "time_sec": 0.039088448975235224
+            "time_sec": 0.04120691603748128
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 0.6540882463619361,
               "normalized_mutual_info": 0.6046841538515861
             },
-            "time_sec": 0.034479013993404806
+            "time_sec": 0.03379312698962167
           }
         }
       ]
@@ -138,7 +138,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.05431346298428252,
+            "mean": 0.05012128199450672,
             "std": 0.0
           }
         },
@@ -154,7 +154,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.042954799020662904,
+            "mean": 0.038121988996863365,
             "std": 0.0
           }
         }
@@ -165,7 +165,7 @@
       "n_features": 8,
       "n_samples": 180,
       "name": "syn_003_blobs_180x8",
-      "rs_over_learn": 0.7908683530839004,
+      "rs_over_learn": 0.7605948507271129,
       "runs": [
         {
           "seed": 13,
@@ -174,14 +174,14 @@
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.05431346298428252
+            "time_sec": 0.05012128199450672
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.042954799020662904
+            "time_sec": 0.038121988996863365
           }
         }
       ]
@@ -200,7 +200,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.05988348601385951,
+            "mean": 0.05906332901213318,
             "std": 0.0
           }
         },
@@ -216,7 +216,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.04727370699401945,
+            "mean": 0.04444405803224072,
             "std": 0.0
           }
         }
@@ -227,7 +227,7 @@
       "n_features": 10,
       "n_samples": 220,
       "name": "syn_004_class_220x10",
-      "rs_over_learn": 0.7894281068252834,
+      "rs_over_learn": 0.752481425879512,
       "runs": [
         {
           "seed": 13,
@@ -236,14 +236,14 @@
               "adjusted_rand": 0.40323896275936794,
               "normalized_mutual_info": 0.468121917352328
             },
-            "time_sec": 0.05988348601385951
+            "time_sec": 0.05906332901213318
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 0.3696784349518303,
               "normalized_mutual_info": 0.4256599419666637
             },
-            "time_sec": 0.04727370699401945
+            "time_sec": 0.04444405803224072
           }
         }
       ]
@@ -262,7 +262,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.1525013609789312,
+            "mean": 0.1619601600104943,
             "std": 0.0
           }
         },
@@ -278,7 +278,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.053401707962621,
+            "mean": 0.05187269003363326,
             "std": 0.0
           }
         }
@@ -289,7 +289,7 @@
       "n_features": 12,
       "n_samples": 260,
       "name": "syn_005_blobs_260x12",
-      "rs_over_learn": 0.35017200908783175,
+      "rs_over_learn": 0.3202805556025145,
       "runs": [
         {
           "seed": 13,
@@ -298,14 +298,14 @@
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.1525013609789312
+            "time_sec": 0.1619601600104943
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.053401707962621
+            "time_sec": 0.05187269003363326
           }
         }
       ]
@@ -324,7 +324,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.13161820999812335,
+            "mean": 0.1339384469902143,
             "std": 0.0
           }
         },
@@ -340,7 +340,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.0717256460338831,
+            "mean": 0.07479768799385056,
             "std": 0.0
           }
         }
@@ -351,7 +351,7 @@
       "n_features": 8,
       "n_samples": 400,
       "name": "syn_007_blobs_400x8",
-      "rs_over_learn": 0.5449522982792866,
+      "rs_over_learn": 0.5584482250963786,
       "runs": [
         {
           "seed": 13,
@@ -360,14 +360,14 @@
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.13161820999812335
+            "time_sec": 0.1339384469902143
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.0717256460338831
+            "time_sec": 0.07479768799385056
           }
         }
       ]
@@ -386,7 +386,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.10391886701108888,
+            "mean": 0.10175287403399125,
             "std": 0.0
           }
         },
@@ -402,7 +402,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.06605958403088152,
+            "mean": 0.06256140896584839,
             "std": 0.0
           }
         }
@@ -413,7 +413,7 @@
       "n_features": 16,
       "n_samples": 320,
       "name": "syn_006_class_320x16",
-      "rs_over_learn": 0.635684221074432,
+      "rs_over_learn": 0.6148367754698439,
       "runs": [
         {
           "seed": 13,
@@ -422,14 +422,14 @@
               "adjusted_rand": 0.36286261164123174,
               "normalized_mutual_info": 0.4560658367312319
             },
-            "time_sec": 0.10391886701108888
+            "time_sec": 0.10175287403399125
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 0.4147472510891609,
               "normalized_mutual_info": 0.5012192954580342
             },
-            "time_sec": 0.06605958403088152
+            "time_sec": 0.06256140896584839
           }
         }
       ]
@@ -448,7 +448,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.21998235600767657,
+            "mean": 0.2230617449968122,
             "std": 0.0
           }
         },
@@ -464,7 +464,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.09726918902015314,
+            "mean": 0.09659779601497576,
             "std": 0.0
           }
         }
@@ -475,7 +475,7 @@
       "n_features": 12,
       "n_samples": 560,
       "name": "syn_009_blobs_560x12",
-      "rs_over_learn": 0.44216813923367015,
+      "rs_over_learn": 0.43305406768137783,
       "runs": [
         {
           "seed": 13,
@@ -484,14 +484,14 @@
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.21998235600767657
+            "time_sec": 0.2230617449968122
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.09726918902015314
+            "time_sec": 0.09659779601497576
           }
         }
       ]
@@ -510,7 +510,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.18027122400235385,
+            "mean": 0.1720907210255973,
             "std": 0.0
           }
         },
@@ -526,7 +526,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.0932971760048531,
+            "mean": 0.08799508702941239,
             "std": 0.0
           }
         }
@@ -537,7 +537,7 @@
       "n_features": 20,
       "n_samples": 480,
       "name": "syn_008_class_480x20",
-      "rs_over_learn": 0.517537818479753,
+      "rs_over_learn": 0.5113296434868427,
       "runs": [
         {
           "seed": 13,
@@ -546,14 +546,14 @@
               "adjusted_rand": 0.37294026936709584,
               "normalized_mutual_info": 0.44720804921524754
             },
-            "time_sec": 0.18027122400235385
+            "time_sec": 0.1720907210255973
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 0.36482626519667594,
               "normalized_mutual_info": 0.4115453542229966
             },
-            "time_sec": 0.0932971760048531
+            "time_sec": 0.08799508702941239
           }
         }
       ]
@@ -572,7 +572,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.3507963550509885,
+            "mean": 0.3331887859967537,
             "std": 0.0
           }
         },
@@ -588,7 +588,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.13213019398972392,
+            "mean": 0.1253482790198177,
             "std": 0.0
           }
         }
@@ -599,7 +599,7 @@
       "n_features": 16,
       "n_samples": 750,
       "name": "syn_011_blobs_750x16",
-      "rs_over_learn": 0.37665783035436246,
+      "rs_over_learn": 0.3762079766425242,
       "runs": [
         {
           "seed": 13,
@@ -608,14 +608,14 @@
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.3507963550509885
+            "time_sec": 0.3331887859967537
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.13213019398972392
+            "time_sec": 0.1253482790198177
           }
         }
       ]
@@ -634,7 +634,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.2678651259629987,
+            "mean": 0.2748409120249562,
             "std": 0.0
           }
         },
@@ -650,7 +650,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.1186505010118708,
+            "mean": 0.11584267800208181,
             "std": 0.0
           }
         }
@@ -661,7 +661,7 @@
       "n_features": 24,
       "n_samples": 650,
       "name": "syn_010_class_650x24",
-      "rs_over_learn": 0.4429486689814951,
+      "rs_over_learn": 0.42148993448094446,
       "runs": [
         {
           "seed": 13,
@@ -670,14 +670,14 @@
               "adjusted_rand": 0.2842187473885493,
               "normalized_mutual_info": 0.35958110525388315
             },
-            "time_sec": 0.2678651259629987
+            "time_sec": 0.2748409120249562
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 0.3250026258216807,
               "normalized_mutual_info": 0.3694698841993347
             },
-            "time_sec": 0.1186505010118708
+            "time_sec": 0.11584267800208181
           }
         }
       ]
@@ -696,7 +696,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.49999655195279047,
+            "mean": 0.47363774303812534,
             "std": 0.0
           }
         },
@@ -712,7 +712,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.1552248690277338,
+            "mean": 0.14484168298076838,
             "std": 0.0
           }
         }
@@ -723,7 +723,7 @@
       "n_features": 20,
       "n_samples": 950,
       "name": "syn_013_blobs_950x20",
-      "rs_over_learn": 0.3104518789609375,
+      "rs_over_learn": 0.30580688534593703,
       "runs": [
         {
           "seed": 13,
@@ -732,14 +732,14 @@
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.49999655195279047
+            "time_sec": 0.47363774303812534
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.1552248690277338
+            "time_sec": 0.14484168298076838
           }
         }
       ]
@@ -758,7 +758,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.42244799103355035,
+            "mean": 0.4135168230277486,
             "std": 0.0
           }
         },
@@ -774,7 +774,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.1487778229638934,
+            "mean": 0.14724969101371244,
             "std": 0.0
           }
         }
@@ -785,7 +785,7 @@
       "n_features": 32,
       "n_samples": 850,
       "name": "syn_012_class_850x32",
-      "rs_over_learn": 0.35218021181707465,
+      "rs_over_learn": 0.3560911740798304,
       "runs": [
         {
           "seed": 13,
@@ -794,14 +794,14 @@
               "adjusted_rand": 0.23182075024008605,
               "normalized_mutual_info": 0.32586673089618734
             },
-            "time_sec": 0.42244799103355035
+            "time_sec": 0.4135168230277486
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 0.23137077502739856,
               "normalized_mutual_info": 0.3214492010016516
             },
-            "time_sec": 0.1487778229638934
+            "time_sec": 0.14724969101371244
           }
         }
       ]
@@ -820,7 +820,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.757113222964108,
+            "mean": 0.7578402449726127,
             "std": 0.0
           }
         },
@@ -836,7 +836,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.18976287898840383,
+            "mean": 0.18836999597260728,
             "std": 0.0
           }
         }
@@ -847,7 +847,7 @@
       "n_features": 24,
       "n_samples": 1250,
       "name": "syn_015_blobs_1250x24",
-      "rs_over_learn": 0.2506400274525384,
+      "rs_over_learn": 0.2485616160163343,
       "runs": [
         {
           "seed": 13,
@@ -856,14 +856,14 @@
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.757113222964108
+            "time_sec": 0.7578402449726127
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.18976287898840383
+            "time_sec": 0.18836999597260728
           }
         }
       ]
@@ -882,7 +882,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.6396580979926512,
+            "mean": 0.6374907429562882,
             "std": 0.0
           }
         },
@@ -898,7 +898,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.18993231101194397,
+            "mean": 0.1938870800076984,
             "std": 0.0
           }
         }
@@ -909,7 +909,7 @@
       "n_features": 32,
       "n_samples": 1100,
       "name": "syn_014_class_1100x32",
-      "rs_over_learn": 0.29692786131838517,
+      "rs_over_learn": 0.30414101247740466,
       "runs": [
         {
           "seed": 13,
@@ -918,14 +918,14 @@
               "adjusted_rand": 0.21448213408382005,
               "normalized_mutual_info": 0.29435406797864905
             },
-            "time_sec": 0.6396580979926512
+            "time_sec": 0.6374907429562882
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 0.25469455849734207,
               "normalized_mutual_info": 0.3219097145459975
             },
-            "time_sec": 0.18993231101194397
+            "time_sec": 0.1938870800076984
           }
         }
       ]
@@ -944,7 +944,7 @@
             }
           },
           "time_sec": {
-            "mean": 1.162750818009954,
+            "mean": 1.1905420509865507,
             "std": 0.0
           }
         },
@@ -960,7 +960,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.24363748100586236,
+            "mean": 0.2545185419730842,
             "std": 0.0
           }
         }
@@ -971,7 +971,7 @@
       "n_features": 32,
       "n_samples": 1600,
       "name": "syn_017_blobs_1600x32",
-      "rs_over_learn": 0.20953541999897063,
+      "rs_over_learn": 0.21378374813571321,
       "runs": [
         {
           "seed": 13,
@@ -980,14 +980,14 @@
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 1.162750818009954
+            "time_sec": 1.1905420509865507
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.24363748100586236
+            "time_sec": 0.2545185419730842
           }
         }
       ]
@@ -1006,7 +1006,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.9633594150072895,
+            "mean": 0.9706783770234324,
             "std": 0.0
           }
         },
@@ -1022,7 +1022,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.2553015719749965,
+            "mean": 0.25219161598943174,
             "std": 0.0
           }
         }
@@ -1033,7 +1033,7 @@
       "n_features": 40,
       "n_samples": 1400,
       "name": "syn_016_class_1400x40",
-      "rs_over_learn": 0.2650117578111433,
+      "rs_over_learn": 0.25980965679154483,
       "runs": [
         {
           "seed": 13,
@@ -1042,14 +1042,14 @@
               "adjusted_rand": 0.20499906647658186,
               "normalized_mutual_info": 0.29556749811300775
             },
-            "time_sec": 0.9633594150072895
+            "time_sec": 0.9706783770234324
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 0.20324158316959845,
               "normalized_mutual_info": 0.29829086899272383
             },
-            "time_sec": 0.2553015719749965
+            "time_sec": 0.25219161598943174
           }
         }
       ]
@@ -1068,7 +1068,7 @@
             }
           },
           "time_sec": {
-            "mean": 1.7929236930212937,
+            "mean": 1.7220792170264758,
             "std": 0.0
           }
         },
@@ -1084,7 +1084,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.3127472070045769,
+            "mean": 0.2959917680127546,
             "std": 0.0
           }
         }
@@ -1095,7 +1095,7 @@
       "n_features": 40,
       "n_samples": 2000,
       "name": "syn_019_blobs_2000x40",
-      "rs_over_learn": 0.17443419829962756,
+      "rs_over_learn": 0.17188046001962984,
       "runs": [
         {
           "seed": 13,
@@ -1104,14 +1104,14 @@
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 1.7929236930212937
+            "time_sec": 1.7220792170264758
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.3127472070045769
+            "time_sec": 0.2959917680127546
           }
         }
       ]
@@ -1130,7 +1130,7 @@
             }
           },
           "time_sec": {
-            "mean": 1.516726121015381,
+            "mean": 1.5142339729936793,
             "std": 0.0
           }
         },
@@ -1146,7 +1146,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.33739213296212256,
+            "mean": 0.3302140549640171,
             "std": 0.0
           }
         }
@@ -1157,7 +1157,7 @@
       "n_features": 48,
       "n_samples": 1800,
       "name": "syn_018_class_1800x48",
-      "rs_over_learn": 0.22244763130752535,
+      "rs_over_learn": 0.21807333665297146,
       "runs": [
         {
           "seed": 13,
@@ -1166,14 +1166,14 @@
               "adjusted_rand": 0.17101586497620938,
               "normalized_mutual_info": 0.2434424427444812
             },
-            "time_sec": 1.516726121015381
+            "time_sec": 1.5142339729936793
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 0.17391289893754583,
               "normalized_mutual_info": 0.24777743049361306
             },
-            "time_sec": 0.33739213296212256
+            "time_sec": 0.3302140549640171
           }
         }
       ]
@@ -1192,7 +1192,7 @@
             }
           },
           "time_sec": {
-            "mean": 2.397007249004673,
+            "mean": 2.417719615972601,
             "std": 0.0
           }
         },
@@ -1208,7 +1208,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.3663035999634303,
+            "mean": 0.3672818269697018,
             "std": 0.0
           }
         }
@@ -1219,7 +1219,7 @@
       "n_features": 48,
       "n_samples": 2400,
       "name": "syn_021_blobs_2400x48",
-      "rs_over_learn": 0.15281705973794332,
+      "rs_over_learn": 0.15191249826624398,
       "runs": [
         {
           "seed": 13,
@@ -1228,14 +1228,14 @@
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 2.397007249004673
+            "time_sec": 2.417719615972601
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.3663035999634303
+            "time_sec": 0.3672818269697018
           }
         }
       ]
@@ -1254,7 +1254,7 @@
             }
           },
           "time_sec": {
-            "mean": 2.2521663979860023,
+            "mean": 2.132569330977276,
             "std": 0.0
           }
         },
@@ -1270,7 +1270,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.4150408240384422,
+            "mean": 0.3966193540254608,
             "std": 0.0
           }
         }
@@ -1281,7 +1281,7 @@
       "n_features": 56,
       "n_samples": 2200,
       "name": "syn_020_class_2200x56",
-      "rs_over_learn": 0.18428515069294707,
+      "rs_over_learn": 0.18598192718250578,
       "runs": [
         {
           "seed": 13,
@@ -1290,14 +1290,14 @@
               "adjusted_rand": 0.15185021716433822,
               "normalized_mutual_info": 0.2326605259616589
             },
-            "time_sec": 2.2521663979860023
+            "time_sec": 2.132569330977276
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 0.1638811932703039,
               "normalized_mutual_info": 0.2469080608871681
             },
-            "time_sec": 0.4150408240384422
+            "time_sec": 0.3966193540254608
           }
         }
       ]
@@ -1316,7 +1316,7 @@
             }
           },
           "time_sec": {
-            "mean": 3.2922986120101996,
+            "mean": 3.2008255510008894,
             "std": 0.0
           }
         },
@@ -1332,7 +1332,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.4446568999555893,
+            "mean": 0.4175729890121147,
             "std": 0.0
           }
         }
@@ -1343,7 +1343,7 @@
       "n_features": 56,
       "n_samples": 2800,
       "name": "syn_023_blobs_2800x56",
-      "rs_over_learn": 0.13505971127087174,
+      "rs_over_learn": 0.1304579029249316,
       "runs": [
         {
           "seed": 13,
@@ -1352,14 +1352,14 @@
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 3.2922986120101996
+            "time_sec": 3.2008255510008894
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.4446568999555893
+            "time_sec": 0.4175729890121147
           }
         }
       ]
@@ -1378,7 +1378,7 @@
             }
           },
           "time_sec": {
-            "mean": 2.879828875011299,
+            "mean": 2.8580590200144798,
             "std": 0.0
           }
         },
@@ -1394,7 +1394,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.4748206549556926,
+            "mean": 0.4757386000128463,
             "std": 0.0
           }
         }
@@ -1405,7 +1405,7 @@
       "n_features": 64,
       "n_samples": 2600,
       "name": "syn_022_class_2600x64",
-      "rs_over_learn": 0.1648780797622323,
+      "rs_over_learn": 0.1664551349994291,
       "runs": [
         {
           "seed": 13,
@@ -1414,14 +1414,14 @@
               "adjusted_rand": 0.08983808707434081,
               "normalized_mutual_info": 0.1562867104314035
             },
-            "time_sec": 2.879828875011299
+            "time_sec": 2.8580590200144798
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 0.10290627010059668,
               "normalized_mutual_info": 0.16760939553230667
             },
-            "time_sec": 0.4748206549556926
+            "time_sec": 0.4757386000128463
           }
         }
       ]
@@ -1440,7 +1440,7 @@
             }
           },
           "time_sec": {
-            "mean": 4.258659560990054,
+            "mean": 4.219767561007757,
             "std": 0.0
           }
         },
@@ -1456,7 +1456,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.4720415080082603,
+            "mean": 0.48451525199925527,
             "std": 0.0
           }
         }
@@ -1467,7 +1467,7 @@
       "n_features": 64,
       "n_samples": 3200,
       "name": "syn_025_blobs_3200x64",
-      "rs_over_learn": 0.11084274317962152,
+      "rs_over_learn": 0.11482036510170818,
       "runs": [
         {
           "seed": 13,
@@ -1476,14 +1476,14 @@
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 4.258659560990054
+            "time_sec": 4.219767561007757
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.4720415080082603
+            "time_sec": 0.48451525199925527
           }
         }
       ]
@@ -1502,7 +1502,7 @@
             }
           },
           "time_sec": {
-            "mean": 3.74976549600251,
+            "mean": 3.7640997089911252,
             "std": 0.0
           }
         },
@@ -1518,7 +1518,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.5272902749711648,
+            "mean": 0.5316274699871428,
             "std": 0.0
           }
         }
@@ -1529,7 +1529,7 @@
       "n_features": 72,
       "n_samples": 3000,
       "name": "syn_024_class_3000x72",
-      "rs_over_learn": 0.14061953355037532,
+      "rs_over_learn": 0.14123628784786696,
       "runs": [
         {
           "seed": 13,
@@ -1538,14 +1538,14 @@
               "adjusted_rand": 0.13423882790186042,
               "normalized_mutual_info": 0.20414253610673616
             },
-            "time_sec": 3.74976549600251
+            "time_sec": 3.7640997089911252
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 0.1232786230424136,
               "normalized_mutual_info": 0.20157993536089264
             },
-            "time_sec": 0.5272902749711648
+            "time_sec": 0.5316274699871428
           }
         }
       ]
@@ -1564,7 +1564,7 @@
             }
           },
           "time_sec": {
-            "mean": 5.2053070469992235,
+            "mean": 5.322589136019815,
             "std": 0.0
           }
         },
@@ -1580,7 +1580,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.536055137985386,
+            "mean": 0.5393474830198102,
             "std": 0.0
           }
         }
@@ -1591,7 +1591,7 @@
       "n_features": 72,
       "n_samples": 3600,
       "name": "syn_027_blobs_3600x72",
-      "rs_over_learn": 0.10298242411932514,
+      "rs_over_learn": 0.10133178970547584,
       "runs": [
         {
           "seed": 13,
@@ -1600,14 +1600,14 @@
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 5.2053070469992235
+            "time_sec": 5.322589136019815
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.536055137985386
+            "time_sec": 0.5393474830198102
           }
         }
       ]
@@ -1626,7 +1626,7 @@
             }
           },
           "time_sec": {
-            "mean": 4.725216417980846,
+            "mean": 4.773239365022164,
             "std": 0.0
           }
         },
@@ -1642,7 +1642,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.566466226009652,
+            "mean": 0.556646226963494,
             "std": 0.0
           }
         }
@@ -1653,7 +1653,7 @@
       "n_features": 80,
       "n_samples": 3400,
       "name": "syn_026_class_3400x80",
-      "rs_over_learn": 0.11988154105578752,
+      "rs_over_learn": 0.11661812542705143,
       "runs": [
         {
           "seed": 13,
@@ -1662,14 +1662,14 @@
               "adjusted_rand": 0.11559236507367143,
               "normalized_mutual_info": 0.17642252996313273
             },
-            "time_sec": 4.725216417980846
+            "time_sec": 4.773239365022164
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 0.12102616425354677,
               "normalized_mutual_info": 0.18482755915736956
             },
-            "time_sec": 0.566466226009652
+            "time_sec": 0.556646226963494
           }
         }
       ]
@@ -1688,7 +1688,7 @@
             }
           },
           "time_sec": {
-            "mean": 6.422395467001479,
+            "mean": 6.394379519042559,
             "std": 0.0
           }
         },
@@ -1704,7 +1704,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.598494069010485,
+            "mean": 0.5896943690022454,
             "std": 0.0
           }
         }
@@ -1715,7 +1715,7 @@
       "n_features": 80,
       "n_samples": 4000,
       "name": "syn_029_blobs_4000x80",
-      "rs_over_learn": 0.09318860417200577,
+      "rs_over_learn": 0.09222073341848519,
       "runs": [
         {
           "seed": 13,
@@ -1724,14 +1724,14 @@
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 6.422395467001479
+            "time_sec": 6.394379519042559
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 1.0,
               "normalized_mutual_info": 1.0
             },
-            "time_sec": 0.598494069010485
+            "time_sec": 0.5896943690022454
           }
         }
       ]
@@ -1750,7 +1750,7 @@
             }
           },
           "time_sec": {
-            "mean": 5.953654154960532,
+            "mean": 5.927321333030704,
             "std": 0.0
           }
         },
@@ -1766,7 +1766,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.6709752600290813,
+            "mean": 0.6473843430285342,
             "std": 0.0
           }
         }
@@ -1777,7 +1777,7 @@
       "n_features": 88,
       "n_samples": 3800,
       "name": "syn_028_class_3800x88",
-      "rs_over_learn": 0.11269973743268756,
+      "rs_over_learn": 0.10922038922049118,
       "runs": [
         {
           "seed": 13,
@@ -1786,14 +1786,14 @@
               "adjusted_rand": 0.0833050882418308,
               "normalized_mutual_info": 0.15810116764241272
             },
-            "time_sec": 5.953654154960532
+            "time_sec": 5.927321333030704
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 0.08234490921988842,
               "normalized_mutual_info": 0.15605183010446433
             },
-            "time_sec": 0.6709752600290813
+            "time_sec": 0.6473843430285342
           }
         }
       ]
@@ -1812,7 +1812,7 @@
             }
           },
           "time_sec": {
-            "mean": 1.038457170012407,
+            "mean": 1.050998508988414,
             "std": 0.0
           }
         },
@@ -1828,7 +1828,7 @@
             }
           },
           "time_sec": {
-            "mean": 0.711323506955523,
+            "mean": 0.7088030829909258,
             "std": 0.0
           }
         }
@@ -1839,7 +1839,7 @@
       "n_features": 96,
       "n_samples": 4200,
       "name": "syn_030_class_4200x96",
-      "rs_over_learn": 0.6849810733619611,
+      "rs_over_learn": 0.6744092184042665,
       "runs": [
         {
           "seed": 13,
@@ -1848,14 +1848,14 @@
               "adjusted_rand": 0.07391208535650383,
               "normalized_mutual_info": 0.12908457114756017
             },
-            "time_sec": 1.038457170012407
+            "time_sec": 1.050998508988414
           },
           "umap_rs": {
             "scores": {
               "adjusted_rand": 0.06447870671042456,
               "normalized_mutual_info": 0.11683915086082552
             },
-            "time_sec": 0.711323506955523
+            "time_sec": 0.7088030829909258
           }
         }
       ]
@@ -1864,9 +1864,9 @@
   "environment": {
     "python": "3.13.9",
     "umap_learn": "0.5.12",
-    "umapers": "1.1.0"
+    "umapers": "1.1.1"
   },
-  "generated_at": "2026-06-12T19:39:40+0800",
+  "generated_at": "2026-06-12T19:48:15+0800",
   "settings": {
     "build_profile": "release",
     "init": "spectral",

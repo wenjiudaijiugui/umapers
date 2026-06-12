@@ -76,7 +76,7 @@ ax.figure.savefig("embedding.png", dpi=160)
 
 ## 效果
 
-下面的图来自 `1.1.0` 发布报告。
+下面的图来自 `1.1.1` 发布报告。
 
 ### 聚类质量
 
@@ -183,7 +183,7 @@ embedding = Umap(n_neighbors=k, random_seed=42).fit_transform_with_knn(
 
 ## 已知限制
 
-截至 `1.1.0`：
+截至 `1.1.1`：
 
 - 暂不支持稀疏数据训练后的 `inverse_transform`
 - `ParametricUmap` 是轻量便捷工作流，不是 Keras/TensorFlow 替代品

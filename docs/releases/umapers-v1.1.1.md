@@ -1,9 +1,9 @@
-# umapers 1.1.0
+# umapers 1.1.1
 
-`umapers 1.1.0` is the first post-1.0 release-prep milestone for the renamed
-Python package. It turns the previous compatibility work into a broader,
-measured Python/Rust surface and fixes the benchmark interpretation issues that
-previously made large-data runtime look worse than it was.
+`umapers 1.1.1` is the cleaned 1.1 release for the current Python package name
+and release tag convention. It turns the previous compatibility work into a
+broader, measured Python/Rust surface and fixes the benchmark interpretation
+issues that previously made large-data runtime look worse than it was.
 
 ## Highlights
 
@@ -40,8 +40,8 @@ previously made large-data runtime look worse than it was.
 
 The latest local release-build synthetic scaling report shows `umapers` faster
 than `umap-learn` on 29 / 30 datasets. The largest dataset in that report,
-`4200 x 96`, runs at `0.68x` of `umap-learn` time. The larger probe from
-`4200 x 96` to `20000 x 192` reports `0.67x` to `0.73x` of `umap-learn` time.
+`4200 x 96`, runs at `0.67x` of `umap-learn` time. The larger probe from
+`4200 x 96` to `20000 x 192` reports `0.68x` to `0.73x` of `umap-learn` time.
 
 ## Install
 
