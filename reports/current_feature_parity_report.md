@@ -1,13 +1,13 @@
-# Current umap-rs Feature Parity Report
+# Current umapers Feature Parity Report
 
-- generated_at: `2026-06-12T18:55:40+0800`
+- generated_at: `2026-06-12T19:37:57+0800`
 - python: `3.13.9 (main, Oct 31 2025, 23:02:44) [Clang 21.1.4 ]`
 - umapers: `1.1.0`
 - umap_learn: `0.5.12`
 
 ## Scenario Summary
 
-| scenario | comparability | umap-rs | umap-learn | key metric |
+| scenario | comparability | umapers | umap-learn | key metric |
 |---|---|---:|---:|---|
 | `dense_fit_transform_digits` | direct | ok | ok | rs trust=0.944; learn trust=0.947 |
 | `transform_inverse_digits` | direct | ok | ok | rs acc=0.922; learn acc=0.922 |

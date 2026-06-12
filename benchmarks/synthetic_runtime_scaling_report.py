@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Synthetic runtime scaling report for umap-rs and umap-learn."""
+"""Synthetic runtime scaling report for umapers and umap-learn."""
 
 from __future__ import annotations
 
@@ -368,7 +368,7 @@ def make_svg(rows: list[dict[str, Any]]) -> str:
             f'<rect x="{legend_x}" y="{legend_y}" width="190" height="64" rx="6" fill="#ffffff" stroke="{GRID_COLOR}"/>',
             f'<line x1="{legend_x + 16}" y1="{legend_y + 22}" x2="{legend_x + 50}" y2="{legend_y + 22}" stroke="{RS_COLOR}" stroke-width="3"/>',
             f'<circle cx="{legend_x + 33}" cy="{legend_y + 22}" r="5" fill="{RS_COLOR}"/>',
-            f'<text x="{legend_x + 62}" y="{legend_y + 26}" font-family="Inter, Arial, sans-serif" font-size="13" fill="{TEXT_COLOR}">umap-rs</text>',
+            f'<text x="{legend_x + 62}" y="{legend_y + 26}" font-family="Inter, Arial, sans-serif" font-size="13" fill="{TEXT_COLOR}">umapers</text>',
             f'<line x1="{legend_x + 16}" y1="{legend_y + 46}" x2="{legend_x + 50}" y2="{legend_y + 46}" stroke="{LEARN_COLOR}" stroke-width="3"/>',
             f'<circle cx="{legend_x + 33}" cy="{legend_y + 46}" r="5" fill="{LEARN_COLOR}"/>',
             f'<text x="{legend_x + 62}" y="{legend_y + 50}" font-family="Inter, Arial, sans-serif" font-size="13" fill="{TEXT_COLOR}">umap-learn</text>',
@@ -401,7 +401,7 @@ def write_markdown(report: dict[str, Any], path: Path, svg_path: Path) -> None:
         "",
         "## Summary",
         "",
-        f"- umap-rs is faster on {faster_count} / {len(rows)} synthetic datasets.",
+        f"- umapers is faster on {faster_count} / {len(rows)} synthetic datasets.",
     ]
     if first_faster is not None:
         lines.append(
@@ -413,7 +413,7 @@ def write_markdown(report: dict[str, Any], path: Path, svg_path: Path) -> None:
             "",
             "## Runtime Table",
             "",
-            "| dataset | kind | samples | features | matrix size | classes | umap-rs sec | umap-learn sec | rs / learn | rs ARI | learn ARI |",
+            "| dataset | kind | samples | features | matrix size | classes | umapers sec | umap-learn sec | rs / learn | rs ARI | learn ARI |",
             "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
         ]
     )

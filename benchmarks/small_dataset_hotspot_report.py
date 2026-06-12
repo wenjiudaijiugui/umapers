@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Small-dataset hotspot report for umap-rs module timings."""
+"""Small-dataset hotspot report for umapers module timings."""
 
 from __future__ import annotations
 

@@ -6,7 +6,7 @@
     "umap_learn_version": "0.5.12",
     "umapers_version": "1.1.0"
   },
-  "generated_at": "2026-06-12T18:55:40+0800",
+  "generated_at": "2026-06-12T19:37:57+0800",
   "scenarios": [
     {
       "comparability": "direct",
@@ -21,7 +21,7 @@
           420,
           2
         ],
-        "time_sec": 0.08614369097631425,
+        "time_sec": 0.08893451897893101,
         "trustworthiness": 0.9474317539386032
       },
       "umap_rs": {
@@ -32,7 +32,7 @@
           420,
           2
         ],
-        "time_sec": 0.05057754198787734,
+        "time_sec": 0.05073652800638229,
         "top_level_shape": [
           120,
           2
@@ -54,7 +54,7 @@
           90,
           2
         ],
-        "time_sec": 2.257551300979685
+        "time_sec": 2.2171809529536404
       },
       "umap_rs": {
         "embedding_knn_accuracy": 0.9222222222222223,
@@ -66,7 +66,7 @@
           90,
           2
         ],
-        "time_sec": 0.032285708002746105,
+        "time_sec": 0.0319603230454959,
         "transform_out_identity": true
       }
     },
@@ -83,7 +83,7 @@
           178,
           2
         ],
-        "time_sec": 0.16311146802036092,
+        "time_sec": 0.16121836699312553,
         "trustworthiness": 0.915149166989539
       },
       "umap_rs": {
@@ -94,7 +94,7 @@
           178,
           2
         ],
-        "time_sec": 0.024433581973426044,
+        "time_sec": 0.025144301005639136,
         "trustworthiness": 0.9175530978126871
       }
     },
@@ -177,7 +177,7 @@
           "trustworthiness": 0.8999466548121805
         },
         "ok": true,
-        "time_sec": 0.5685157009866089
+        "time_sec": 0.579637004993856
       },
       "umap_rs": {
         "braycurtis": {
@@ -253,7 +253,7 @@
           "trustworthiness": 0.9062058235163369
         },
         "ok": true,
-        "time_sec": 0.16448256699368358
+        "time_sec": 0.163507861958351
       }
     },
     {
@@ -277,7 +277,7 @@
           260,
           2
         ],
-        "time_sec": 8.391041583032347,
+        "time_sec": 8.542071419011336,
         "trustworthiness": 0.8878444019748367
       },
       "umap_rs": {
@@ -296,7 +296,7 @@
           260,
           2
         ],
-        "time_sec": 0.026278453005943447,
+        "time_sec": 0.02467544301180169,
         "trustworthiness": 0.8882067208154165
       }
     },
@@ -323,7 +323,7 @@
           2
         ],
         "sparsity": 0.3286458333333333,
-        "time_sec": 0.05718239303678274,
+        "time_sec": 0.05797141999937594,
         "trustworthiness": 0.9550725689404934
       },
       "umap_rs": {
@@ -344,14 +344,14 @@
           2
         ],
         "sparsity": 0.3286458333333333,
-        "time_sec": 0.06058354501146823,
+        "time_sec": 0.05860441399272531,
         "trustworthiness": 0.958952588292211
       }
     },
     {
       "comparability": "library-native precomputed contracts, not byte-identical graph input",
       "dataset": "sklearn.load_wine",
-      "description": "Library-native precomputed exact kNN path. Contracts differ: umap-rs receives neighbors excluding self; umap-learn receives its native self-inclusive kNN tuple.",
+      "description": "Library-native precomputed exact kNN path. Contracts differ: umapers receives neighbors excluding self; umap-learn receives its native self-inclusive kNN tuple.",
       "scenario": "precomputed_knn_wine",
       "umap_learn": {
         "embedding_silhouette": 0.5934620499610901,
@@ -361,7 +361,7 @@
           178,
           2
         ],
-        "time_sec": 0.44884039799217135,
+        "time_sec": 0.4508299679728225,
         "trustworthiness": 0.9378412172871685
       },
       "umap_rs": {
@@ -372,14 +372,14 @@
           178,
           2
         ],
-        "time_sec": 0.02033109898911789,
+        "time_sec": 0.01930347504094243,
         "trustworthiness": 0.9375476970401418
       }
     },
     {
       "comparability": "algorithmic ANN comparison; backends differ",
       "dataset": "sklearn.load_digits",
-      "description": "Approximate-neighbor embedding on digits. umap-rs additionally reports exact-vs-approx kNN recall.",
+      "description": "Approximate-neighbor embedding on digits. umapers additionally reports exact-vs-approx kNN recall.",
       "scenario": "approximate_ann_digits",
       "umap_learn": {
         "embedding_silhouette": 0.41426992416381836,
@@ -389,7 +389,7 @@
           500,
           2
         ],
-        "time_sec": 0.11568001296836883,
+        "time_sec": 0.12076617899583653,
         "trustworthiness": 0.9473464866735894
       },
       "umap_rs": {
@@ -402,7 +402,7 @@
           500,
           2
         ],
-        "time_sec": 0.06206954299705103,
+        "time_sec": 0.062079028983134776,
         "trustworthiness": 0.9394517133956386
       }
     },
@@ -415,12 +415,12 @@
         "error": "umap-learn ParametricUMAP unavailable in this environment: ImportError: umap.parametric_umap requires Tensorflow >= 2.0",
         "error_type": "RuntimeError",
         "ok": false,
-        "time_sec": 0.00045077496906742454,
+        "time_sec": 0.00040876795537769794,
         "traceback_tail": [
           "Traceback (most recent call last):",
-          "  File \"/home/shenshang/sundry/umap-rs/benchmarks/current_feature_parity_report.py\", line 62, in timed",
+          "  File \"<repo>/benchmarks/current_feature_parity_report.py\", line 67, in timed",
           "    payload = fn()",
-          "  File \"/home/shenshang/sundry/umap-rs/benchmarks/current_feature_parity_report.py\", line 619, in ul",
+          "  File \"<repo>/benchmarks/current_feature_parity_report.py\", line 626, in ul",
           "    raise RuntimeError(",
           "        f\"umap-learn ParametricUMAP unavailable in this environment: {type(exc).__name__}: {exc}\"",
           "    ) from exc",
@@ -435,7 +435,7 @@
           44,
           2
         ],
-        "time_sec": 0.020504372951108962,
+        "time_sec": 0.02231318998383358,
         "train_finite": true,
         "train_shape": [
           176,
@@ -462,7 +462,7 @@
             2
           ]
         ],
-        "time_sec": 5.298126216977835
+        "time_sec": 5.377325295994524
       },
       "umap_rs": {
         "aligned_pair_mean_gap": 0.639227032661438,
@@ -478,7 +478,7 @@
             2
           ]
         ],
-        "time_sec": 0.026924135978333652
+        "time_sec": 0.028666124970186502
       }
     },
     {
@@ -494,7 +494,7 @@
           "error_type": "ImportError",
           "ok": false
         },
-        "time_sec": 0.008875348954461515
+        "time_sec": 0.000336622993927449
       },
       "umap_rs": {
         "diagnostics": {
@@ -510,7 +510,7 @@
           "error_type": "ImportError",
           "ok": false
         },
-        "time_sec": 0.0024809149908833206
+        "time_sec": 0.0022125900140963495
       }
     },
     {
@@ -526,7 +526,7 @@
           120,
           2
         ],
-        "time_sec": 0.00583297701086849
+        "time_sec": 0.0061440529534593225
       },
       "umap_rs": {
         "inverse_error": "invalid parameter: inverse_transform is not supported for sparse-trained models yet",
@@ -536,7 +536,7 @@
           120,
           2
         ],
-        "time_sec": 0.012957873987033963
+        "time_sec": 0.014037966029718518
       }
     }
   ],
@@ -547,7 +547,7 @@
         40,
         2
       ],
-      "time_sec": 4.54360842902679
+      "time_sec": 4.462254683021456
     }
   }
 }

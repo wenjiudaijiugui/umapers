@@ -35,8 +35,8 @@ for user-facing milestones.
 
 ### Highlights
 
-- Published the Python binding on PyPI under the unified distribution name
-  `umap-rs`, with the import path `umap_rs`.
+- Published the Python binding on PyPI under the then-current pre-1.0
+  distribution name, with the import path `umap_rs`.
 - Shipped typed Python package assets for `umap_rs`, including
   `__init__.pyi`, `_api.pyi`, and `py.typed`, plus `UmapKwargs`, richer
   docstrings, hover text, and clearer signature help for the public API.
@@ -56,7 +56,7 @@ for user-facing milestones.
 
 ### Naming Notes
 
-- The Python distribution and import path are now unified as `umap-rs` and
-  `umap_rs`.
+- This was the pre-1.0 naming surface. The package was later renamed to
+  `umapers`.
 - Published support is Python 3.9 through 3.13. Python 3.14 was probed in CI
   from sdist, but it is not yet part of the supported range.

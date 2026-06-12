@@ -86,7 +86,7 @@ For Wave 3 release-prep convergence, run the repository-level orchestrator from 
 PYTHON_BIN="$(command -v python3 || command -v python)"
 $PYTHON_BIN benchmarks/release_prep_regression.py \
   --candidate-root "$(pwd -P)" \
-  --baseline-root /path/to/umap-rs-baseline \
+  --baseline-root /path/to/umapers-baseline \
   --gate-config benchmarks/gate_thresholds.json \
   --metrics euclidean,manhattan,cosine \
   --output-json benchmarks/release-prep-regression.local.json

@@ -3,7 +3,6 @@ name: python-release
 on:
   push:
     tags:
-      - "v*"
       - "umapers-v*"
   workflow_dispatch:
 
@@ -247,3 +246,4 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist
+          skip-existing: true

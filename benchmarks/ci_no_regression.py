@@ -299,7 +299,7 @@ def main() -> None:
     per_impl: Dict[str, List[Dict[str, float]]] = {"baseline": [], "candidate": []}
     paired_order: List[List[str]] = []
 
-    with tempfile.TemporaryDirectory(prefix="umap-rs-ci-regression-") as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="umapers-ci-regression-") as tmpdir:
         tmp = Path(tmpdir)
         x = generate_dataset(args.seed)
         data_path = tmp / "dataset.csv"

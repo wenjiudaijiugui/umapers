@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Real-data dimensionality-reduction clustering report for umap-rs."""
+"""Real-data dimensionality-reduction clustering report for umapers."""
 
 from __future__ import annotations
 
@@ -48,7 +48,7 @@ METHOD_ORDER = ["raw_kmeans", "pca2_kmeans", "umap_rs2_kmeans", "umap_learn2_kme
 METHOD_LABELS = {
     "raw_kmeans": "Raw",
     "pca2_kmeans": "PCA2",
-    "umap_rs2_kmeans": "umap-rs",
+    "umap_rs2_kmeans": "umapers",
     "umap_learn2_kmeans": "umap-learn",
 }
 METHOD_COLORS = {
@@ -369,7 +369,7 @@ def make_metrics_svg(report: dict[str, Any]) -> str:
 
 def write_markdown(report: dict[str, Any], path: Path, svg_path: Path) -> None:
     lines = [
-        "# Current umap-rs Clustering Analysis Report",
+        "# Current umapers Clustering Analysis Report",
         "",
         f"- generated_at: `{report['generated_at']}`",
         f"- python: `{report['environment']['python']}`",
@@ -384,7 +384,7 @@ def write_markdown(report: dict[str, Any], path: Path, svg_path: Path) -> None:
         "",
         "## Runtime Summary",
         "",
-        "| dataset | size | raw KMeans | PCA2 + KMeans | umap-rs + KMeans | umap-learn + KMeans | rs / learn |",
+        "| dataset | size | raw KMeans | PCA2 + KMeans | umapers + KMeans | umap-learn + KMeans | rs / learn |",
         "|---|---:|---:|---:|---:|---:|---:|",
     ]
 
@@ -449,7 +449,7 @@ def write_markdown(report: dict[str, Any], path: Path, svg_path: Path) -> None:
             "",
             "## Best ARI By Dataset",
             "",
-            "| dataset | best method | ARI | umap-rs ARI | umap-learn ARI |",
+            "| dataset | best method | ARI | umapers ARI | umap-learn ARI |",
             "|---|---|---:|---:|---:|",
         ]
     )

@@ -169,7 +169,7 @@ def main() -> None:
         },
     }
 
-    with tempfile.TemporaryDirectory(prefix="umap-rs-ci-ann-e2e-") as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="umapers-ci-ann-e2e-") as tmpdir:
         tmp = Path(tmpdir)
         fair.DATA_DIR = tmp / "data"
         fair.KNN_DIR = tmp / "knn"

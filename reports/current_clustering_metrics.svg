@@ -7,7 +7,7 @@
 <rect x="190" y="74" width="14" height="14" rx="2" fill="#16a34a"/>
 <text x="212" y="86" font-family="Inter, Arial, sans-serif" font-size="13" fill="#111827">PCA2</text>
 <rect x="326" y="74" width="14" height="14" rx="2" fill="#2563eb"/>
-<text x="348" y="86" font-family="Inter, Arial, sans-serif" font-size="13" fill="#111827">umap-rs</text>
+<text x="348" y="86" font-family="Inter, Arial, sans-serif" font-size="13" fill="#111827">umapers</text>
 <rect x="462" y="74" width="14" height="14" rx="2" fill="#dc2626"/>
 <text x="484" y="86" font-family="Inter, Arial, sans-serif" font-size="13" fill="#111827">umap-learn</text>
 <text x="54" y="118" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">ARI</text>

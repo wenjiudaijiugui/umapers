@@ -38,6 +38,11 @@ else:
 
 
 Record = dict[str, Any]
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def scrub_report_text(value: str) -> str:
+    return value.replace(str(REPO_ROOT), "<repo>")
 
 
 def to_jsonable(value: Any) -> Any:
@@ -65,8 +70,10 @@ def timed(fn: Callable[[], dict[str, Any]]) -> Record:
             "ok": False,
             "time_sec": time.perf_counter() - start,
             "error_type": type(exc).__name__,
-            "error": str(exc),
-            "traceback_tail": traceback.format_exc().splitlines()[-8:],
+            "error": scrub_report_text(str(exc)),
+            "traceback_tail": [
+                scrub_report_text(line) for line in traceback.format_exc().splitlines()[-8:]
+            ],
         }
     return {"ok": True, "time_sec": time.perf_counter() - start, **payload}
 
@@ -533,7 +540,7 @@ def precomputed_knn_case() -> Record:
 
     return compare_result(
         "precomputed_knn_wine",
-        "Library-native precomputed exact kNN path. Contracts differ: umap-rs receives neighbors excluding self; umap-learn receives its native self-inclusive kNN tuple.",
+        "Library-native precomputed exact kNN path. Contracts differ: umapers receives neighbors excluding self; umap-learn receives its native self-inclusive kNN tuple.",
         "sklearn.load_wine",
         rs,
         ul,
@@ -576,7 +583,7 @@ def ann_case() -> Record:
 
     return compare_result(
         "approximate_ann_digits",
-        "Approximate-neighbor embedding on digits. umap-rs additionally reports exact-vs-approx kNN recall.",
+        "Approximate-neighbor embedding on digits. umapers additionally reports exact-vs-approx kNN recall.",
         "sklearn.load_digits",
         rs,
         ul,
@@ -800,7 +807,7 @@ def unsupported_boundary_case() -> Record:
 
 def write_markdown(report: dict[str, Any], path: Path) -> None:
     lines = [
-        "# Current umap-rs Feature Parity Report",
+        "# Current umapers Feature Parity Report",
         "",
         f"- generated_at: `{report['generated_at']}`",
         f"- python: `{report['environment']['python']}`",
@@ -809,7 +816,7 @@ def write_markdown(report: dict[str, Any], path: Path) -> None:
         "",
         "## Scenario Summary",
         "",
-        "| scenario | comparability | umap-rs | umap-learn | key metric |",
+        "| scenario | comparability | umapers | umap-learn | key metric |",
         "|---|---|---:|---:|---|",
     ]
     for row in report["scenarios"]:
@@ -847,7 +854,7 @@ def write_markdown(report: dict[str, Any], path: Path) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Exercise current umap-rs features against umap-learn on real datasets.")
+    parser = argparse.ArgumentParser(description="Exercise current umapers features against umap-learn on real datasets.")
     parser.add_argument("--output-json", type=Path, default=Path("reports/current_feature_parity_report.json"))
     parser.add_argument("--output-md", type=Path, default=Path("reports/current_feature_parity_report.md"))
     parser.add_argument("--skip-warmup", action="store_true")

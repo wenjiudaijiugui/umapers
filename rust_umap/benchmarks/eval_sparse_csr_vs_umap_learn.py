@@ -271,7 +271,7 @@ def detect_python_neighbor_path(
 def run_rust_sparse(
     x: sp.csr_matrix, args: argparse.Namespace
 ) -> Tuple[Dict[str, object], np.ndarray]:
-    with tempfile.TemporaryDirectory(prefix="umap-rs-sparse-rust-") as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="umapers-sparse-rust-") as tmpdir:
         tmp = Path(tmpdir)
         dummy_input = tmp / "dummy.csv"
         out_csv = tmp / "rust_embedding.csv"
@@ -427,7 +427,7 @@ def run_python_internal(args: argparse.Namespace) -> None:
 def run_python_sparse(
     x: sp.csr_matrix, args: argparse.Namespace
 ) -> Tuple[Dict[str, object], np.ndarray]:
-    with tempfile.TemporaryDirectory(prefix="umap-rs-sparse-py-") as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="umapers-sparse-py-") as tmpdir:
         tmp = Path(tmpdir)
         input_npz = tmp / "input_sparse.npz"
         output_csv = tmp / "py_embedding.csv"

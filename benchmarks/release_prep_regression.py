@@ -88,7 +88,7 @@ def _ensure_paths(candidate_root: Path, baseline_root: Optional[Path]) -> None:
     if not candidate_root.exists():
         raise SystemExit(f"candidate root not found: {candidate_root}")
     if not (candidate_root / "benchmarks").exists():
-        raise SystemExit(f"candidate root does not look like umap-rs repo: {candidate_root}")
+        raise SystemExit(f"candidate root does not look like the umapers repo: {candidate_root}")
     if baseline_root is None:
         raise SystemExit("--baseline-root is required for no-regression gate")
     if not baseline_root.exists():
