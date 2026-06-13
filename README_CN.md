@@ -184,7 +184,7 @@ embedding = Umap(n_neighbors=k, random_seed=42).fit_transform_with_knn(
 
 ## 已知限制
 
-截至 `1.1.2`：
+截至 `1.1.3`：
 
 - 暂不支持稀疏数据训练后的 `inverse_transform`
 - `ParametricUmap` 是轻量便捷工作流，不是 Keras/TensorFlow 替代品

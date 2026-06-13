@@ -5,6 +5,21 @@ All notable changes to this repository are documented in this file.
 The format follows Keep a Changelog and uses semantic-versioned release headings
 for user-facing milestones.
 
+## [1.1.3] - 2026-06-13
+
+### Fixed
+
+- Stabilized the iterative spectral initialization path for low-dimensional
+  nonlinear manifolds just above the exact-spectral cutoff. The larger
+  subspace and longer block iteration remove the Swiss Roll quality cliff seen
+  around 2049 samples without forcing dense full eigendecomposition.
+- Matched `umap-learn` density-output attribute semantics more closely:
+  `rad_orig_`, `rad_emb_`, `radii_original_`, and `radii_embedding_` are exposed
+  only when `output_dens=True`, and are cleared when estimator parameters are
+  reset.
+- Broadened the pyright usage probe to cover top-level wrapper exports beyond
+  `Umap`, including `ParametricUmap`, `AlignedUmap`, and `__version__`.
+
 ## [1.1.2] - 2026-06-12
 
 ### Fixed

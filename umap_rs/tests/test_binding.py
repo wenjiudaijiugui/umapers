@@ -736,7 +736,8 @@ def test_output_dens_returns_embedding_and_radii() -> None:
     assert np.all(np.isfinite(radii_embedding))
 
 
-def test_swiss_roll_spectral_quality_tracks_umap_learn() -> None:
+@pytest.mark.parametrize(("n_samples", "seed"), [(1500, 0), (2500, 2)])
+def test_swiss_roll_spectral_quality_tracks_umap_learn(n_samples: int, seed: int) -> None:
     datasets = pytest.importorskip("sklearn.datasets")
     metrics = pytest.importorskip("sklearn.metrics")
     manifold = pytest.importorskip("sklearn.manifold")
@@ -744,7 +745,7 @@ def test_swiss_roll_spectral_quality_tracks_umap_learn() -> None:
     umap_module = pytest.importorskip("umap")
 
     x, manifold_position = datasets.make_swiss_roll(
-        n_samples=1500,
+        n_samples=n_samples,
         noise=0.05,
         random_state=11,
     )
@@ -758,7 +759,7 @@ def test_swiss_roll_spectral_quality_tracks_umap_learn() -> None:
         n_neighbors=15,
         n_components=2,
         init="spectral",
-        random_seed=0,
+        random_seed=seed,
         use_approximate_knn=False,
     )
     rust_embedding = Umap(**kwargs).fit_transform(x)
@@ -766,7 +767,7 @@ def test_swiss_roll_spectral_quality_tracks_umap_learn() -> None:
         n_neighbors=15,
         n_components=2,
         init="spectral",
-        random_state=0,
+        random_state=seed,
         n_jobs=1,
     ).fit_transform(x)
 
@@ -778,6 +779,42 @@ def test_swiss_roll_spectral_quality_tracks_umap_learn() -> None:
     assert rust_silhouette >= 0.30
     assert rust_silhouette >= learn_silhouette - 0.08
     assert rust_trust >= learn_trust - 0.002
+
+
+def test_density_attributes_follow_output_dens_lifecycle() -> None:
+    x = make_dataset(n_samples=64, n_features=8, seed=96)
+
+    model = Umap(
+        n_neighbors=8,
+        n_components=2,
+        n_epochs=30,
+        init="random",
+        random_seed=99,
+        densmap=True,
+        output_dens=False,
+    )
+    embedding = model.fit_transform(x)
+    assert embedding.shape == (x.shape[0], 2)
+    for fitted_attr in ("rad_orig_", "rad_emb_", "radii_original_", "radii_embedding_"):
+        assert not hasattr(model, fitted_attr)
+
+    model.set_params(output_dens=True)
+    for fitted_attr in ("rad_orig_", "rad_emb_", "radii_original_", "radii_embedding_"):
+        assert not hasattr(model, fitted_attr)
+    embedding, radii_original, radii_embedding = model.fit_transform(x)
+    assert model.rad_orig_ is radii_original
+    assert model.rad_emb_ is radii_embedding
+    assert model.radii_original_ is radii_original
+    assert model.radii_embedding_ is radii_embedding
+    assert embedding.shape == (x.shape[0], 2)
+
+    model.set_params(output_dens=False, densmap=False)
+    for fitted_attr in ("rad_orig_", "rad_emb_", "radii_original_", "radii_embedding_"):
+        assert not hasattr(model, fitted_attr)
+    embedding = model.fit_transform(x)
+    assert embedding.shape == (x.shape[0], 2)
+    for fitted_attr in ("rad_orig_", "rad_emb_", "radii_original_", "radii_embedding_"):
+        assert not hasattr(model, fitted_attr)
 
 
 def test_densmap_lambda_zero_matches_standard_umap() -> None:

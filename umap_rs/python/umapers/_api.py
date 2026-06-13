@@ -424,6 +424,8 @@ class Umap(_BaseEstimator, _TransformerMixin):
             "n_samples_fit_",
             "radii_original_",
             "radii_embedding_",
+            "rad_orig_",
+            "rad_emb_",
             "knn_diagnostics_",
         ):
             if hasattr(self, fitted_attr):
@@ -528,7 +530,7 @@ class Umap(_BaseEstimator, _TransformerMixin):
     def _sync_density_attributes(self) -> None:
         radii_original = self._core.radii_original
         radii_embedding = self._core.radii_embedding
-        if radii_original is None or radii_embedding is None:
+        if not self.output_dens or radii_original is None or radii_embedding is None:
             for fitted_attr in ("radii_original_", "radii_embedding_", "rad_orig_", "rad_emb_"):
                 if hasattr(self, fitted_attr):
                     delattr(self, fitted_attr)

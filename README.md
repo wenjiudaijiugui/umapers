@@ -184,7 +184,7 @@ embedding = Umap(n_neighbors=k, random_seed=42).fit_transform_with_knn(
 
 ## Known Gaps
 
-As of `1.1.2`:
+As of `1.1.3`:
 
 - sparse-trained `inverse_transform` is not supported yet
 - `ParametricUmap` is a lightweight convenience workflow, not a Keras/TensorFlow replacement
