@@ -5,6 +5,39 @@ use rand::{Rng, SeedableRng};
 
 const SCALE_EPS: f32 = 1e-6;
 
+#[inline]
+fn forward_hidden_layer(input: &[f32], weights: &[f32], bias: &[f32], output: &mut [f32]) {
+    let hidden = output.len();
+    debug_assert_eq!(bias.len(), hidden);
+    debug_assert_eq!(weights.len(), input.len() * hidden);
+
+    output.copy_from_slice(bias);
+    for (feature, &value) in input.iter().enumerate() {
+        let weight_row = &weights[feature * hidden..(feature + 1) * hidden];
+        for hidden_idx in 0..hidden {
+            output[hidden_idx] += value * weight_row[hidden_idx];
+        }
+    }
+    for value in output.iter_mut() {
+        *value = value.tanh();
+    }
+}
+
+#[inline]
+fn forward_output_layer(input: &[f32], weights: &[f32], bias: &[f32], output: &mut [f32]) {
+    let output_dim = output.len();
+    debug_assert_eq!(bias.len(), output_dim);
+    debug_assert_eq!(weights.len(), input.len() * output_dim);
+
+    output.copy_from_slice(bias);
+    for (hidden_idx, &value) in input.iter().enumerate() {
+        let weight_row = &weights[hidden_idx * output_dim..(hidden_idx + 1) * output_dim];
+        for output_idx in 0..output_dim {
+            output[output_idx] += value * weight_row[output_idx];
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum ParametricTrainMode {
     Naive,
@@ -216,20 +249,10 @@ impl ParametricUmapModel {
                 let output_row =
                     &mut output_all[sample_idx * output_dim..(sample_idx + 1) * output_dim];
 
-                for h in 0..hidden {
-                    let mut sum = self.b1[h];
-                    for f in 0..n_features {
-                        sum += x_row[f] * self.w1[f * hidden + h];
-                    }
-                    hidden_row[h] = sum.tanh();
-                }
-
+                forward_hidden_layer(x_row, &self.w1, &self.b1, hidden_row);
+                forward_output_layer(hidden_row, &self.w2, &self.b2, output_row);
                 for o in 0..output_dim {
-                    let mut sum = self.b2[o];
-                    for h in 0..hidden {
-                        sum += hidden_row[h] * self.w2[h * output_dim + o];
-                    }
-                    output_row[o] = sum;
+                    let sum = output_row[o];
                     let target = targets[sample_idx * output_dim + o];
                     delta_out_all[sample_idx * output_dim + o] = sum - target;
                 }
@@ -269,10 +292,13 @@ impl ParametricUmapModel {
                     &delta_out_all[sample_idx * output_dim..(sample_idx + 1) * output_dim];
 
                 for o in 0..output_dim {
-                    let err = delta_out_row[o];
-                    grad_b2[o] += err;
-                    for h in 0..hidden {
-                        grad_w2[h * output_dim + o] += hidden_row[h] * err;
+                    grad_b2[o] += delta_out_row[o];
+                }
+                for h in 0..hidden {
+                    let weight_offset = h * output_dim;
+                    let hidden_value = hidden_row[h];
+                    for o in 0..output_dim {
+                        grad_w2[weight_offset + o] += hidden_value * delta_out_row[o];
                     }
                 }
 
@@ -360,21 +386,10 @@ impl ParametricUmapModel {
                     let output_row = &mut output_buf[bi * output_dim..(bi + 1) * output_dim];
                     let delta_out_row = &mut delta_out[bi * output_dim..(bi + 1) * output_dim];
 
-                    for h in 0..hidden {
-                        let mut sum = self.b1[h];
-                        for f in 0..n_features {
-                            sum += x_row[f] * self.w1[f * hidden + h];
-                        }
-                        hidden_row[h] = sum.tanh();
-                    }
-
+                    forward_hidden_layer(x_row, &self.w1, &self.b1, hidden_row);
+                    forward_output_layer(hidden_row, &self.w2, &self.b2, output_row);
                     for o in 0..output_dim {
-                        let mut sum = self.b2[o];
-                        for h in 0..hidden {
-                            sum += hidden_row[h] * self.w2[h * output_dim + o];
-                        }
-                        output_row[o] = sum;
-                        delta_out_row[o] = sum - y_row[o];
+                        delta_out_row[o] = output_row[o] - y_row[o];
                     }
                 }
 
@@ -412,10 +427,13 @@ impl ParametricUmapModel {
                     let hidden_row = &hidden_buf[bi * hidden..(bi + 1) * hidden];
                     let delta_out_row = &delta_out[bi * output_dim..(bi + 1) * output_dim];
                     for o in 0..output_dim {
-                        let err = delta_out_row[o];
-                        grad_b2[o] += err;
-                        for h in 0..hidden {
-                            grad_w2[h * output_dim + o] += hidden_row[h] * err;
+                        grad_b2[o] += delta_out_row[o];
+                    }
+                    for h in 0..hidden {
+                        let weight_offset = h * output_dim;
+                        let hidden_value = hidden_row[h];
+                        for o in 0..output_dim {
+                            grad_w2[weight_offset + o] += hidden_value * delta_out_row[o];
                         }
                     }
                 }
@@ -484,7 +502,7 @@ impl ParametricUmapModel {
             .min(n_samples.max(1));
 
         let mut output = vec![vec![0.0_f32; output_dim]; n_samples];
-        let mut hidden_buf = vec![0.0_f32; batch_size * hidden];
+        let mut hidden_buf = vec![0.0_f32; hidden];
 
         let mut start = 0usize;
         while start < n_samples {
@@ -494,23 +512,8 @@ impl ParametricUmapModel {
             for bi in 0..bsz {
                 let sample_idx = start + bi;
                 let x_row = &inputs[sample_idx * n_features..(sample_idx + 1) * n_features];
-                let hidden_row = &mut hidden_buf[bi * hidden..(bi + 1) * hidden];
-
-                for h in 0..hidden {
-                    let mut sum = self.b1[h];
-                    for f in 0..n_features {
-                        sum += x_row[f] * self.w1[f * hidden + h];
-                    }
-                    hidden_row[h] = sum.tanh();
-                }
-
-                for o in 0..output_dim {
-                    let mut sum = self.b2[o];
-                    for h in 0..hidden {
-                        sum += hidden_row[h] * self.w2[h * output_dim + o];
-                    }
-                    output[sample_idx][o] = sum;
-                }
+                forward_hidden_layer(x_row, &self.w1, &self.b1, &mut hidden_buf);
+                forward_output_layer(&hidden_buf, &self.w2, &self.b2, &mut output[sample_idx]);
             }
 
             start = end;
@@ -744,6 +747,50 @@ mod tests {
                 .flat_map(|row| row.iter())
                 .all(|value| value.is_finite())
         );
+    }
+
+    #[test]
+    fn contiguous_forward_loops_match_reference_accumulation_exactly() {
+        let input = [0.25_f32, -0.75, 1.5];
+        let hidden_bias = [0.1_f32, -0.2, 0.3, -0.4];
+        let hidden_weights = [
+            0.5_f32, -0.1, 0.2, 0.7, -0.4, 0.8, -0.3, 0.6, 0.9, 0.2, -0.5, -0.7,
+        ];
+        let output_bias = [0.05_f32, -0.15];
+        let output_weights = [0.2_f32, -0.3, 0.4, 0.6, -0.8, 0.1, 0.7, -0.5];
+
+        let mut expected_hidden = vec![0.0_f32; hidden_bias.len()];
+        for hidden_idx in 0..expected_hidden.len() {
+            let mut sum = hidden_bias[hidden_idx];
+            for feature in 0..input.len() {
+                sum +=
+                    input[feature] * hidden_weights[feature * expected_hidden.len() + hidden_idx];
+            }
+            expected_hidden[hidden_idx] = sum.tanh();
+        }
+
+        let mut actual_hidden = vec![0.0_f32; hidden_bias.len()];
+        forward_hidden_layer(&input, &hidden_weights, &hidden_bias, &mut actual_hidden);
+        assert_eq!(actual_hidden, expected_hidden);
+
+        let mut expected_output = vec![0.0_f32; output_bias.len()];
+        for output_idx in 0..expected_output.len() {
+            let mut sum = output_bias[output_idx];
+            for hidden_idx in 0..expected_hidden.len() {
+                sum += expected_hidden[hidden_idx]
+                    * output_weights[hidden_idx * expected_output.len() + output_idx];
+            }
+            expected_output[output_idx] = sum;
+        }
+
+        let mut actual_output = vec![0.0_f32; output_bias.len()];
+        forward_output_layer(
+            &actual_hidden,
+            &output_weights,
+            &output_bias,
+            &mut actual_output,
+        );
+        assert_eq!(actual_output, expected_output);
     }
 
     #[test]

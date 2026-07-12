@@ -1,10 +1,12 @@
-use crate::{UmapError, UmapModel, UmapParams};
+use crate::{UmapError, UmapParams};
+use rayon::prelude::*;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 
 const DEFAULT_ALIGNMENT_REGULARIZATION: f32 = 0.08;
 const DEFAULT_ALIGNMENT_LEARNING_RATE: f32 = 0.25;
 const DEFAULT_RECENTER_INTERVAL: usize = 5;
+const MAX_PARALLEL_SLICE_FITS: usize = 4;
 
 #[derive(Debug, Clone)]
 pub struct AlignmentRelation {
@@ -242,13 +244,7 @@ impl AlignedUmapModel {
             });
         }
 
-        let mut embeddings = Vec::with_capacity(datasets.len());
-        for (slice_idx, slice_data) in datasets.iter().enumerate() {
-            let mut params = self.params.umap.clone();
-            params.random_seed = derive_slice_seed(params.random_seed, slice_idx as u64 + 1);
-            let mut model = UmapModel::new(params);
-            embeddings.push(model.fit_transform(slice_data)?);
-        }
+        let mut embeddings = fit_independent_slices(&self.params.umap, datasets)?;
 
         let prepared_relations = prepare_relations(datasets, relations)?;
         if self.params.alignment_regularization > 0.0 && !prepared_relations.is_empty() {
@@ -259,6 +255,58 @@ impl AlignedUmapModel {
         self.embeddings = Some(embeddings.clone());
         Ok(embeddings)
     }
+}
+
+fn fit_independent_slice(
+    base_params: &UmapParams,
+    slice_idx: usize,
+    slice_data: &[Vec<f32>],
+) -> Result<Vec<Vec<f32>>, UmapError> {
+    let mut params = base_params.clone();
+    params.random_seed = derive_slice_seed(params.random_seed, slice_idx as u64 + 1);
+    crate::fit_transform(slice_data, params)
+}
+
+fn fit_independent_slices(
+    base_params: &UmapParams,
+    datasets: &[Vec<Vec<f32>>],
+) -> Result<Vec<Vec<Vec<f32>>>, UmapError> {
+    if datasets.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    // Nested Rayon work shares the current global/custom pool and therefore creates no extra OS
+    // workers. Limiting the number of simultaneously live slice fits also bounds their temporary
+    // matrices and leaves workers available for each fit's internal kNN work.
+    let max_slice_parallelism = (rayon::current_num_threads() / 2)
+        .clamp(1, MAX_PARALLEL_SLICE_FITS)
+        .min(datasets.len());
+    let n_batches = datasets.len().div_ceil(max_slice_parallelism);
+    let slice_parallelism = datasets.len().div_ceil(n_batches);
+    if slice_parallelism == 1 {
+        return datasets
+            .iter()
+            .enumerate()
+            .map(|(slice_idx, slice_data)| {
+                fit_independent_slice(base_params, slice_idx, slice_data)
+            })
+            .collect();
+    }
+
+    let mut embeddings = Vec::with_capacity(datasets.len());
+    for (chunk_idx, chunk) in datasets.chunks(slice_parallelism).enumerate() {
+        let slice_offset = chunk_idx * slice_parallelism;
+        let chunk_results = chunk
+            .par_iter()
+            .enumerate()
+            .map(|(chunk_slice_idx, slice_data)| {
+                fit_independent_slice(base_params, slice_offset + chunk_slice_idx, slice_data)
+            })
+            .collect::<Vec<_>>();
+        let mut chunk_embeddings = chunk_results.into_iter().collect::<Result<Vec<_>, _>>()?;
+        embeddings.append(&mut chunk_embeddings);
+    }
+    Ok(embeddings)
 }
 
 fn derive_slice_seed(base_seed: u64, slice_ordinal: u64) -> u64 {
@@ -783,6 +831,39 @@ mod tests {
             "fixed seed should produce deterministic aligned embedding"
         );
         assert_all_finite(&emb_a);
+    }
+
+    #[test]
+    fn independent_slice_fits_match_across_thread_counts() {
+        let slices = make_temporal_slices(4, 48, 7);
+        let params = UmapParams {
+            n_neighbors: 10,
+            n_components: 2,
+            n_epochs: Some(30),
+            metric: Metric::Euclidean,
+            random_seed: 9182,
+            init: InitMethod::Random,
+            use_approximate_knn: false,
+            ..UmapParams::default()
+        };
+
+        let serial_pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(1)
+            .build()
+            .expect("serial test pool should build");
+        let parallel_pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(4)
+            .build()
+            .expect("parallel test pool should build");
+
+        let serial = serial_pool
+            .install(|| fit_independent_slices(&params, &slices))
+            .expect("serial slice fits should succeed");
+        let parallel = parallel_pool
+            .install(|| fit_independent_slices(&params, &slices))
+            .expect("parallel slice fits should succeed");
+
+        assert_eq!(parallel, serial);
     }
 
     #[test]

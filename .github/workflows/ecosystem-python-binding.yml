@@ -40,7 +40,7 @@ jobs:
           python -m pip install maturin pytest -r benchmarks/requirements-bench.txt
       - name: Build and install umapers
         run: |
-          maturin develop --manifest-path umap_rs/Cargo.toml
+          maturin develop --release --manifest-path umap_rs/Cargo.toml
       - name: Run umapers tests
         run: |
           python -I -m pytest -q umap_rs/tests/test_binding.py

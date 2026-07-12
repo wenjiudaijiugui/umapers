@@ -30,8 +30,10 @@ const SPECTRAL_EXACT_LOW_DIMENSIONAL_MAX_SAMPLES: usize = 2048;
 const SPECTRAL_ITERATIVE_COMPONENT_THRESHOLD: usize = 128;
 const SPECTRAL_ITERATIVE_MAX_ITERS: usize = 256;
 const SPECTRAL_ITERATIVE_OVERSAMPLING: usize = 6;
+const SPECTRAL_DENSE_FALLBACK_MAX_SAMPLES: usize = 4096;
 const SPECTRAL_ORTHO_EPS: f64 = 1e-12;
 const DENSITY_GRADIENT_SCALE: f32 = 0.1;
+const PARALLEL_QUERY_HEAD_THRESHOLD: usize = 32;
 
 type KnnRows = (Vec<Vec<usize>>, Vec<Vec<f32>>);
 type EmbeddingRows = Vec<Vec<f32>>;
@@ -608,6 +610,17 @@ impl UmapModel {
         }
     }
 
+    fn resolve_ab_params(&mut self) -> (f32, f32) {
+        if let Some(params) = self.ab_params() {
+            return params;
+        }
+
+        let params = find_ab_params(self.params.spread, self.params.min_dist);
+        self.a = params.0;
+        self.b = params.1;
+        params
+    }
+
     pub fn embedding(&self) -> Option<&[Vec<f32>]> {
         self.embedding.as_deref()
     }
@@ -817,9 +830,7 @@ impl UmapModel {
             .unwrap_or(if n_samples <= 10_000 { 500 } else { 200 });
 
         let stage = Instant::now();
-        let (a, b) = find_ab_params(self.params.spread, self.params.min_dist);
-        self.a = a;
-        self.b = b;
+        let (a, b) = self.resolve_ab_params();
         timings.curve_params_sec = stage.elapsed().as_secs_f64();
 
         let stage = Instant::now();
@@ -1371,9 +1382,7 @@ impl UmapModel {
             .n_epochs
             .unwrap_or(if n_samples <= 10_000 { 500 } else { 200 });
 
-        let (a, b) = find_ab_params(self.params.spread, self.params.min_dist);
-        self.a = a;
-        self.b = b;
+        let (a, b) = self.resolve_ab_params();
 
         let (knn_indices_trimmed, knn_dists_trimmed) = validate_and_trim_precomputed_knn(
             knn_indices,
@@ -1492,9 +1501,7 @@ impl UmapModel {
             .n_epochs
             .unwrap_or(if n_samples <= 10_000 { 500 } else { 200 });
 
-        let (a, b) = find_ab_params(self.params.spread, self.params.min_dist);
-        self.a = a;
-        self.b = b;
+        let (a, b) = self.resolve_ab_params();
 
         let (knn_indices_trimmed, knn_dists_trimmed) = validate_and_trim_precomputed_knn(
             knn_indices,
@@ -4195,8 +4202,11 @@ fn shifted_normalized_adjacency_mul(
     block: &SpectralBlock,
     undirected_edges: &[(usize, usize, f64)],
     inv_sqrt_degrees: &[f64],
-) -> SpectralBlock {
-    let mut out = block.clone();
+    out: &mut SpectralBlock,
+) {
+    debug_assert_eq!(out.n_rows, block.n_rows);
+    debug_assert_eq!(out.n_cols, block.n_cols);
+    out.data.copy_from_slice(&block.data);
 
     for &(i, j, weight) in undirected_edges {
         let normalized = weight * inv_sqrt_degrees[i] * inv_sqrt_degrees[j];
@@ -4212,8 +4222,6 @@ fn shifted_normalized_adjacency_mul(
             out.data[row_j_offset + col] += normalized * x_i;
         }
     }
-
-    out
 }
 
 fn spectral_embedding_from_edges_iterative(
@@ -4254,16 +4262,22 @@ fn spectral_embedding_from_edges_iterative(
         return None;
     }
 
+    let mut scratch = SpectralBlock::zeros(n_samples, subspace_dim);
     for _ in 0..SPECTRAL_ITERATIVE_MAX_ITERS {
-        let mut next =
-            shifted_normalized_adjacency_mul(&block, &undirected_edges, &inv_sqrt_degrees);
-        if !orthonormalize_columns(&mut next) {
+        shifted_normalized_adjacency_mul(
+            &block,
+            &undirected_edges,
+            &inv_sqrt_degrees,
+            &mut scratch,
+        );
+        if !orthonormalize_columns(&mut scratch) {
             return None;
         }
-        block = next;
+        std::mem::swap(&mut block, &mut scratch);
     }
 
-    let projected = shifted_normalized_adjacency_mul(&block, &undirected_edges, &inv_sqrt_degrees);
+    shifted_normalized_adjacency_mul(&block, &undirected_edges, &inv_sqrt_degrees, &mut scratch);
+    let projected = &scratch;
     let mut ritz = DMatrix::<f64>::zeros(subspace_dim, subspace_dim);
     for i in 0..subspace_dim {
         for j in i..subspace_dim {
@@ -4325,6 +4339,9 @@ fn spectral_embedding_from_edges(
     if n_samples >= iterative_threshold {
         spectral_embedding_from_edges_iterative(n_samples, embedding_dim, edges, seed).or_else(
             || {
+                if !spectral_dense_fallback_allowed(n_samples) {
+                    return None;
+                }
                 let laplacian = normalized_laplacian_from_edges(n_samples, edges)?;
                 spectral_embedding_from_laplacian(laplacian, embedding_dim, true)
             },
@@ -4333,6 +4350,11 @@ fn spectral_embedding_from_edges(
         let laplacian = normalized_laplacian_from_edges(n_samples, edges)?;
         spectral_embedding_from_laplacian(laplacian, embedding_dim, true)
     }
+}
+
+#[inline]
+fn spectral_dense_fallback_allowed(n_samples: usize) -> bool {
+    n_samples <= SPECTRAL_DENSE_FALLBACK_MAX_SAMPLES
 }
 
 fn spectral_init_connected(
@@ -4984,20 +5006,40 @@ fn is_finite_row(row: &[f32]) -> bool {
     row.iter().all(|v| v.is_finite())
 }
 
-fn euclidean_distance_with_grad(x: &[f32], y: &[f32]) -> (f32, Vec<f32>) {
+fn grouped_edge_offsets(edges: &[Edge], n_heads: usize) -> Option<Vec<usize>> {
+    let mut offsets = Vec::with_capacity(n_heads + 1);
+    let mut edge_idx = 0usize;
+
+    for head in 0..n_heads {
+        offsets.push(edge_idx);
+        while edge_idx < edges.len() && edges[edge_idx].head == head {
+            edge_idx += 1;
+        }
+        if edge_idx < edges.len() && edges[edge_idx].head < head {
+            return None;
+        }
+    }
+    offsets.push(edge_idx);
+
+    (edge_idx == edges.len()).then_some(offsets)
+}
+
+#[inline]
+fn query_head_seed(seed: u64, head: usize) -> u64 {
+    let mut mixed = seed ^ (head as u64).wrapping_mul(0x9E37_79B9_7F4A_7C15);
+    mixed = (mixed ^ (mixed >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+    mixed = (mixed ^ (mixed >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+    mixed ^ (mixed >> 31)
+}
+
+fn euclidean_distance_with_grad_denom(x: &[f32], y: &[f32]) -> (f32, f32) {
     let mut sq = 0.0_f32;
     for (a, b) in x.iter().zip(y.iter()) {
         let d = *a - *b;
         sq += d * d;
     }
     let dist = sq.sqrt();
-    let denom = 1e-6 + dist;
-    let grad = x
-        .iter()
-        .zip(y.iter())
-        .map(|(a, b)| (*a - *b) / denom)
-        .collect::<Vec<f32>>();
-    (dist, grad)
+    (dist, 1e-6 + dist)
 }
 
 struct DensityState {
@@ -5420,82 +5462,84 @@ fn optimize_layout_transform(
 
     let weights: Vec<f32> = edges.iter().map(|e| e.weight).collect();
     let epochs_per_sample = make_epochs_per_sample(&weights, n_epochs);
-    let mut epoch_of_next_sample = epochs_per_sample.clone();
-
     let epochs_per_negative_sample: Vec<f32> = epochs_per_sample
         .iter()
         .map(|eps| *eps / negative_sample_rate as f32)
         .collect();
-    let mut epoch_of_next_negative_sample = epochs_per_negative_sample.clone();
+    let Some(edge_offsets) = grouped_edge_offsets(edges, embedding.len()) else {
+        debug_assert!(false, "transform edges must be grouped by query head");
+        return;
+    };
 
-    let mut rng = SmallRng::seed_from_u64(seed);
+    let update_head = |(head, current): (usize, &mut Vec<f32>)| {
+        let start = edge_offsets[head];
+        let end = edge_offsets[head + 1];
+        let mut epoch_of_next_sample = epochs_per_sample[start..end].to_vec();
+        let mut epoch_of_next_negative_sample = epochs_per_negative_sample[start..end].to_vec();
+        let mut rng = SmallRng::seed_from_u64(query_head_seed(seed, head));
 
-    for epoch in 0..n_epochs {
-        let alpha = initial_alpha * (1.0 - epoch as f32 / n_epochs as f32);
+        for epoch in 0..n_epochs {
+            let alpha = initial_alpha * (1.0 - epoch as f32 / n_epochs as f32);
+            let epoch_f = epoch as f32;
 
-        for (edge_idx, edge) in edges.iter().enumerate() {
-            if epoch_of_next_sample[edge_idx] > epoch as f32 {
-                continue;
-            }
+            for (local_idx, edge_idx) in (start..end).enumerate() {
+                if epoch_of_next_sample[local_idx] > epoch_f || !is_finite_row(current) {
+                    continue;
+                }
 
-            let head = edge.head;
-            let tail = edge.tail;
-
-            if !is_finite_row(&embedding[head]) {
-                continue;
-            }
-
-            let dist_squared = squared_distance(&embedding[head], &base_embedding[tail]);
-            let grad_coeff = if dist_squared > 0.0 {
-                let dist_pow_b = dist_squared.powf(b);
-                -2.0 * a * b * dist_squared.powf(b - 1.0) / (a * dist_pow_b + 1.0)
-            } else {
-                0.0
-            };
-
-            {
-                let current = &mut embedding[head];
-                let other = &base_embedding[tail];
+                let edge = edges[edge_idx];
+                let other = &base_embedding[edge.tail];
+                let dist_squared = squared_distance(current, other);
+                let grad_coeff = if dist_squared > 0.0 {
+                    let dist_pow_b = dist_squared.powf(b);
+                    -2.0 * a * b * dist_squared.powf(b - 1.0) / (a * dist_pow_b + 1.0)
+                } else {
+                    0.0
+                };
                 for d in 0..dim {
                     let grad = clip(grad_coeff * (current[d] - other[d]));
                     current[d] += grad * alpha;
                 }
-            }
 
-            epoch_of_next_sample[edge_idx] += epochs_per_sample[edge_idx];
+                epoch_of_next_sample[local_idx] += epochs_per_sample[edge_idx];
 
-            let eps_neg = epochs_per_negative_sample[edge_idx];
-            if !eps_neg.is_finite() || eps_neg <= 0.0 {
-                continue;
-            }
+                let eps_neg = epochs_per_negative_sample[edge_idx];
+                if !eps_neg.is_finite() || eps_neg <= 0.0 {
+                    continue;
+                }
+                let n_neg_samples = ((epoch_f - epoch_of_next_negative_sample[local_idx]) / eps_neg)
+                    .floor()
+                    .max(0.0) as usize;
 
-            let n_neg_samples = ((epoch as f32 - epoch_of_next_negative_sample[edge_idx]) / eps_neg)
-                .floor()
-                .max(0.0) as usize;
-
-            for _ in 0..n_neg_samples {
-                let neg_idx = rng.gen_range(0..n_vertices);
-
-                let dist_squared = squared_distance(&embedding[head], &base_embedding[neg_idx]);
-                let grad_coeff = if dist_squared > 0.0 {
-                    let dist_pow_b = dist_squared.powf(b);
-                    2.0 * repulsion_strength * b / ((0.001 + dist_squared) * (a * dist_pow_b + 1.0))
-                } else {
-                    0.0
-                };
-
-                if grad_coeff > 0.0 {
-                    let current = &mut embedding[head];
+                for _ in 0..n_neg_samples {
+                    let neg_idx = rng.gen_range(0..n_vertices);
                     let other = &base_embedding[neg_idx];
-                    for d in 0..dim {
-                        let grad = clip(grad_coeff * (current[d] - other[d]));
-                        current[d] += grad * alpha;
+                    let dist_squared = squared_distance(current, other);
+                    let grad_coeff = if dist_squared > 0.0 {
+                        let dist_pow_b = dist_squared.powf(b);
+                        2.0 * repulsion_strength * b
+                            / ((0.001 + dist_squared) * (a * dist_pow_b + 1.0))
+                    } else {
+                        0.0
+                    };
+
+                    if grad_coeff > 0.0 {
+                        for d in 0..dim {
+                            let grad = clip(grad_coeff * (current[d] - other[d]));
+                            current[d] += grad * alpha;
+                        }
                     }
                 }
-            }
 
-            epoch_of_next_negative_sample[edge_idx] += n_neg_samples as f32 * eps_neg;
+                epoch_of_next_negative_sample[local_idx] += n_neg_samples as f32 * eps_neg;
+            }
         }
+    };
+
+    if embedding.len() >= PARALLEL_QUERY_HEAD_THRESHOLD {
+        embedding.par_iter_mut().enumerate().for_each(update_head);
+    } else {
+        embedding.iter_mut().enumerate().for_each(update_head);
     }
 }
 
@@ -5546,16 +5590,18 @@ fn optimize_layout_inverse<T: RowMatrix + ?Sized>(
                 continue;
             }
 
-            let (_, grad_dist_output) =
-                euclidean_distance_with_grad(&head_embedding[head], tail_embedding.row(tail));
+            let (_, grad_denom) =
+                euclidean_distance_with_grad_denom(&head_embedding[head], tail_embedding.row(tail));
 
             let wl = edge.weight;
             let grad_coeff = -(1.0 / (wl * sigmas[tail] + 1e-6));
 
             {
                 let current = &mut head_embedding[head];
+                let other = tail_embedding.row(tail);
                 for d in 0..dim {
-                    let grad_d = clip(grad_coeff * grad_dist_output[d]);
+                    let grad_dist = (current[d] - other[d]) / grad_denom;
+                    let grad_d = clip(grad_coeff * grad_dist);
                     current[d] += grad_d * alpha;
                 }
             }
@@ -5573,7 +5619,7 @@ fn optimize_layout_inverse<T: RowMatrix + ?Sized>(
 
             for _ in 0..n_neg_samples {
                 let neg_tail = rng.gen_range(0..n_vertices);
-                let (dist_neg, grad_neg) = euclidean_distance_with_grad(
+                let (dist_neg, grad_denom) = euclidean_distance_with_grad_denom(
                     &head_embedding[head],
                     tail_embedding.row(neg_tail),
                 );
@@ -5584,8 +5630,10 @@ fn optimize_layout_inverse<T: RowMatrix + ?Sized>(
 
                 {
                     let current = &mut head_embedding[head];
+                    let other = tail_embedding.row(neg_tail);
                     for d in 0..dim {
-                        let grad_d = clip(grad_coeff * grad_neg[d]);
+                        let grad_dist = (current[d] - other[d]) / grad_denom;
+                        let grad_d = clip(grad_coeff * grad_dist);
                         current[d] += grad_d * alpha;
                     }
                 }
@@ -5607,6 +5655,18 @@ fn curve_loss(a: f32, b: f32, xv: &[f32], yv: &[f32]) -> f32 {
     }
 
     loss / xv.len() as f32
+}
+
+fn curve_loss_from_powers(a: f32, x_powers: &[f32], yv: &[f32]) -> f32 {
+    let mut loss = 0.0_f32;
+
+    for (&x_power, &y) in x_powers.iter().zip(yv.iter()) {
+        let model = 1.0 / (1.0 + a * x_power);
+        let e = model - y;
+        loss += e * e;
+    }
+
+    loss / x_powers.len() as f32
 }
 
 pub fn find_ab_params(spread: f32, min_dist: f32) -> (f32, f32) {
@@ -5633,10 +5693,12 @@ pub fn find_ab_params(spread: f32, min_dist: f32) -> (f32, f32) {
 
     for bi in 0..=70 {
         let b = 0.3 + 2.7 * bi as f32 / 70.0;
+        let exponent = 2.0 * b;
+        let x_powers = xv.iter().map(|&x| x.powf(exponent)).collect::<Vec<f32>>();
         for ai in 0..=120 {
             let log_a = -3.0 + 6.0 * ai as f32 / 120.0;
             let a = 10_f32.powf(log_a);
-            let loss = curve_loss(a, b, &xv, &yv);
+            let loss = curve_loss_from_powers(a, &x_powers, &yv);
             if loss < best_loss {
                 best_loss = loss;
                 best_a = a;
@@ -5713,6 +5775,33 @@ mod tests {
             data.push(row);
         }
         data
+    }
+
+    #[test]
+    fn optimized_curve_search_preserves_reference_results() {
+        let cases = [
+            (1.0_f32, 0.1_f32, 0x3fc9_d9df_u32, 0x3f65_217d_u32),
+            (1.0, 0.0, 0x3ff7_62f1, 0x3f4a_5ea8),
+            (2.0, 0.5, 0x3e84_8a83, 0x3f87_5bf1),
+            (0.75, 0.2, 0x3fff_fffe, 0x3f89_ae8f),
+            (3.0, 1.0, 0x3d95_a936, 0x3f93_0f0c),
+        ];
+
+        for (spread, min_dist, expected_a, expected_b) in cases {
+            let (a, b) = find_ab_params(spread, min_dist);
+            assert_eq!(a.to_bits(), expected_a);
+            assert_eq!(b.to_bits(), expected_b);
+        }
+    }
+
+    #[test]
+    fn model_reuses_resolved_curve_params() {
+        let mut model = UmapModel::new(UmapParams::default());
+        assert_eq!(model.ab_params(), None);
+
+        let first = model.resolve_ab_params();
+        assert_eq!(model.ab_params(), Some(first));
+        assert_eq!(model.resolve_ab_params(), first);
     }
 
     #[test]
@@ -6098,6 +6187,52 @@ mod tests {
         let emb_2 = model_2.fit_transform(&data).expect("model 2 fit failed");
 
         assert_eq!(emb_1, emb_2);
+    }
+
+    #[test]
+    fn transform_head_parallelism_is_thread_count_deterministic() {
+        let n_heads = 64usize;
+        let n_tail = 128usize;
+        let base_embedding = (0..n_tail)
+            .map(|i| vec![(i as f32 * 0.07).sin(), (i as f32 * 0.11).cos()])
+            .collect::<Vec<Vec<f32>>>();
+        let initial = (0..n_heads)
+            .map(|i| vec![(i as f32 * 0.03).sin(), (i as f32 * 0.05).cos()])
+            .collect::<Vec<Vec<f32>>>();
+        let edges = (0..n_heads)
+            .flat_map(|head| {
+                (0..12).map(move |offset| Edge {
+                    head,
+                    tail: (head * 7 + offset * 11) % n_tail,
+                    weight: 1.0 - offset as f32 * 0.04,
+                })
+            })
+            .collect::<Vec<Edge>>();
+
+        let run = |threads| {
+            let mut embedding = initial.clone();
+            rayon::ThreadPoolBuilder::new()
+                .num_threads(threads)
+                .build()
+                .expect("thread pool")
+                .install(|| {
+                    optimize_layout_transform(
+                        &mut embedding,
+                        &base_embedding,
+                        &edges,
+                        40,
+                        1.576_961_4,
+                        0.895_042_24,
+                        0.25,
+                        5,
+                        1.0,
+                        991,
+                    );
+                });
+            embedding
+        };
+
+        assert_eq!(run(1), run(4));
     }
 
     #[test]
@@ -7488,6 +7623,16 @@ mod tests {
             spectral_iterative_connected_threshold(SPECTRAL_EXACT_LOW_DIMENSIONAL_MAX_FEATURES + 1),
             SPECTRAL_ITERATIVE_CONNECTED_THRESHOLD
         );
+    }
+
+    #[test]
+    fn spectral_dense_failure_fallback_has_a_bounded_allocation_budget() {
+        assert!(spectral_dense_fallback_allowed(
+            SPECTRAL_DENSE_FALLBACK_MAX_SAMPLES
+        ));
+        assert!(!spectral_dense_fallback_allowed(
+            SPECTRAL_DENSE_FALLBACK_MAX_SAMPLES + 1
+        ));
     }
 
     #[test]

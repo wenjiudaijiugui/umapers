@@ -129,7 +129,7 @@ jobs:
       - name: Build and install umapers
         run: |
           python -m pip install maturin
-          maturin develop --manifest-path umap_rs/Cargo.toml
+          maturin develop --release --manifest-path umap_rs/Cargo.toml
       - name: Run Python ecosystem benchmark report
         env:
           WARMUP: ${{ github.event.inputs.warmup || '1' }}

@@ -13,6 +13,7 @@ pub struct SparseCsrMatrix {
     indices: Vec<usize>,
     data: Vec<f32>,
     squared_norms: Vec<f32>,
+    l2_norms: Vec<f32>,
     row_sums: Vec<f32>,
 }
 
@@ -95,6 +96,7 @@ impl SparseCsrMatrix {
             squared_norms[row] = vals.iter().map(|v| v * v).sum();
             row_sums[row] = vals.iter().sum();
         }
+        let l2_norms = squared_norms.iter().map(|norm| norm.sqrt()).collect();
 
         Ok(Self {
             n_rows,
@@ -103,6 +105,7 @@ impl SparseCsrMatrix {
             indices,
             data,
             squared_norms,
+            l2_norms,
             row_sums,
         })
     }
@@ -125,6 +128,11 @@ impl SparseCsrMatrix {
     #[inline]
     pub fn squared_norm(&self, row: usize) -> f32 {
         self.squared_norms[row]
+    }
+
+    #[inline]
+    fn l2_norm(&self, row: usize) -> f32 {
+        self.l2_norms[row]
     }
 
     #[inline]
@@ -361,8 +369,8 @@ fn sparse_row_cosine_distance(matrix: &SparseCsrMatrix, lhs: usize, rhs: usize) 
     let (lhs_idx, lhs_vals) = matrix.row(lhs);
     let (rhs_idx, rhs_vals) = matrix.row(rhs);
     let dot = sparse_dot(lhs_idx, lhs_vals, rhs_idx, rhs_vals);
-    let lhs_norm = matrix.squared_norm(lhs).sqrt();
-    let rhs_norm = matrix.squared_norm(rhs).sqrt();
+    let lhs_norm = matrix.l2_norm(lhs);
+    let rhs_norm = matrix.l2_norm(rhs);
 
     if lhs_norm == 0.0 && rhs_norm == 0.0 {
         0.0
@@ -532,13 +540,11 @@ fn sparse_slices_minkowski_distance(
 fn sparse_slices_cosine_distance(
     lhs_idx: &[usize],
     lhs_vals: &[f32],
-    lhs_sq_norm: f32,
+    lhs_norm: f32,
     rhs_idx: &[usize],
     rhs_vals: &[f32],
-    rhs_sq_norm: f32,
+    rhs_norm: f32,
 ) -> f32 {
-    let lhs_norm = lhs_sq_norm.sqrt();
-    let rhs_norm = rhs_sq_norm.sqrt();
     if lhs_norm == 0.0 && rhs_norm == 0.0 {
         return 0.0;
     }
@@ -570,10 +576,10 @@ fn sparse_row_distance_between(
         Metric::Cosine => sparse_slices_cosine_distance(
             lhs_idx,
             lhs_vals,
-            lhs.squared_norm(lhs_row),
+            lhs.l2_norm(lhs_row),
             rhs_idx,
             rhs_vals,
-            rhs.squared_norm(rhs_row),
+            rhs.l2_norm(rhs_row),
         ),
         Metric::Chebyshev => sparse_slices_chebyshev_distance(lhs_idx, lhs_vals, rhs_idx, rhs_vals),
         Metric::Minkowski { p } => {
@@ -822,95 +828,83 @@ pub(crate) fn exact_nearest_neighbors_dense_query(
     } else {
         None
     };
-    let reference_l2_norms = if matches!(metric, Metric::Cosine) {
-        Some(
-            (0..reference.n_rows())
-                .map(|row| reference.squared_norm(row).sqrt())
-                .collect::<Vec<f32>>(),
-        )
-    } else {
-        None
-    };
-
-    let mut indices = Vec::with_capacity(query.len());
-    let mut dists = Vec::with_capacity(query.len());
-    for (q_row_idx, q_row) in query.iter().enumerate() {
-        let mut heap = BinaryHeap::<NeighborCandidate>::with_capacity(n_neighbors + 1);
-        for ref_idx in 0..reference.n_rows() {
-            let (ref_cols, ref_vals) = reference.row(ref_idx);
-            let dist = match metric {
-                Metric::Euclidean => {
-                    let mut dot = 0.0_f32;
-                    for (&col, &val) in ref_cols.iter().zip(ref_vals.iter()) {
-                        dot += q_row[col] * val;
+    let (indices, dists) = query
+        .par_iter()
+        .enumerate()
+        .map(|(q_row_idx, q_row)| {
+            let mut heap = BinaryHeap::<NeighborCandidate>::with_capacity(n_neighbors + 1);
+            for ref_idx in 0..reference.n_rows() {
+                let (ref_cols, ref_vals) = reference.row(ref_idx);
+                let dist = match metric {
+                    Metric::Euclidean => {
+                        let mut dot = 0.0_f32;
+                        for (&col, &val) in ref_cols.iter().zip(ref_vals.iter()) {
+                            dot += q_row[col] * val;
+                        }
+                        euclidean_distance_from_dot(
+                            query_sq_norms
+                                .as_ref()
+                                .expect("euclidean query norms should be computed")[q_row_idx],
+                            reference.squared_norm(ref_idx),
+                            dot,
+                        )
                     }
-                    euclidean_distance_from_dot(
+                    Metric::Manhattan => dense_query_to_sparse_manhattan_distance(
+                        q_row,
+                        query_l1_norms
+                            .as_ref()
+                            .expect("manhattan query norms should be computed")[q_row_idx],
+                        ref_cols,
+                        ref_vals,
+                    ),
+                    Metric::Cosine => dense_query_to_sparse_cosine_distance(
+                        q_row,
+                        query_l2_norms
+                            .as_ref()
+                            .expect("cosine query norms should be computed")[q_row_idx],
+                        ref_cols,
+                        ref_vals,
+                        reference.l2_norm(ref_idx),
+                    ),
+                    Metric::Chebyshev => {
+                        dense_query_to_sparse_chebyshev_distance(q_row, ref_cols, ref_vals)
+                    }
+                    Metric::Minkowski { p } => dense_query_to_sparse_minkowski_distance(
+                        q_row,
+                        query_minkowski_sums
+                            .as_ref()
+                            .expect("minkowski query p-sums should be computed")[q_row_idx],
+                        ref_cols,
+                        ref_vals,
+                        p,
+                    ),
+                    Metric::Correlation => dense_query_to_sparse_correlation_distance(
+                        q_row,
+                        query_sums
+                            .as_ref()
+                            .expect("correlation query sums should be computed")[q_row_idx],
                         query_sq_norms
                             .as_ref()
-                            .expect("euclidean query norms should be computed")[q_row_idx],
+                            .expect("correlation query squared norms should be computed")
+                            [q_row_idx],
+                        ref_cols,
+                        ref_vals,
+                        reference.row_sum(ref_idx),
                         reference.squared_norm(ref_idx),
-                        dot,
-                    )
-                }
-                Metric::Manhattan => dense_query_to_sparse_manhattan_distance(
-                    q_row,
-                    query_l1_norms
-                        .as_ref()
-                        .expect("manhattan query norms should be computed")[q_row_idx],
-                    ref_cols,
-                    ref_vals,
-                ),
-                Metric::Cosine => dense_query_to_sparse_cosine_distance(
-                    q_row,
-                    query_l2_norms
-                        .as_ref()
-                        .expect("cosine query norms should be computed")[q_row_idx],
-                    ref_cols,
-                    ref_vals,
-                    reference_l2_norms
-                        .as_ref()
-                        .expect("cosine reference norms should be computed")[ref_idx],
-                ),
-                Metric::Chebyshev => {
-                    dense_query_to_sparse_chebyshev_distance(q_row, ref_cols, ref_vals)
-                }
-                Metric::Minkowski { p } => dense_query_to_sparse_minkowski_distance(
-                    q_row,
-                    query_minkowski_sums
-                        .as_ref()
-                        .expect("minkowski query p-sums should be computed")[q_row_idx],
-                    ref_cols,
-                    ref_vals,
-                    p,
-                ),
-                Metric::Correlation => dense_query_to_sparse_correlation_distance(
-                    q_row,
-                    query_sums
-                        .as_ref()
-                        .expect("correlation query sums should be computed")[q_row_idx],
-                    query_sq_norms
-                        .as_ref()
-                        .expect("correlation query squared norms should be computed")[q_row_idx],
-                    ref_cols,
-                    ref_vals,
-                    reference.row_sum(ref_idx),
-                    reference.squared_norm(ref_idx),
-                ),
-                Metric::Canberra | Metric::BrayCurtis => {
-                    unreachable!("dense-only metrics are rejected before sparse query dispatch")
-                }
-            };
-            push_top_k(
-                &mut heap,
-                NeighborCandidate { idx: ref_idx, dist },
-                n_neighbors,
-            );
-        }
-
-        let (idx_row, dist_row) = heap_into_sorted_rows(heap);
-        indices.push(idx_row);
-        dists.push(dist_row);
-    }
+                    ),
+                    Metric::Canberra | Metric::BrayCurtis => {
+                        unreachable!("dense-only metrics are rejected before sparse query dispatch")
+                    }
+                };
+                push_top_k(
+                    &mut heap,
+                    NeighborCandidate { idx: ref_idx, dist },
+                    n_neighbors,
+                );
+            }
+            heap_into_sorted_rows(heap)
+        })
+        .unzip();
 
     Ok((indices, dists))
 }
@@ -1124,6 +1118,42 @@ mod tests {
                 q_idx_a[0],
                 expected.iter().take(k).map(|x| x.0).collect::<Vec<_>>()
             );
+        }
+    }
+
+    #[test]
+    fn dense_query_sparse_knn_matches_across_thread_counts() {
+        let reference = dense_data();
+        let csr = dense_to_csr(&reference);
+        let query = vec![
+            vec![0.25, 0.5, 1.25, 0.0, 0.0],
+            vec![1.0, 0.0, 0.0, 0.5, 0.0],
+            vec![0.0, 0.0, 0.0, 0.0, 0.0],
+        ];
+        let serial_pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(1)
+            .build()
+            .expect("serial test pool should build");
+        let parallel_pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(4)
+            .build()
+            .expect("parallel test pool should build");
+
+        for metric in [
+            Metric::Euclidean,
+            Metric::Manhattan,
+            Metric::Cosine,
+            Metric::Chebyshev,
+            Metric::Minkowski { p: 3.0 },
+            Metric::Correlation,
+        ] {
+            let serial = serial_pool
+                .install(|| exact_nearest_neighbors_dense_query(&query, &csr, 3, metric))
+                .expect("serial query knn should succeed");
+            let parallel = parallel_pool
+                .install(|| exact_nearest_neighbors_dense_query(&query, &csr, 3, metric))
+                .expect("parallel query knn should succeed");
+            assert_eq!(parallel, serial);
         }
     }
 }
