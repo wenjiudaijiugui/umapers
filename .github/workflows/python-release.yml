@@ -89,7 +89,7 @@ jobs:
       - uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1
         with:
           command: sdist
-          args: --manifest-path umap_rs/Cargo.toml --locked --out umap_rs/dist
+          args: --manifest-path umap_rs/Cargo.toml --out umap_rs/dist
           maturin-version: v1.14.1
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

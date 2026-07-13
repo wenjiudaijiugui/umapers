@@ -33,7 +33,8 @@ if command -v uv >/dev/null 2>&1; then
   uv run --python "$VENV_PYTHON" maturin develop --release --locked --manifest-path umap_rs/Cargo.toml
   uv run --python "$VENV_PYTHON" python -I -m pytest -q umap_rs/tests/test_binding.py
   uv run --python "$VENV_PYTHON" python -m pytest -q benchmarks/tests/test_release_prep_regression.py
-  uv run --python "$VENV_PYTHON" maturin build --release --locked --sdist --manifest-path umap_rs/Cargo.toml --out "$DIST_DIR"
+  uv run --python "$VENV_PYTHON" maturin sdist --manifest-path umap_rs/Cargo.toml --out "$DIST_DIR"
+  uv run --python "$VENV_PYTHON" maturin build --release --locked --manifest-path umap_rs/Cargo.toml --out "$DIST_DIR"
   uv run --python "$VENV_PYTHON" python -m twine check "$DIST_DIR"/*
 else
   "$PYTHON_BIN" -m venv "$VALIDATION_VENV"
@@ -45,7 +46,9 @@ else
   "$VENV_PYTHON" -I -m pytest -q umap_rs/tests/test_binding.py
   "$VENV_PYTHON" -m pytest -q benchmarks/tests/test_release_prep_regression.py
   VIRTUAL_ENV="$VALIDATION_VENV" PATH="$ROOT_DIR/$VALIDATION_VENV/bin:$PATH" \
-    maturin build --release --locked --sdist --manifest-path umap_rs/Cargo.toml --out "$DIST_DIR"
+    maturin sdist --manifest-path umap_rs/Cargo.toml --out "$DIST_DIR"
+  VIRTUAL_ENV="$VALIDATION_VENV" PATH="$ROOT_DIR/$VALIDATION_VENV/bin:$PATH" \
+    maturin build --release --locked --manifest-path umap_rs/Cargo.toml --out "$DIST_DIR"
   "$VENV_PYTHON" -m twine check "$DIST_DIR"/*
 fi
 
