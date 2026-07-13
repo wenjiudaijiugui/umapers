@@ -12,6 +12,9 @@ The public API is intentionally small: fit an embedding, transform new rows, che
 pip install umapers
 ```
 
+Published wheels support CPython 3.9 through 3.13. Python 3.14 is excluded
+until the PyO3 binding dependency is upgraded and validated on that runtime.
+
 Optional extras for plotting and diagnostics:
 
 ```bash

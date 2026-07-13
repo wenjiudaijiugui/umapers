@@ -6,6 +6,8 @@ umap_rs/target/
 # Python caches
 __pycache__/
 *.pyc
+.venv/
+umap_rs/dist/
 rust_umap_py/python/rust_umap_py/_rust_umap_py*.so
 umap_rs/python/umapers/_umapers*.so
 

@@ -14,6 +14,9 @@ The current reports show similar downstream clustering quality on the tested rea
 pip install umapers
 ```
 
+Published wheels support CPython 3.9 through 3.13. Python 3.14 is excluded
+until the PyO3 binding dependency is upgraded and validated on that runtime.
+
 Optional extras for plotting and diagnostics:
 
 ```bash
@@ -184,7 +187,7 @@ embedding = Umap(n_neighbors=k, random_seed=42).fit_transform_with_knn(
 
 ## Known Gaps
 
-As of `1.1.3`:
+As of `1.1.4`:
 
 - sparse-trained `inverse_transform` is not supported yet
 - `ParametricUmap` is a lightweight convenience workflow, not a Keras/TensorFlow replacement

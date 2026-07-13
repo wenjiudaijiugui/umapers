@@ -4,14 +4,30 @@ on:
   pull_request:
     paths:
       - 'rust_umap/**'
+      - 'umap_rs/**'
       - 'benchmarks/**'
+      - 'scripts/**'
+      - 'docs/releases/**'
+      - 'CHANGELOG.md'
+      - 'README.md'
+      - 'README_CN.md'
+      - 'LICENSE'
+      - '.github/workflows/python-release.yml'
       - '.github/workflows/release-prep-regression.yml'
   push:
     branches:
       - main
     paths:
       - 'rust_umap/**'
+      - 'umap_rs/**'
       - 'benchmarks/**'
+      - 'scripts/**'
+      - 'docs/releases/**'
+      - 'CHANGELOG.md'
+      - 'README.md'
+      - 'README_CN.md'
+      - 'LICENSE'
+      - '.github/workflows/python-release.yml'
       - '.github/workflows/release-prep-regression.yml'
   workflow_dispatch:
 
@@ -63,6 +79,7 @@ jobs:
           git worktree add "$RUNNER_TEMP/umapers-baseline" "$BASE_REF"
       - name: Run release-prep unit tests
         run: |
+          python scripts/check_release_version.py
           python -m pytest -q benchmarks/tests/test_release_prep_regression.py
       - name: Run release-prep regression
         run: |

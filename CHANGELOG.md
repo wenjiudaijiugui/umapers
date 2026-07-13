@@ -5,6 +5,30 @@ All notable changes to this repository are documented in this file.
 The format follows Keep a Changelog and uses semantic-versioned release headings
 for user-facing milestones.
 
+## [1.1.4] - 2026-07-13
+
+### Performance
+
+- Reused fitted curve parameters, precomputed the curve-search powers, and
+  removed repeated spectral scratch allocations while preserving the fitted
+  embedding bit-for-bit on the release regression matrix.
+- Parallelized independent dense-to-sparse queries and transform heads, and
+  improved contiguous access in the parametric and aligned workflows. The
+  transform path remains deterministic across thread counts, but its seeded
+  coordinates intentionally differ from `1.1.3` because each query now owns an
+  independent random stream.
+- Removed avoidable inverse-transform gradient allocations and retained a
+  bounded dense spectral fallback to prevent unbounded recovery allocations.
+
+### Packaging
+
+- Included the full BSD license text in Python distributions and declared the
+  tested Python support range as 3.9 through 3.13.
+- Added release version validation, cross-platform wheel smoke tests, and an
+  automated GitHub Release asset step around the PyPI Trusted Publishing flow.
+- Fixed the deep benchmark workflow to build inside an activated virtual
+  environment.
+
 ## [1.1.3] - 2026-06-13
 
 ### Fixed

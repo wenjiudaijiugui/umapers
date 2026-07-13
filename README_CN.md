@@ -14,6 +14,9 @@
 pip install umapers
 ```
 
+当前发布的 wheel 支持 CPython 3.9 至 3.13。在 PyO3 绑定依赖升级并完成
+Python 3.14 验证前，该版本不在支持范围内。
+
 可选绘图和诊断工具：
 
 ```bash
@@ -184,7 +187,7 @@ embedding = Umap(n_neighbors=k, random_seed=42).fit_transform_with_knn(
 
 ## 已知限制
 
-截至 `1.1.3`：
+截至 `1.1.4`：
 
 - 暂不支持稀疏数据训练后的 `inverse_transform`
 - `ParametricUmap` 是轻量便捷工作流，不是 Keras/TensorFlow 替代品
